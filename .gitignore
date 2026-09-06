@@ -1,0 +1,30 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio / Rider / IDE cache
+.vs/
+.idea/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Temporary files & caches
+*.tmp
+*.temp
+*.log
+.cache/
