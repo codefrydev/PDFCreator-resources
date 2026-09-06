@@ -63,10 +63,7 @@ public partial class MusicPlayerView : UserControl
         if (files is null) return;
 
         var paths = new System.Collections.Generic.List<string>();
-        var validExtensions = new System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ".mp3", ".wav", ".flac", ".m4a", ".aac", ".ogg", ".wma", ".aiff"
-        };
+        var validExtensions = MusicPlayerViewModel.SupportedExtensions;
 
         foreach (var item in files)
         {
@@ -175,11 +172,11 @@ public partial class MusicPlayerView : UserControl
                 AllowMultiple = true,
                 FileTypeFilter = new[]
                 {
-                    new FilePickerFileType("Audio Files (*.mp3, *.wav, *.flac, *.m4a, *.aac, *.ogg)")
+                    new FilePickerFileType("Supported Audio Files (*.mp3, *.wav, *.flac)")
                     {
-                        Patterns = new[] { "*.mp3", "*.wav", "*.flac", "*.m4a", "*.aac", "*.ogg", "*.wma", "*.aiff" },
-                        AppleUniformTypeIdentifiers = new[] { "public.audio" },
-                        MimeTypes = new[] { "audio/*" }
+                        Patterns = new[] { "*.mp3", "*.wav", "*.flac" },
+                        AppleUniformTypeIdentifiers = new[] { "public.mp3", "com.microsoft.waveform-audio", "org.xiph.flac", "public.audio" },
+                        MimeTypes = new[] { "audio/mpeg", "audio/wav", "audio/flac" }
                     },
                     FilePickerFileTypes.All
                 }

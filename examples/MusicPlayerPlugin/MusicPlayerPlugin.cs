@@ -239,29 +239,12 @@ public class MusicPlayerPlugin : IFryPlugin
 
                 if (foundPath != null)
                 {
-                    // 1. Explicitly load into process address space so the dynamic linker caches it
+                    // Explicitly pre-load into process address space so the dynamic linker caches the native handle.
+                    // Note: Do NOT call NativeLibrary.SetDllImportResolver on SoundFlow assembly, as
+                    // SoundFlow.Backends.MiniAudio.Native has its own static constructor that registers
+                    // its internal NativeLibraryResolver. In .NET, registering a resolver twice throws
+                    // InvalidOperationException and crashes SoundFlow with a TypeInitializationException.
                     NativeLibrary.TryLoad(foundPath, out _);
-
-                    // 2. Set DllImportResolver on the SoundFlow assembly so any [LibraryImport("miniaudio")] delegates directly to this handle
-                    try
-                    {
-                        NativeLibrary.SetDllImportResolver(typeof(SoundFlow.Components.SoundPlayer).Assembly, (name, asm, searchPath) =>
-                        {
-                            if (name.Equals("miniaudio", StringComparison.OrdinalIgnoreCase) ||
-                                name.Equals("libminiaudio", StringComparison.OrdinalIgnoreCase))
-                            {
-                                if (NativeLibrary.TryLoad(foundPath, out var handle))
-                                {
-                                    return handle;
-                                }
-                            }
-                            return IntPtr.Zero;
-                        });
-                    }
-                    catch
-                    {
-                        // SetDllImportResolver can only be registered once per assembly
-                    }
                 }
 
                 _nativeLoaded = true;

@@ -34,6 +34,13 @@ public enum RepeatMode
 /// </summary>
 public partial class MusicPlayerViewModel : ObservableObject, IDisposable
 {
+    /// <summary>
+    /// Audio extensions natively supported by SoundFlow MiniAudio engine (MP3, WAV, FLAC).
+    /// </summary>
+    public static readonly HashSet<string> SupportedExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".mp3", ".wav", ".flac"
+    };
     private const string PluginId = "frypdf.overlay.musicplayer";
     private const string SettingVolume = "Volume";
     private const string SettingRepeatMode = "RepeatMode";
@@ -257,10 +264,7 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
         {
             var foundPaths = await Task.Run(() =>
             {
-                var validExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                {
-                    ".mp3", ".wav", ".flac", ".m4a", ".aac", ".ogg", ".wma", ".aiff"
-                };
+                var validExtensions = SupportedExtensions;
 
                 var results = new List<string>();
                 try
@@ -319,8 +323,14 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
     /// </summary>
     public async Task AddTracksAsync(IEnumerable<string> filePaths)
     {
-        var pathsList = filePaths.Where(File.Exists).ToList();
-        if (pathsList.Count == 0) return;
+        var pathsList = filePaths
+            .Where(f => File.Exists(f) && SupportedExtensions.Contains(Path.GetExtension(f)))
+            .ToList();
+        if (pathsList.Count == 0)
+        {
+            StatusMessage = "No supported audio files found (MP3, WAV, FLAC).";
+            return;
+        }
 
         IsLoadingFiles = true;
         StatusMessage = "Scanning audio files...";
@@ -472,6 +482,12 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
         if (_device is null || _engine is null)
         {
             StatusMessage = "Audio device unavailable.";
+            return;
+        }
+
+        if (!SupportedExtensions.Contains(Path.GetExtension(track.FilePath)))
+        {
+            StatusMessage = $"Cannot play '{track.Title}': only MP3, WAV, and FLAC are supported.";
             return;
         }
 
