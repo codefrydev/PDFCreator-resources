@@ -6,7 +6,7 @@
     "version": "1.0.0",
     "category": "UI & Extensions",
     "description": "Interactive floating Tic-Tac-Toe mini-game with local 2-Player mode and intelligent AI opponent.",
-    "longDescription": "Bring playful entertainment into your PDF workflow! Features single player vs AI (with Easy, Smart, and Unbeatable difficulties) and local 2-player pass-and-play mode. Deeply integrated with FryPDF shell overlay, status bar, and command palette.\n\n### Key Features:\n\u2022 **Floating Shell Overlay**: Smoothly drags and docks on top of any document workspace.\n\u2022 **Single Player vs Smart AI**: Multiple difficulty settings with strategic minimax moves.\n\u2022 **Local 2-Player Mode**: Play head-to-head with friends or colleagues.\n\u2022 **Score Counter**: Live score tracking for wins, losses, and draws.\n\u2022 **Deep Shell Integration**: Contributes to Command Palette (), Status Bar (), and Ribbon View Tab.",
+    "longDescription": "Bring playful entertainment into your PDF workflow! Features single player vs AI (with Easy, Smart, and Unbeatable difficulties) and local 2-player pass-and-play mode. Deeply integrated with FryPDF shell overlay, status bar, and command palette.\n\n### Key Features:\n• **Floating Shell Overlay**: Smoothly drags and docks on top of any document workspace.\n• **Single Player vs Smart AI**: Multiple difficulty settings with strategic minimax moves.\n• **Local 2-Player Mode**: Play head-to-head with friends or colleagues.\n• **Score Counter**: Live score tracking for wins, losses, and draws.\n• **Deep Shell Integration**: Contributes to Command Palette, Status Bar, and Ribbon View Tab.",
     "rating": 5.0,
     "ratingCount": 42,
     "installCount": 520,
@@ -33,8 +33,50 @@
     "contributedFeatures": [
       "Shell Overlay: Floating Tic-Tac-Toe Game Card",
       "Command Palette: 'Play Tic-Tac-Toe (Shell Overlay)'",
-      "Status Bar: Clickable '\ud83c\udfae Tic-Tac-Toe' Indicator Pill",
+      "Status Bar: Clickable '🎮 Tic-Tac-Toe' Indicator Pill",
       "Ribbon: View Tab > Plugins > Tic-Tac-Toe Action Button"
+    ],
+    "dependencies": [
+      "PdfEditorApp.Core >= 1.0.0"
+    ]
+  },
+  {
+    "id": "frypdf.overlay.snake",
+    "name": "Retro Arcade Snake Game",
+    "publisher": "FryPDF Team",
+    "version": "1.0.0",
+    "category": "UI & Extensions",
+    "description": "Playable, draggable retro-arcade Snake game floating over the application canvas in the 'shell.overlay' slot.",
+    "longDescription": "Bring playful retro-arcade entertainment into your document workflow! This extension mounts a high-performance floating Snake game into the 'shell.overlay' slot.\n\n### Key Features:\n• **Non-Modal Floating Overlay**: Runs smoothly on top of any document or workspace page without interrupting your PDF work.\n• **60+ FPS Smooth Avalonia Drawing**: Direct DrawingContext GPU rendering with zero Large Object Heap allocations.\n• **Tactile Custom Chrome Frame**: Dark retro arcade aesthetics with D-Pad and score counters.\n• **Interactive Controls**: Keyboard arrows/WASD, on-screen tactile D-Pad buttons, difficulty & speed selection.\n• **Deep Shell Integration**: Contributes to Command Palette, Status Bar, and Ribbon View Tab.",
+    "rating": 5.0,
+    "ratingCount": 128,
+    "installCount": 4200,
+    "formattedSize": "20 KB",
+    "iconKind": "GamepadVariantOutline",
+    "iconColorHex": "#10B981",
+    "license": "MIT",
+    "isVerified": true,
+    "isOfficial": true,
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.snake/Snake.fryplugin",
+    "tags": [
+      "game",
+      "snake",
+      "overlay",
+      "arcade",
+      "retro",
+      "shell",
+      "widget"
+    ],
+    "highlights": [
+      "60+ FPS direct canvas drawing",
+      "Draggable shell.overlay card",
+      "Tactile on-screen D-Pad"
+    ],
+    "contributedFeatures": [
+      "Shell Overlay: Floating Snake Game Card",
+      "Command Palette: 'Play Snake Game (Shell Overlay)'",
+      "Status Bar: Clickable '🐍 Snake' Indicator Pill",
+      "Ribbon: View Tab > Plugins > Snake Game Action Button"
     ],
     "dependencies": [
       "PdfEditorApp.Core >= 1.0.0"
