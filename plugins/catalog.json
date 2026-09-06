@@ -81,5 +81,85 @@
     "dependencies": [
       "PdfEditorApp.Core >= 1.0.0"
     ]
+  },
+  {
+    "id": "frypdf.overlay.scratchpad",
+    "name": "Review Scratchpad & Notes",
+    "publisher": "FryPDF Tools Team",
+    "version": "1.0.0",
+    "category": "UI & Extensions",
+    "description": "Floating Markdown scratchpad with live word/char counters and timestamp logs for PDF review.",
+    "longDescription": "Jot down rapid review notes, citations, page corrections, and checklists without leaving your current PDF screen.\n\n### Key Features:\n• **Automatic M3 Expressive Card Chrome**: Automatic draggable header, pin toggle, and minimize pill.\n• **Live Word & Character Counter**: Keep track of notes and summary length in real time.\n• **Quick Action Pills**: One-click timestamp insertions and notes clearing.\n• **Deep Shell Integration**: Contributes to Command Palette (`Ctrl+Alt+N`), Status Bar (`📝 Notes`), and Ribbon View Tab.",
+    "rating": 4.9,
+    "ratingCount": 94,
+    "installCount": 2850,
+    "formattedSize": "14 KB",
+    "iconKind": "NotebookEditOutline",
+    "iconColorHex": "#6366F1",
+    "license": "MIT",
+    "isVerified": true,
+    "isOfficial": true,
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.scratchpad/Scratchpad.fryplugin",
+    "tags": [
+      "scratchpad",
+      "notes",
+      "review",
+      "overlay",
+      "markdown"
+    ],
+    "highlights": [
+      "Auto M3 window chrome",
+      "Real-time word & char count",
+      "Timestamp note inserts"
+    ],
+    "contributedFeatures": [
+      "Shell Overlay: Floating Scratchpad Card",
+      "Command Palette: 'Toggle Review Scratchpad (Shell Overlay)'",
+      "Status Bar: Clickable '📝 Notes' Indicator Pill",
+      "Ribbon: View Tab > Plugins > Scratchpad Button"
+    ],
+    "dependencies": [
+      "PdfEditorApp.Core >= 1.0.0"
+    ]
+  },
+  {
+    "id": "frypdf.overlay.telemetry",
+    "name": "Document Telemetry HUD",
+    "publisher": "FryPDF Core Engineering",
+    "version": "1.0.0",
+    "category": "Tools & Productivity",
+    "description": "Live performance telemetry HUD showing managed heap allocation, GC cycles, and memory trimming.",
+    "longDescription": "Monitor runtime engine health, managed memory, GC generations, and system architecture in a compact floating HUD.\n\n### Key Features:\n• **Real-Time Memory Telemetry**: Track managed heap size and GC frequency.\n• **One-Click Heap Trimming**: Trigger immediate memory compaction and trimming during heavy PDF sessions.\n• **Compact Floating Utility**: Stays parked neatly on top of the document workspace without obstructing tools.\n• **Deep Shell Integration**: Contributes to Command Palette (`Ctrl+Alt+T`), Status Bar (`⚡ HUD`), and Ribbon View Tab.",
+    "rating": 4.8,
+    "ratingCount": 76,
+    "installCount": 1920,
+    "formattedSize": "13 KB",
+    "iconKind": "ChartTimelineVariant",
+    "iconColorHex": "#0EA5E9",
+    "license": "MIT",
+    "isVerified": true,
+    "isOfficial": true,
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.telemetry/Telemetry.fryplugin",
+    "tags": [
+      "telemetry",
+      "diagnostics",
+      "memory",
+      "hud",
+      "performance"
+    ],
+    "highlights": [
+      "Live heap monitoring",
+      "One-click GC heap trimming",
+      "Compact M3 HUD"
+    ],
+    "contributedFeatures": [
+      "Shell Overlay: Floating Telemetry HUD Card",
+      "Command Palette: 'Toggle Telemetry HUD (Shell Overlay)'",
+      "Status Bar: Clickable '⚡ HUD' Indicator Pill",
+      "Ribbon: View Tab > Plugins > Telemetry HUD Button"
+    ],
+    "dependencies": [
+      "PdfEditorApp.Core >= 1.0.0"
+    ]
   }
 ]
