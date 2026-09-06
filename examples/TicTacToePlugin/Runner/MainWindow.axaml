@@ -1,0 +1,19 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="using:FryPdf.Plugin.TicTacToe"
+        mc:Ignorable="d"
+        x:Class="FryPdf.Plugin.TicTacToe.Runner.MainWindow"
+        Title="Tic-Tac-Toe - Standalone Runner"
+        Width="360" Height="520"
+        MinWidth="340" MinHeight="480"
+        WindowStartupLocation="CenterScreen"
+        Background="#090D13">
+
+    <Grid Margin="18">
+        <local:TicTacToeView x:Name="GameView"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center" />
+    </Grid>
+</Window>

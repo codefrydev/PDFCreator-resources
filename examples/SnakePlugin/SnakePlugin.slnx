@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="SnakePlugin.csproj" />
+  <Project Path="Runner/SnakePlugin.Runner.csproj" />
+</Solution>

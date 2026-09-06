@@ -10,6 +10,7 @@
     <Version>1.0.0</Version>
     <Company>Code Fry Dev</Company>
     <Description>Playable Tic-Tac-Toe shell overlay plugin for FryPDF</Description>
+    <DefaultItemExcludes>$(DefaultItemExcludes);Runner/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <!--
@@ -34,6 +35,20 @@
     ====================================================================================================
   -->
   <Choose>
+    <!-- When building inside a sibling clone of the FryPDF repository -->
+    <When Condition="Exists('..\..\..\PDFCreator\src\PdfEditorApp.Core\PdfEditorApp.Core.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\PDFCreator\src\PdfEditorApp.Core\PdfEditorApp.Core.csproj">
+          <Private>false</Private>
+          <ExcludeAssets>runtime</ExcludeAssets>
+        </ProjectReference>
+        <ProjectReference Include="..\..\..\PDFCreator\src\PdfEditorApp\PdfEditorApp.csproj">
+          <Private>false</Private>
+          <ExcludeAssets>runtime</ExcludeAssets>
+        </ProjectReference>
+      </ItemGroup>
+    </When>
+
     <!-- When building inside the FryPDF source tree (repo CI/testing) -->
     <When Condition="Exists('..\..\..\src\PdfEditorApp.Core\PdfEditorApp.Core.csproj')">
       <ItemGroup>

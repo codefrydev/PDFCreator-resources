@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TelemetryPlugin.csproj" />
+  <Project Path="Runner/TelemetryPlugin.Runner.csproj" />
+</Solution>

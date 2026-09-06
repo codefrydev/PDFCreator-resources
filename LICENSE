@@ -1,0 +1,51 @@
+# FryPDF Font Resources — Open Source License Notice
+
+The fonts contained in this repository are distributed under free, open-source licenses permitting personal and commercial use, embedding, bundling, and redistribution.
+
+---
+
+## License Summary
+
+### 1. SIL Open Font License, Version 1.1 (OFL 1.1)
+The vast majority of fonts in this repository (64 fonts, including Google Noto Sans multilingual families, Inter, Poppins, Montserrat, Raleway, Lato, Fira Code, Caveat, Orbitron, Oswald, etc.) are released under the SIL Open Font License, Version 1.1.
+
+Full license text is available in [`OFL.txt`](./OFL.txt) and at https://scripts.sil.org/OFL.
+
+### 2. Apache License, Version 2.0
+The following fonts designed by Christian Robertson for Google LLC are released under the Apache License, Version 2.0:
+- `fonts/Roboto.ttf`
+- `fonts/RobotoMono.ttf`
+
+Full license text is available in [`LICENSE-Apache-2.0.txt`](./LICENSE-Apache-2.0.txt) and at http://www.apache.org/licenses/LICENSE-2.0.
+
+### 3. Ubuntu Font Licence, Version 1.0
+The following font designed by Dalton Maag for Canonical Ltd is released under the Ubuntu Font Licence, Version 1.0:
+- `fonts/Ubuntu.ttf`
+
+Full license text is available in [`LICENSE-Ubuntu.txt`](./LICENSE-Ubuntu.txt) and at https://ubuntu.com/legal/font-licence.
+
+---
+
+## Attribution & Copyright Holders
+
+- **Google Noto Fonts**: Copyright (c) 2012-2026 Google LLC. All Rights Reserved. (SIL OFL 1.1)
+- **Inter**: Copyright (c) 2016-2026 Rasmus Andersson. (SIL OFL 1.1)
+- **Roboto & Roboto Mono**: Copyright (c) 2011-2026 Google Inc. Christian Robertson. (Apache 2.0)
+- **Ubuntu**: Copyright (c) 2010-2026 Canonical Ltd. Dalton Maag. (Ubuntu Font Licence 1.0)
+- **Poppins**: Copyright (c) 2014-2026 Indian Type Foundry. (SIL OFL 1.1)
+- **Lato**: Copyright (c) 2010-2026 Lukasz Dziedzic. (SIL OFL 1.1)
+- **Montserrat**: Copyright (c) 2011-2026 Julieta Ulanovsky. (SIL OFL 1.1)
+- **Fira Code**: Copyright (c) 2014-2026 Nikita Prokopov. (SIL OFL 1.1)
+- **Raleway**: Copyright (c) 2010-2026 Matt McInerney, Pablo Impallari, Rodrigo Fuenzalida. (SIL OFL 1.1)
+- **Merriweather**: Copyright (c) 2016-2026 Eben Sorkin. (SIL OFL 1.1)
+- **Lora**: Copyright (c) 2011-2026 Cyreal. (SIL OFL 1.1)
+- **Open Sans**: Copyright (c) 2011-2026 Steve Matteson. (SIL OFL 1.1)
+- **Source Sans 3**: Copyright (c) 2010-2026 Adobe Systems Incorporated. (SIL OFL 1.1)
+- **Nanum Gothic**: Copyright (c) 2010-2026 NHN Corporation. (SIL OFL 1.1)
+- **Vazirmatn**: Copyright (c) 2015-2026 Saber Rastikerdar. (SIL OFL 1.1)
+- **Heebo**: Copyright (c) 2016-2026 Oded Ezer. (SIL OFL 1.1)
+- **Sarabun**: Copyright (c) 2013-2026 Suppacheep Aswanuchit. (SIL OFL 1.1)
+- **Be Vietnam Pro**: Copyright (c) 2019-2026 Lam Bao. (SIL OFL 1.1)
+- **Golos Text**: Copyright (c) 2019-2026 Paratype. (SIL OFL 1.1)
+- **Russo One**: Copyright (c) 2012-2026 Jovanny Lemonad. (SIL OFL 1.1)
+- **GFS Neohellenic**: Copyright (c) 2001-2026 Greek Font Society. (SIL OFL 1.1)

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ScratchpadPlugin.csproj" />
+  <Project Path="Runner/ScratchpadPlugin.Runner.csproj" />
+</Solution>

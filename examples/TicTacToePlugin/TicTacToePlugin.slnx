@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TicTacToePlugin.csproj" />
+  <Project Path="Runner/TicTacToePlugin.Runner.csproj" />
+</Solution>
