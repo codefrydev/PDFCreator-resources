@@ -6,10 +6,10 @@
         mc:Ignorable="d"
         x:Class="PdfEditorApp.Plugins.MusicPlayer.Runner.MainWindow"
         Title="🎵 FryPDF Music Player — M3 Expressive Studio"
-        Width="400" Height="620"
-        MinWidth="360" MinHeight="500"
+        Width="380" Height="540"
+        MinWidth="350" MinHeight="460"
         WindowStartupLocation="CenterScreen"
         Background="#0B0F17">
 
-    <local:MusicPlayerView x:Name="PlayerView" Margin="14" />
+    <local:MusicPlayerView x:Name="PlayerView" Margin="10" />
 </Window>

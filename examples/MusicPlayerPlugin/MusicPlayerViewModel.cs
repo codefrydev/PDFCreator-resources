@@ -158,6 +158,7 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
     public bool HasTracks => Playlist.Count > 0;
     public bool IsEmpty => Playlist.Count == 0;
     public bool ShowSearchFilter => Playlist.Count >= 3;
+    public bool HasFewTracks => Playlist.Count > 0 && Playlist.Count <= 2;
 
     public string PositionDisplay => $"{FormatTime(PositionSeconds)} / {FormatTime(DurationSeconds)}";
     public string ElapsedDisplay => FormatTime(PositionSeconds);
@@ -759,6 +760,7 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HasTracks));
         OnPropertyChanged(nameof(IsEmpty));
         OnPropertyChanged(nameof(ShowSearchFilter));
+        OnPropertyChanged(nameof(HasFewTracks));
         OnPropertyChanged(nameof(TotalDurationDisplay));
         OnPropertyChanged(nameof(QueueSummaryDisplay));
     }

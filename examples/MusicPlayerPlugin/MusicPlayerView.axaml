@@ -52,6 +52,47 @@
         <Style Selector="Button.hero-play-fab:pressed">
             <Setter Property="RenderTransform" Value="scale(0.94)" />
         </Style>
+
+        <!-- Sleek Tactile M3 Seek Slider -->
+        <Style Selector="Slider.m3-seek-slider">
+            <Setter Property="Height" Value="22" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="{DynamicResource M3PrimaryBrush}" />
+        </Style>
+        <Style Selector="Slider.m3-seek-slider /template/ Thumb">
+            <Setter Property="Width" Value="13" />
+            <Setter Property="Height" Value="13" />
+            <Setter Property="Background" Value="{DynamicResource M3PrimaryBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="6.5" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Width" Duration="0:0:0.1" />
+                    <DoubleTransition Property="Height" Duration="0:0:0.1" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Slider.m3-seek-slider:pointerover /template/ Thumb">
+            <Setter Property="Width" Value="15" />
+            <Setter Property="Height" Value="15" />
+            <Setter Property="CornerRadius" Value="7.5" />
+        </Style>
+
+        <!-- Modern M3 Volume Slider -->
+        <Style Selector="Slider.m3-volume-slider">
+            <Setter Property="Height" Value="18" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="{DynamicResource M3PrimaryBrush}" />
+        </Style>
+        <Style Selector="Slider.m3-volume-slider /template/ Thumb">
+            <Setter Property="Width" Value="11" />
+            <Setter Property="Height" Value="11" />
+            <Setter Property="Background" Value="{DynamicResource M3PrimaryBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="5.5" />
+        </Style>
     </UserControl.Styles>
 
     <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" Margin="4">
@@ -167,7 +208,7 @@
 
         <!-- 2. TACTILE SEEK BAR & TIMESTAMPS -->
         <StackPanel Grid.Row="1" Spacing="2" Margin="0,0,0,8">
-            <Slider Name="SeekSlider"
+            <Slider Name="SeekSlider" Classes="m3-seek-slider"
                     Minimum="0" Maximum="{Binding DurationSeconds}"
                     Value="{Binding PositionSeconds, Mode=TwoWay}"
                     Cursor="Hand" />
@@ -263,7 +304,7 @@
                 </Button>
 
                 <!-- Volume Slider -->
-                <Slider Grid.Column="1" Width="72" Minimum="0" Maximum="100"
+                <Slider Grid.Column="1" Classes="m3-volume-slider" Width="76" Minimum="0" Maximum="100"
                         Value="{Binding VolumePercent, Mode=TwoWay}"
                         VerticalAlignment="Center" Margin="4,0"
                         ToolTip.Tip="{Binding VolumePercent, StringFormat='{}Volume: {0:F0}%'}"
@@ -428,6 +469,39 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+
+                        <!-- Dropzone card when queue has few tracks (<= 2) -->
+                        <Button IsVisible="{Binding HasFewTracks}"
+                                Command="{Binding AddFilesCommand}"
+                                Classes="m3-outlined-btn"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch"
+                                Background="{DynamicResource M3SurfaceContainerLowestBrush}"
+                                BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="12,10"
+                                Margin="0,6,0,0"
+                                Cursor="Hand">
+                            <Grid ColumnDefinitions="36,*">
+                                <Border Grid.Column="0" Width="36" Height="36"
+                                        CornerRadius="{StaticResource M3ShapeCornerFull}"
+                                        Background="{DynamicResource M3SurfaceContainerHighBrush}"
+                                        VerticalAlignment="Center">
+                                    <materialIcons:MaterialIcon Kind="TrayArrowDown" Width="18" Height="18"
+                                                                 Foreground="{DynamicResource M3PrimaryBrush}"
+                                                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0" Spacing="2">
+                                    <TextBlock Text="Add more audio files"
+                                               FontSize="11.5" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource M3OnSurfaceBrush}" />
+                                    <TextBlock Text="Click to browse MP3, WAV, FLAC files"
+                                               FontSize="10"
+                                               Foreground="{DynamicResource M3OnSurfaceVariantBrush}" />
+                                </StackPanel>
+                            </Grid>
+                        </Button>
 
                         <!-- Contextual tip pill footer when queue is small -->
                         <Border Background="{DynamicResource M3SurfaceContainerLowestBrush}"
