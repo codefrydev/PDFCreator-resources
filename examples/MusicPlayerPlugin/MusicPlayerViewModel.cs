@@ -398,13 +398,13 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
                 return loaded;
             });
 
-            if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+            if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess() || Avalonia.Application.Current == null)
             {
                 ApplyNewTracks(newTracks);
             }
             else
             {
-                Avalonia.Threading.Dispatcher.UIThread.Post(() => ApplyNewTracks(newTracks));
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => ApplyNewTracks(newTracks));
             }
 
             try
