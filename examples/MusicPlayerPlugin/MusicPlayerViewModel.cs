@@ -227,71 +227,104 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
     private void AddFiles() => AddFilesRequested?.Invoke(this, EventArgs.Empty);
 
     /// <summary>
-    /// Discovers audio tracks automatically from the system's default Music folder (~/Music)
+    /// Discovers audio tracks automatically from the system's default Music folders
     /// asynchronously on a background worker thread.
     /// </summary>
     [RelayCommand]
     public async Task ScanDefaultMusicFolderAsync()
     {
-        if (IsLoadingFiles) return;
+        if (IsLoadingFiles)
+        {
+            StatusMessage = "A file scan is already in progress...";
+            return;
+        }
 
-        string? musicDir = null;
+        var candidateDirs = new List<string>();
+
         try
         {
-            musicDir = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
-            if (string.IsNullOrEmpty(musicDir) || !Directory.Exists(musicDir))
+            var myMusic = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
+            if (!string.IsNullOrEmpty(myMusic) && Directory.Exists(myMusic))
             {
-                var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                var candidate = Path.Combine(home, "Music");
-                if (Directory.Exists(candidate))
+                candidateDirs.Add(myMusic);
+            }
+
+            var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            if (!string.IsNullOrEmpty(home))
+            {
+                // Apple Music default media folder on macOS
+                var macMediaMusic = Path.Combine(home, "Music", "Music", "Media.localized", "Music");
+                if (Directory.Exists(macMediaMusic))
                 {
-                    musicDir = candidate;
+                    candidateDirs.Insert(0, macMediaMusic); // Prioritize actual music library
+                }
+
+                var standardMusic = Path.Combine(home, "Music");
+                if (Directory.Exists(standardMusic) && !candidateDirs.Contains(standardMusic))
+                {
+                    candidateDirs.Add(standardMusic);
+                }
+
+                var downloads = Path.Combine(home, "Downloads");
+                if (Directory.Exists(downloads))
+                {
+                    candidateDirs.Add(downloads);
                 }
             }
         }
         catch { }
 
-        if (string.IsNullOrEmpty(musicDir) || !Directory.Exists(musicDir))
+        if (candidateDirs.Count == 0)
         {
             StatusMessage = "Default Music folder not found.";
             return;
         }
 
         IsLoadingFiles = true;
-        StatusMessage = $"Discovering tracks in {Path.GetFileName(musicDir)}...";
+        StatusMessage = "Discovering tracks in Music library...";
+
+        bool accessRestricted = false;
 
         try
         {
             var foundPaths = await Task.Run(() =>
             {
                 var validExtensions = SupportedExtensions;
-
                 var results = new List<string>();
-                try
-                {
-                    var opt = new EnumerationOptions
-                    {
-                        RecurseSubdirectories = true,
-                        IgnoreInaccessible = true,
-                        AttributesToSkip = FileAttributes.ReparsePoint
-                    };
+                var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                    var files = Directory.EnumerateFiles(musicDir, "*.*", opt);
-                    foreach (var file in files)
+                var opt = new EnumerationOptions
+                {
+                    RecurseSubdirectories = true,
+                    IgnoreInaccessible = true,
+                    AttributesToSkip = FileAttributes.ReparsePoint
+                };
+
+                foreach (var dir in candidateDirs)
+                {
+                    try
                     {
-                        if (validExtensions.Contains(Path.GetExtension(file)))
+                        var files = Directory.EnumerateFiles(dir, "*.*", opt);
+                        foreach (var file in files)
                         {
-                            results.Add(file);
-                            if (results.Count >= 200) // Cap to first 200 tracks for responsive ingestion
+                            if (validExtensions.Contains(Path.GetExtension(file)) && seen.Add(file))
                             {
-                                break;
+                                results.Add(file);
+                                if (results.Count >= 300) // Cap to first 300 tracks for fast ingestion
+                                {
+                                    return results;
+                                }
                             }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[MusicPlayer] Enumeration error: {ex.Message}");
+                    catch (UnauthorizedAccessException)
+                    {
+                        accessRestricted = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[MusicPlayer] Directory scan warning for '{dir}': {ex.Message}");
+                    }
                 }
 
                 return results;
@@ -300,16 +333,24 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
             if (foundPaths.Count > 0)
             {
                 await AddTracksAsync(foundPaths);
-                StatusMessage = $"Added {foundPaths.Count} tracks from {Path.GetFileName(musicDir)}.";
+                StatusMessage = $"Added {foundPaths.Count} track{(foundPaths.Count == 1 ? "" : "s")} from Music library.";
+            }
+            else if (accessRestricted)
+            {
+                StatusMessage = "Music access restricted by macOS permissions. Check System Settings > Privacy > Files & Folders, or click 'Add Files'.";
             }
             else
             {
-                StatusMessage = $"No audio tracks found in {Path.GetFileName(musicDir)}.";
+                StatusMessage = "No audio tracks found in default Music library.";
             }
+        }
+        catch (UnauthorizedAccessException)
+        {
+            StatusMessage = "Music access restricted by macOS permissions. Check System Settings > Privacy > Files & Folders, or click 'Add Files'.";
         }
         catch (Exception ex)
         {
-            StatusMessage = "Error scanning Music library.";
+            StatusMessage = $"Scan error: {ex.Message}";
             System.Diagnostics.Debug.WriteLine($"[MusicPlayer] Scan error: {ex.Message}");
         }
         finally
@@ -357,14 +398,14 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
                 return loaded;
             });
 
-            foreach (var track in newTracks)
+            if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
             {
-                Playlist.Add(track);
+                ApplyNewTracks(newTracks);
             }
-
-            RebuildTrackNumbers();
-            ApplySearchFilter();
-            NotifyCollectionProperties();
+            else
+            {
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => ApplyNewTracks(newTracks));
+            }
 
             try
             {
@@ -375,24 +416,35 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
                 System.Diagnostics.Debug.WriteLine($"[MusicPlayer] SavePlaylist error: {ex.Message}");
             }
 
-            // If no track is selected yet, select first track
-            if (CurrentTrack is null && Playlist.Count > 0)
-            {
-                _currentIndex = 0;
-                CurrentTrack = Playlist[0];
-                DurationSeconds = CurrentTrack.Duration.TotalSeconds;
-            }
-
             StatusMessage = $"Loaded {Playlist.Count} track{(Playlist.Count == 1 ? "" : "s")}.";
         }
         catch (Exception ex)
         {
-            StatusMessage = "Error scanning audio files.";
+            StatusMessage = $"Error scanning audio files: {ex.Message}";
             System.Diagnostics.Debug.WriteLine($"[MusicPlayer] AddTracks error: {ex.Message}");
         }
         finally
         {
             IsLoadingFiles = false;
+        }
+    }
+
+    private void ApplyNewTracks(List<TrackViewModel> newTracks)
+    {
+        foreach (var track in newTracks)
+        {
+            Playlist.Add(track);
+        }
+
+        RebuildTrackNumbers();
+        ApplySearchFilter();
+        NotifyCollectionProperties();
+
+        if (CurrentTrack is null && Playlist.Count > 0)
+        {
+            _currentIndex = 0;
+            CurrentTrack = Playlist[0];
+            DurationSeconds = CurrentTrack.Duration.TotalSeconds;
         }
     }
 

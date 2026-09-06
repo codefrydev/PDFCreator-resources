@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -22,6 +24,7 @@ public partial class MusicPlayerView : UserControl
         SeekSlider.AddHandler(InputElement.PointerCaptureLostEvent, SeekSlider_OnPointerCaptureLost, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
 
         // Native Drag-and-Drop audio files and folders support (Avalonia 12)
+        DragDrop.SetAllowDrop(this, true);
         DragDrop.AddDragOverHandler(this, OnDragOver);
         DragDrop.AddDropHandler(this, OnDrop);
     }
@@ -62,7 +65,7 @@ public partial class MusicPlayerView : UserControl
         var files = e.DataTransfer.TryGetFiles();
         if (files is null) return;
 
-        var paths = new System.Collections.Generic.List<string>();
+        var paths = new List<string>();
         var validExtensions = MusicPlayerViewModel.SupportedExtensions;
 
         foreach (var item in files)
@@ -70,26 +73,26 @@ public partial class MusicPlayerView : UserControl
             var p = ResolveLocalPath(item);
             if (string.IsNullOrEmpty(p)) continue;
 
-            if (System.IO.File.Exists(p))
+            if (File.Exists(p))
             {
-                if (validExtensions.Contains(System.IO.Path.GetExtension(p)))
+                if (validExtensions.Contains(Path.GetExtension(p)))
                 {
                     paths.Add(p);
                 }
             }
-            else if (System.IO.Directory.Exists(p))
+            else if (Directory.Exists(p))
             {
                 try
                 {
-                    var opt = new System.IO.EnumerationOptions
+                    var opt = new EnumerationOptions
                     {
                         RecurseSubdirectories = true,
                         IgnoreInaccessible = true,
-                        AttributesToSkip = System.IO.FileAttributes.ReparsePoint
+                        AttributesToSkip = FileAttributes.ReparsePoint
                     };
-                    foreach (var f in System.IO.Directory.EnumerateFiles(p, "*.*", opt))
+                    foreach (var f in Directory.EnumerateFiles(p, "*.*", opt))
                     {
-                        if (validExtensions.Contains(System.IO.Path.GetExtension(f)))
+                        if (validExtensions.Contains(Path.GetExtension(f)))
                         {
                             paths.Add(f);
                         }
@@ -115,13 +118,26 @@ public partial class MusicPlayerView : UserControl
 
         if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
         {
-            if (desktop.MainWindow?.StorageProvider is not null)
+            if (desktop.MainWindow is not null)
             {
-                return desktop.MainWindow.StorageProvider;
+                var mainTopLevel = TopLevel.GetTopLevel(desktop.MainWindow);
+                if (mainTopLevel?.StorageProvider is not null)
+                {
+                    return mainTopLevel.StorageProvider;
+                }
+                if (desktop.MainWindow.StorageProvider is not null)
+                {
+                    return desktop.MainWindow.StorageProvider;
+                }
             }
 
             foreach (var win in desktop.Windows)
             {
+                var winTopLevel = TopLevel.GetTopLevel(win);
+                if (winTopLevel?.StorageProvider is not null)
+                {
+                    return winTopLevel.StorageProvider;
+                }
                 if (win.StorageProvider is not null)
                 {
                     return win.StorageProvider;
@@ -160,6 +176,10 @@ public partial class MusicPlayerView : UserControl
         var storageProvider = GetStorageProvider();
         if (storageProvider is null)
         {
+            if (_viewModel is not null)
+            {
+                _viewModel.StatusMessage = "Storage provider is not available.";
+            }
             System.Diagnostics.Debug.WriteLine("[MusicPlayerView] StorageProvider could not be resolved.");
             return;
         }
@@ -174,9 +194,19 @@ public partial class MusicPlayerView : UserControl
                 {
                     new FilePickerFileType("Supported Audio Files (*.mp3, *.wav, *.flac)")
                     {
-                        Patterns = new[] { "*.mp3", "*.wav", "*.flac" },
-                        AppleUniformTypeIdentifiers = new[] { "public.mp3", "com.microsoft.waveform-audio", "org.xiph.flac", "public.audio" },
-                        MimeTypes = new[] { "audio/mpeg", "audio/wav", "audio/flac" }
+                        Patterns = new[] { "*.mp3", "*.wav", "*.flac" }
+                    },
+                    new FilePickerFileType("MP3 Audio (*.mp3)")
+                    {
+                        Patterns = new[] { "*.mp3" }
+                    },
+                    new FilePickerFileType("WAV Audio (*.wav)")
+                    {
+                        Patterns = new[] { "*.wav" }
+                    },
+                    new FilePickerFileType("FLAC Audio (*.flac)")
+                    {
+                        Patterns = new[] { "*.flac" }
                     },
                     FilePickerFileTypes.All
                 }
@@ -184,11 +214,11 @@ public partial class MusicPlayerView : UserControl
 
             if (files is null || files.Count == 0) return;
 
-            var paths = new System.Collections.Generic.List<string>();
+            var paths = new List<string>();
             foreach (var f in files)
             {
                 var p = ResolveLocalPath(f);
-                if (!string.IsNullOrEmpty(p) && System.IO.File.Exists(p))
+                if (!string.IsNullOrEmpty(p) && File.Exists(p))
                 {
                     paths.Add(p);
                 }
@@ -201,10 +231,13 @@ public partial class MusicPlayerView : UserControl
         }
         catch (Exception ex)
         {
+            if (_viewModel is not null)
+            {
+                _viewModel.StatusMessage = $"File picker error: {ex.Message}";
+            }
             System.Diagnostics.Debug.WriteLine($"[MusicPlayerView] File picker error: {ex.Message}");
         }
     }
-
 
     private void SeekSlider_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
