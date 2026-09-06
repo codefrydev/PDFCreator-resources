@@ -279,7 +279,8 @@ public class MusicPlayerPlugin : IFryPlugin
                     pluginDir = AppContext.BaseDirectory;
                 }
 
-                // 1. Register with the specific AssemblyLoadContext that loaded this plugin assembly
+                // Register resolving with the specific AssemblyLoadContext using LoadFromStream
+                // (LoadFromAssemblyPath is illegal inside Resolving event and throws 0x80131509)
                 var alc = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(pluginAssembly);
                 if (alc != null && alc != System.Runtime.Loader.AssemblyLoadContext.Default)
                 {
@@ -288,29 +289,16 @@ public class MusicPlayerPlugin : IFryPlugin
                         var candidate = Path.Combine(pluginDir, $"{asmName.Name}.dll");
                         if (File.Exists(candidate))
                         {
-                            return context.LoadFromAssemblyPath(candidate);
+                            try
+                            {
+                                using var stream = File.OpenRead(candidate);
+                                return context.LoadFromStream(stream);
+                            }
+                            catch { }
                         }
                         return null;
                     };
                 }
-
-                // 2. Register fallback with AppDomain.CurrentDomain
-                AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
-                {
-                    try
-                    {
-                        var reqName = new System.Reflection.AssemblyName(args.Name).Name;
-                        if (string.IsNullOrEmpty(reqName)) return null;
-
-                        var candidate = Path.Combine(pluginDir, $"{reqName}.dll");
-                        if (File.Exists(candidate))
-                        {
-                            return System.Reflection.Assembly.LoadFrom(candidate);
-                        }
-                    }
-                    catch { }
-                    return null;
-                };
 
                 _managedResolversInstalled = true;
             }
