@@ -72,7 +72,7 @@ public class MusicPlayerPlugin : IFryPlugin
         var overlayReg = ctx.RegisterOverlay(new OverlayDescriptor
         {
             Id = Id,
-            Title = "🎵 Music Player",
+            Title = "Music Player",
             Slot = "shell.overlay",
             DefaultWidth = 380,
             DefaultHeight = 560,
@@ -81,6 +81,11 @@ public class MusicPlayerPlugin : IFryPlugin
             IsDraggable = true,
             IsMinimizable = true,
             IsClosable = true,
+            IsResizable = true,
+            MinWidth = 340,
+            MinHeight = 420,
+            MaxWidth = 1000,
+            MaxHeight = 1200,
             IconKind = "MusicNote",
             ChromeMode = OverlayChromeMode.StandardCard,
             ViewType = typeof(MusicPlayerView),
@@ -124,7 +129,7 @@ public class MusicPlayerPlugin : IFryPlugin
                 return new StatusBarWidgetViewModel
                 {
                     WidgetId = "frypdf.status.musicplayer",
-                    Label = "🎵 Music",
+                    Label = "Music",
                     IconKind = "MusicNote",
                     ToolTip = "Toggle floating music player",
                     IsActive = true,
