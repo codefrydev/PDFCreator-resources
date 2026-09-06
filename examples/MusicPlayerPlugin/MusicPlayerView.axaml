@@ -1,0 +1,502 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="using:PdfEditorApp.Plugins.MusicPlayer"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:converters="using:Avalonia.Data.Converters"
+             mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="580"
+             x:Class="PdfEditorApp.Plugins.MusicPlayer.MusicPlayerView"
+             x:DataType="local:MusicPlayerViewModel"
+             Focusable="True"
+             MinWidth="350" MinHeight="500">
+
+    <UserControl.Styles>
+        <!-- Track item card transition -->
+        <Style Selector="Border.track-card">
+            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerLowestBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource M3OutlineVariantBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.track-card:pointerover">
+            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource M3PrimaryBrush}" />
+        </Style>
+        <Style Selector="Border.track-card.current">
+            <Setter Property="Background" Value="{DynamicResource M3SecondaryContainerBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource M3PrimaryBrush}" />
+            <Setter Property="BorderThickness" Value="1.5" />
+        </Style>
+
+        <!-- Hero Play/Pause FAB styling with vibrant glow -->
+        <Style Selector="Button.hero-play-fab">
+            <Setter Property="Background" Value="{DynamicResource M3PrimaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource M3OnPrimaryBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="RenderTransform" Value="scale(1)" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.hero-play-fab:pointerover">
+            <Setter Property="RenderTransform" Value="scale(1.08)" />
+        </Style>
+        <Style Selector="Button.hero-play-fab:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.94)" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" Margin="4">
+
+        <!-- 1. HERO "NOW PLAYING" CARD -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource M3SurfaceContainerLowBrush}"
+                BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource M3ShapeCornerLarge}"
+                BoxShadow="0 4 18 #25000000"
+                Padding="12" Margin="0,0,0,10">
+            <Grid ColumnDefinitions="72,*">
+
+                <!-- Album Cover Art Showcase (72x72 rounded) -->
+                <Border Grid.Column="0" Width="72" Height="72"
+                        CornerRadius="14"
+                        BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                        BorderThickness="1"
+                        ClipToBounds="True"
+                        VerticalAlignment="Center">
+                    <Panel>
+                        <!-- Actual Embedded Cover Art -->
+                        <Image Source="{Binding CurrentTrack.CoverArt}"
+                               Stretch="UniformToFill"
+                               IsVisible="{Binding CurrentTrack.CoverArt, Converter={x:Static converters:ObjectConverters.IsNotNull}}" />
+
+                        <!-- Expressive Fallback Gradient with Vinyl Disc -->
+                        <Border IsVisible="{Binding CurrentTrack.CoverArt, Converter={x:Static converters:ObjectConverters.IsNull}}">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                    <GradientStop Color="#4F46E5" Offset="0.0" />
+                                    <GradientStop Color="#7C3AED" Offset="0.5" />
+                                    <GradientStop Color="#EC4899" Offset="1.0" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <materialIcons:MaterialIcon Kind="Disc" Width="36" Height="36"
+                                                         Foreground="White" Opacity="0.85"
+                                                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </Panel>
+                </Border>
+
+                <!-- Track Info, Format Chip & Live Equalizer Visualizer -->
+                <Grid Grid.Column="1" RowDefinitions="Auto,*,Auto" Margin="12,1,0,1">
+
+                    <!-- Top row: Format Pill + Status Badge + Equalizer -->
+                    <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*,Auto" VerticalAlignment="Center">
+                        <!-- Format Badge (MP3 / FLAC / WAV) -->
+                        <Border Grid.Column="0"
+                                Background="{DynamicResource M3SurfaceContainerHighBrush}"
+                                CornerRadius="{StaticResource M3ShapeCornerSmall}"
+                                Padding="6,2" VerticalAlignment="Center" Margin="0,0,6,0">
+                            <TextBlock Text="{Binding CurrentTrackExtension}"
+                                       FontSize="9.5" FontWeight="Bold"
+                                       Foreground="{DynamicResource M3PrimaryBrush}" />
+                        </Border>
+
+                        <!-- Status Pill (PLAYING / PAUSED) -->
+                        <Border Grid.Column="1"
+                                Background="{DynamicResource M3SurfaceContainerHighBrush}"
+                                CornerRadius="{StaticResource M3ShapeCornerSmall}"
+                                Padding="6,2" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding StatusBadgeText}"
+                                       FontSize="9" FontWeight="Bold"
+                                       Foreground="{DynamicResource M3OnSurfaceVariantBrush}" />
+                        </Border>
+
+                        <!-- Live 5-Bar Equalizer Visualizer -->
+                        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="2.5" Height="22" VerticalAlignment="Center">
+                            <Border Width="3" CornerRadius="1.5" Background="{DynamicResource M3PrimaryBrush}"
+                                    VerticalAlignment="Bottom" Height="{Binding Bar1Height}" />
+                            <Border Width="3" CornerRadius="1.5" Background="{DynamicResource M3PrimaryBrush}"
+                                    VerticalAlignment="Bottom" Height="{Binding Bar2Height}" />
+                            <Border Width="3" CornerRadius="1.5" Background="{DynamicResource M3PrimaryBrush}"
+                                    VerticalAlignment="Bottom" Height="{Binding Bar3Height}" />
+                            <Border Width="3" CornerRadius="1.5" Background="{DynamicResource M3PrimaryBrush}"
+                                    VerticalAlignment="Bottom" Height="{Binding Bar4Height}" />
+                            <Border Width="3" CornerRadius="1.5" Background="{DynamicResource M3PrimaryBrush}"
+                                    VerticalAlignment="Bottom" Height="{Binding Bar5Height}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Middle: Track Title -->
+                    <TextBlock Grid.Row="1"
+                               Text="{Binding CurrentTrackTitle}"
+                               FontSize="14.5" FontWeight="Bold"
+                               Foreground="{DynamicResource M3OnSurfaceBrush}"
+                               TextTrimming="CharacterEllipsis"
+                               VerticalAlignment="Center"
+                               Margin="0,4,0,2" />
+
+                    <!-- Bottom: Artist & Album -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding CurrentTrackArtist}"
+                                   FontSize="12" FontWeight="Medium"
+                                   Foreground="{DynamicResource M3PrimaryBrush}"
+                                   TextTrimming="CharacterEllipsis"
+                                   MaxWidth="160" />
+                        <TextBlock Text="•" FontSize="11" Foreground="{DynamicResource M3OnSurfaceVariantBrush}"
+                                   IsVisible="{Binding CurrentTrackAlbum, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        <TextBlock Text="{Binding CurrentTrackAlbum}"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource M3OnSurfaceVariantBrush}"
+                                   TextTrimming="CharacterEllipsis"
+                                   MaxWidth="110"
+                                   IsVisible="{Binding CurrentTrackAlbum, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- 2. TACTILE SEEK BAR & TIMESTAMPS -->
+        <StackPanel Grid.Row="1" Spacing="2" Margin="0,0,0,8">
+            <Slider Name="SeekSlider"
+                    Minimum="0" Maximum="{Binding DurationSeconds}"
+                    Value="{Binding PositionSeconds, Mode=TwoWay}"
+                    Cursor="Hand" />
+            <Grid ColumnDefinitions="*,*">
+                <TextBlock Grid.Column="0"
+                           Text="{Binding ElapsedDisplay}"
+                           FontSize="11" FontWeight="Medium"
+                           Foreground="{DynamicResource M3OnSurfaceBrush}" />
+                <TextBlock Grid.Column="1"
+                           Text="{Binding RemainingDisplay}"
+                           FontSize="11" FontWeight="Medium"
+                           Foreground="{DynamicResource M3OnSurfaceVariantBrush}"
+                           HorizontalAlignment="Right" />
+            </Grid>
+        </StackPanel>
+
+        <!-- 3. SYMMETRICAL M3 TRANSPORT CONTROLS -->
+        <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto,*,Auto" Margin="0,0,0,10" VerticalAlignment="Center">
+
+            <!-- Shuffle Toggle (Far Left) -->
+            <Button Grid.Column="0" Classes="m3-icon-btn"
+                    Command="{Binding ToggleShuffleCommand}"
+                    ToolTip.Tip="{Binding ShuffleTooltip}">
+                <Panel>
+                    <materialIcons:MaterialIcon Kind="ShuffleVariant" Width="20" Height="20"
+                                                 Foreground="{DynamicResource M3PrimaryBrush}"
+                                                 IsVisible="{Binding IsShuffle}" />
+                    <materialIcons:MaterialIcon Kind="ShuffleDisabled" Width="20" Height="20"
+                                                 Foreground="{DynamicResource M3OnSurfaceVariantBrush}"
+                                                 IsVisible="{Binding !IsShuffle}" />
+                </Panel>
+            </Button>
+
+            <!-- Center Controls: Previous, HERO Play/Pause FAB, Next -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Button Classes="m3-tonal-btn"
+                        CornerRadius="{StaticResource M3ShapeCornerFull}"
+                        Width="38" Height="38" Padding="0"
+                        Command="{Binding PreviousCommand}"
+                        ToolTip.Tip="Previous Track (Ctrl+Left)">
+                    <materialIcons:MaterialIcon Kind="SkipPrevious" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Button>
+
+                <!-- HERO PLAY/PAUSE FAB -->
+                <Border CornerRadius="{StaticResource M3ShapeCornerFull}"
+                        BoxShadow="0 4 16 #5038BDF8">
+                    <Button Classes="hero-play-fab"
+                            CornerRadius="{StaticResource M3ShapeCornerFull}"
+                            Width="52" Height="52" Padding="0"
+                            Command="{Binding PlayPauseCommand}"
+                            ToolTip.Tip="{Binding PlayPauseTooltip}">
+                        <materialIcons:MaterialIcon Kind="{Binding PlayPauseIconKind}" Width="28" Height="28"
+                                                     HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Button>
+                </Border>
+
+                <Button Classes="m3-tonal-btn"
+                        CornerRadius="{StaticResource M3ShapeCornerFull}"
+                        Width="38" Height="38" Padding="0"
+                        Command="{Binding NextCommand}"
+                        ToolTip.Tip="Next Track (Ctrl+Right)">
+                    <materialIcons:MaterialIcon Kind="SkipNext" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Button>
+            </StackPanel>
+
+            <!-- Repeat Mode Toggle (Far Right) -->
+            <Button Grid.Column="4" Classes="m3-icon-btn"
+                    Command="{Binding ToggleRepeatModeCommand}"
+                    ToolTip.Tip="{Binding RepeatModeTooltip}">
+                <materialIcons:MaterialIcon Kind="{Binding RepeatMode, Converter={x:Static local:RepeatModeIconConverter.Instance}}"
+                                             Width="20" Height="20"
+                                             Foreground="{DynamicResource M3PrimaryBrush}" />
+            </Button>
+
+        </Grid>
+
+        <!-- 4. DEDICATED VOLUME & STATUS STRIP -->
+        <Border Grid.Row="3"
+                Background="{DynamicResource M3SurfaceContainerLowestBrush}"
+                BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource M3ShapeCornerFull}"
+                Padding="10,4" Margin="0,0,0,12">
+            <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto">
+
+                <!-- Mute Toggle -->
+                <Button Grid.Column="0" Classes="m3-icon-btn"
+                        Command="{Binding ToggleMuteCommand}"
+                        ToolTip.Tip="Mute / Unmute"
+                        Width="28" Height="28" Padding="0">
+                    <materialIcons:MaterialIcon Kind="{Binding VolumeIconKind}" Width="17" Height="17"
+                                                 Foreground="{DynamicResource M3OnSurfaceVariantBrush}" />
+                </Button>
+
+                <!-- Volume Slider -->
+                <Slider Grid.Column="1" Width="72" Minimum="0" Maximum="100"
+                        Value="{Binding VolumePercent, Mode=TwoWay}"
+                        VerticalAlignment="Center" Margin="4,0"
+                        ToolTip.Tip="{Binding VolumePercent, StringFormat='{}Volume: {0:F0}%'}"
+                        Cursor="Hand" />
+
+                <!-- Volume Percentage Label -->
+                <TextBlock Grid.Column="2"
+                           Text="{Binding VolumePercentDisplay}"
+                           FontSize="10.5" FontWeight="Medium"
+                           Foreground="{DynamicResource M3OnSurfaceVariantBrush}"
+                           VerticalAlignment="Center" Margin="2,0,0,0" />
+
+                <!-- Queue Summary Counter -->
+                <TextBlock Grid.Column="4"
+                           Text="{Binding QueueSummaryDisplay}"
+                           FontSize="10.5"
+                           Foreground="{DynamicResource M3OnSurfaceVariantBrush}"
+                           VerticalAlignment="Center" Margin="0,0,6,0" />
+
+                <!-- Stop Action -->
+                <Button Grid.Column="5" Classes="m3-icon-btn"
+                        Command="{Binding StopCommand}"
+                        ToolTip.Tip="Stop Playback"
+                        Width="26" Height="26" Padding="0">
+                    <materialIcons:MaterialIcon Kind="StopCircleOutline" Width="17" Height="17" />
+                </Button>
+
+            </Grid>
+        </Border>
+
+        <!-- 5. QUEUE & PLAYLIST STUDIO -->
+        <Grid Grid.Row="4" RowDefinitions="Auto,Auto,*">
+
+            <!-- Queue Header Bar -->
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,8" VerticalAlignment="Center">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <TextBlock Text="Queue" FontSize="13.5" FontWeight="Bold"
+                               Foreground="{DynamicResource M3OnSurfaceBrush}" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Shuffle Queue Button -->
+                <Button Grid.Column="1" Classes="m3-icon-btn"
+                        Command="{Binding ShufflePlaylistCommand}"
+                        ToolTip.Tip="Shuffle Queue"
+                        IsVisible="{Binding HasTracks}"
+                        Margin="0,0,4,0">
+                    <materialIcons:MaterialIcon Kind="Shuffle" Width="16" Height="16" />
+                </Button>
+
+                <!-- Clear Queue Button -->
+                <Button Grid.Column="2" Classes="m3-icon-btn"
+                        Command="{Binding ClearPlaylistCommand}"
+                        ToolTip.Tip="Clear All Tracks"
+                        IsVisible="{Binding HasTracks}"
+                        Margin="0,0,6,0">
+                    <materialIcons:MaterialIcon Kind="DeleteSweepOutline" Width="18" Height="18" />
+                </Button>
+
+                <!-- Add Files Button -->
+                <Button Grid.Column="3" Classes="m3-tonal-btn"
+                        CornerRadius="{StaticResource M3ShapeCornerFull}"
+                        Command="{Binding AddFilesCommand}"
+                        Padding="12,5" Cursor="Hand">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <materialIcons:MaterialIcon Kind="FolderMusic" Width="15" Height="15" />
+                        <TextBlock Text="Add Files" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- Search Filter Bar (Shown only when playlist has 3+ tracks) -->
+            <TextBox Grid.Row="1"
+                     Text="{Binding SearchQuery, Mode=TwoWay}"
+                     PlaceholderText="Filter queue by title or artist..."
+                     FontSize="11.5"
+                     Padding="10,5"
+                     Margin="0,0,0,8"
+                     CornerRadius="{StaticResource M3ShapeCornerFull}"
+                     Background="{DynamicResource M3SurfaceContainerLowestBrush}"
+                     BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                     BorderThickness="1"
+                     IsVisible="{Binding ShowSearchFilter}">
+                <TextBox.InnerRightContent>
+                    <materialIcons:MaterialIcon Kind="Magnify" Width="16" Height="16"
+                                                 Foreground="{DynamicResource M3OnSurfaceVariantBrush}"
+                                                 Margin="0,0,8,0" />
+                </TextBox.InnerRightContent>
+            </TextBox>
+
+            <!-- Track List / Empty State Container -->
+            <Grid Grid.Row="2">
+
+                <!-- Scrollable Track Queue -->
+                <ScrollViewer IsVisible="{Binding HasTracks}">
+                    <StackPanel Spacing="4">
+                        <ItemsControl ItemsSource="{Binding FilteredPlaylist}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="local:TrackViewModel">
+                                    <Border Classes="track-card"
+                                            Classes.current="{Binding IsCurrent}"
+                                            CornerRadius="12"
+                                            Padding="8,6" Margin="0,2">
+                                        <Grid ColumnDefinitions="36,*,Auto,Auto,Auto">
+
+                                            <!-- Thumbnail Art or Disc -->
+                                            <Border Grid.Column="0" Width="36" Height="36"
+                                                    CornerRadius="8"
+                                                    BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                                                    BorderThickness="1"
+                                                    ClipToBounds="True"
+                                                    VerticalAlignment="Center">
+                                                <Panel>
+                                                    <Image Source="{Binding CoverArt}"
+                                                           Stretch="UniformToFill"
+                                                           IsVisible="{Binding CoverArt, Converter={x:Static converters:ObjectConverters.IsNotNull}}" />
+                                                    <Border Background="{DynamicResource M3SurfaceContainerHighBrush}"
+                                                            IsVisible="{Binding CoverArt, Converter={x:Static converters:ObjectConverters.IsNull}}">
+                                                        <materialIcons:MaterialIcon Kind="MusicNote" Width="18" Height="18"
+                                                                                     Foreground="{DynamicResource M3OnSurfaceVariantBrush}"
+                                                                                     HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+                                                </Panel>
+                                            </Border>
+
+                                            <!-- Track Title & Artist -->
+                                            <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center" Margin="10,0,8,0">
+                                                <TextBlock Text="{Binding Title}" FontSize="12.5" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource M3OnSurfaceBrush}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding Artist}" FontSize="11"
+                                                           Foreground="{DynamicResource M3OnSurfaceVariantBrush}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+
+                                            <!-- Track Duration Badge -->
+                                            <Border Grid.Column="2"
+                                                    Background="{DynamicResource M3SurfaceContainerHighBrush}"
+                                                    CornerRadius="{StaticResource M3ShapeCornerFull}"
+                                                    Padding="6,2" VerticalAlignment="Center" Margin="0,0,6,0">
+                                                <TextBlock Text="{Binding DurationDisplay}" FontSize="10.5"
+                                                           Foreground="{DynamicResource M3OnSurfaceVariantBrush}" />
+                                            </Border>
+
+                                            <!-- Play Track Action -->
+                                            <Button Grid.Column="3" Classes="m3-icon-btn"
+                                                    Command="{Binding $parent[UserControl].((local:MusicPlayerViewModel)DataContext).PlayTrackCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    ToolTip.Tip="Play Track">
+                                                <materialIcons:MaterialIcon Kind="PlayCircleOutline" Width="20" Height="20" />
+                                            </Button>
+
+                                            <!-- Remove Action -->
+                                            <Button Grid.Column="4" Classes="m3-icon-btn"
+                                                    Command="{Binding $parent[UserControl].((local:MusicPlayerViewModel)DataContext).RemoveTrackCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    ToolTip.Tip="Remove from Queue">
+                                                <materialIcons:MaterialIcon Kind="Close" Width="16" Height="16" />
+                                            </Button>
+
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Contextual tip pill footer when queue is small -->
+                        <Border Background="{DynamicResource M3SurfaceContainerLowestBrush}"
+                                CornerRadius="{StaticResource M3ShapeCornerSmall}"
+                                Padding="8,5" Margin="0,6,0,0"
+                                HorizontalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <materialIcons:MaterialIcon Kind="KeyboardOutline" Width="13" Height="13"
+                                                             Foreground="{DynamicResource M3OnSurfaceVariantBrush}" />
+                                <TextBlock Text="Spacebar to Play/Pause • Drag &amp; drop audio files"
+                                           FontSize="10" Foreground="{DynamicResource M3OnSurfaceVariantBrush}" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Empty Queue State Illustration -->
+                <Border IsVisible="{Binding IsEmpty}"
+                        Background="{DynamicResource M3SurfaceContainerLowestBrush}"
+                        BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{StaticResource M3ShapeCornerMedium}"
+                        Padding="24">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
+                        <Border Width="56" Height="56"
+                                CornerRadius="{StaticResource M3ShapeCornerFull}"
+                                Background="{DynamicResource M3SurfaceContainerHighBrush}"
+                                HorizontalAlignment="Center">
+                            <materialIcons:MaterialIcon Kind="MusicNotePlus" Width="28" Height="28"
+                                                         Foreground="{DynamicResource M3PrimaryBrush}"
+                                                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="No tracks in queue"
+                                   FontSize="14" FontWeight="Bold"
+                                   Foreground="{DynamicResource M3OnSurfaceBrush}"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="Add MP3, WAV, or FLAC audio files to listen while you work."
+                                   FontSize="11.5"
+                                   Foreground="{DynamicResource M3OnSurfaceVariantBrush}"
+                                   TextWrapping="Wrap" TextAlignment="Center"
+                                   MaxWidth="240" HorizontalAlignment="Center" />
+                        <Button Classes="m3-tonal-btn"
+                                CornerRadius="{StaticResource M3ShapeCornerFull}"
+                                Command="{Binding AddFilesCommand}"
+                                Padding="14,6" Margin="0,6,0,0"
+                                HorizontalAlignment="Center" Cursor="Hand">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <materialIcons:MaterialIcon Kind="FolderMusic" Width="16" Height="16" />
+                                <TextBlock Text="Add Audio Files" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- Async File Scanning Overlay -->
+                <Border IsVisible="{Binding IsLoadingFiles}"
+                        Background="#90000000"
+                        CornerRadius="{StaticResource M3ShapeCornerMedium}">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
+                        <ProgressBar IsIndeterminate="True" Width="120" Height="4" />
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   FontSize="11.5" Foreground="White"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+            </Grid>
+
+        </Grid>
+
+    </Grid>
+</UserControl>

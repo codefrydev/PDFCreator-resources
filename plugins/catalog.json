@@ -6,11 +6,11 @@
     "version": "1.0.0",
     "category": "UI & Extensions",
     "description": "Interactive floating Tic-Tac-Toe mini-game with local 2-Player mode and intelligent AI opponent.",
-    "longDescription": "Bring playful entertainment into your PDF workflow! Features single player vs AI (with Easy, Smart, and Unbeatable difficulties) and local 2-player pass-and-play mode. Deeply integrated with FryPDF shell overlay, status bar, and command palette.\n\n### Key Features:\n• **Floating Shell Overlay**: Smoothly drags and docks on top of any document workspace.\n• **Single Player vs Smart AI**: Multiple difficulty settings with strategic minimax moves.\n• **Local 2-Player Mode**: Play head-to-head with friends or colleagues.\n• **Score Counter**: Live score tracking for wins, losses, and draws.\n• **Deep Shell Integration**: Contributes to Command Palette, Status Bar, and Ribbon View Tab.",
+    "longDescription": "Bring playful entertainment into your PDF workflow! Features single player vs AI (with Easy, Smart, and Unbeatable difficulties) and local 2-player pass-and-play mode. Deeply integrated with FryPDF shell overlay, status bar, and command palette.\n\n### Key Features:\n\u2022 **Floating Shell Overlay**: Smoothly drags and docks on top of any document workspace.\n\u2022 **Single Player vs Smart AI**: Multiple difficulty settings with strategic minimax moves.\n\u2022 **Local 2-Player Mode**: Play head-to-head with friends or colleagues.\n\u2022 **Score Counter**: Live score tracking for wins, losses, and draws.\n\u2022 **Deep Shell Integration**: Contributes to Command Palette, Status Bar, and Ribbon View Tab.",
     "rating": 5.0,
     "ratingCount": 42,
     "installCount": 520,
-    "formattedSize": "51 KB",
+    "formattedSize": "20 KB",
     "iconKind": "GamepadVariantOutline",
     "iconColorHex": "#E11D48",
     "license": "MIT",
@@ -33,7 +33,7 @@
     "contributedFeatures": [
       "Shell Overlay: Floating Tic-Tac-Toe Game Card",
       "Command Palette: 'Play Tic-Tac-Toe (Shell Overlay)'",
-      "Status Bar: Clickable '🎮 Tic-Tac-Toe' Indicator Pill",
+      "Status Bar: Clickable '\ud83c\udfae Tic-Tac-Toe' Indicator Pill",
       "Ribbon: View Tab > Plugins > Tic-Tac-Toe Action Button"
     ],
     "dependencies": [
@@ -47,7 +47,7 @@
     "version": "1.0.0",
     "category": "UI & Extensions",
     "description": "Playable, draggable retro-arcade Snake game floating over the application canvas in the 'shell.overlay' slot.",
-    "longDescription": "Bring playful retro-arcade entertainment into your document workflow! This extension mounts a high-performance floating Snake game into the 'shell.overlay' slot.\n\n### Key Features:\n• **Non-Modal Floating Overlay**: Runs smoothly on top of any document or workspace page without interrupting your PDF work.\n• **60+ FPS Smooth Avalonia Drawing**: Direct DrawingContext GPU rendering with zero Large Object Heap allocations.\n• **Tactile Custom Chrome Frame**: Dark retro arcade aesthetics with D-Pad and score counters.\n• **Interactive Controls**: Keyboard arrows/WASD, on-screen tactile D-Pad buttons, difficulty & speed selection.\n• **Deep Shell Integration**: Contributes to Command Palette, Status Bar, and Ribbon View Tab.",
+    "longDescription": "Bring playful retro-arcade entertainment into your document workflow! This extension mounts a high-performance floating Snake game into the 'shell.overlay' slot.\n\n### Key Features:\n\u2022 **Non-Modal Floating Overlay**: Runs smoothly on top of any document or workspace page without interrupting your PDF work.\n\u2022 **60+ FPS Smooth Avalonia Drawing**: Direct DrawingContext GPU rendering with zero Large Object Heap allocations.\n\u2022 **Tactile Custom Chrome Frame**: Dark retro arcade aesthetics with D-Pad and score counters.\n\u2022 **Interactive Controls**: Keyboard arrows/WASD, on-screen tactile D-Pad buttons, difficulty & speed selection.\n\u2022 **Deep Shell Integration**: Contributes to Command Palette, Status Bar, and Ribbon View Tab.",
     "rating": 5.0,
     "ratingCount": 128,
     "installCount": 4200,
@@ -75,7 +75,7 @@
     "contributedFeatures": [
       "Shell Overlay: Floating Snake Game Card",
       "Command Palette: 'Play Snake Game (Shell Overlay)'",
-      "Status Bar: Clickable '🐍 Snake' Indicator Pill",
+      "Status Bar: Clickable '\ud83d\udc0d Snake' Indicator Pill",
       "Ribbon: View Tab > Plugins > Snake Game Action Button"
     ],
     "dependencies": [
@@ -89,7 +89,7 @@
     "version": "1.0.0",
     "category": "UI & Extensions",
     "description": "Floating Markdown scratchpad with live word/char counters and timestamp logs for PDF review.",
-    "longDescription": "Jot down rapid review notes, citations, page corrections, and checklists without leaving your current PDF screen.\n\n### Key Features:\n• **Automatic M3 Expressive Card Chrome**: Automatic draggable header, pin toggle, and minimize pill.\n• **Live Word & Character Counter**: Keep track of notes and summary length in real time.\n• **Quick Action Pills**: One-click timestamp insertions and notes clearing.\n• **Deep Shell Integration**: Contributes to Command Palette (`Ctrl+Alt+N`), Status Bar (`📝 Notes`), and Ribbon View Tab.",
+    "longDescription": "Jot down rapid review notes, citations, page corrections, and checklists without leaving your current PDF screen.\n\n### Key Features:\n\u2022 **Automatic M3 Expressive Card Chrome**: Automatic draggable header, pin toggle, and minimize pill.\n\u2022 **Live Word & Character Counter**: Keep track of notes and summary length in real time.\n\u2022 **Quick Action Pills**: One-click timestamp insertions and notes clearing.\n\u2022 **Deep Shell Integration**: Contributes to Command Palette (`Ctrl+Alt+N`), Status Bar (`\ud83d\udcdd Notes`), and Ribbon View Tab.",
     "rating": 4.9,
     "ratingCount": 94,
     "installCount": 2850,
@@ -115,7 +115,7 @@
     "contributedFeatures": [
       "Shell Overlay: Floating Scratchpad Card",
       "Command Palette: 'Toggle Review Scratchpad (Shell Overlay)'",
-      "Status Bar: Clickable '📝 Notes' Indicator Pill",
+      "Status Bar: Clickable '\ud83d\udcdd Notes' Indicator Pill",
       "Ribbon: View Tab > Plugins > Scratchpad Button"
     ],
     "dependencies": [
@@ -129,7 +129,7 @@
     "version": "1.0.0",
     "category": "Tools & Productivity",
     "description": "Live performance telemetry HUD showing managed heap allocation, GC cycles, and memory trimming.",
-    "longDescription": "Monitor runtime engine health, managed memory, GC generations, and system architecture in a compact floating HUD.\n\n### Key Features:\n• **Real-Time Memory Telemetry**: Track managed heap size and GC frequency.\n• **One-Click Heap Trimming**: Trigger immediate memory compaction and trimming during heavy PDF sessions.\n• **Compact Floating Utility**: Stays parked neatly on top of the document workspace without obstructing tools.\n• **Deep Shell Integration**: Contributes to Command Palette (`Ctrl+Alt+T`), Status Bar (`⚡ HUD`), and Ribbon View Tab.",
+    "longDescription": "Monitor runtime engine health, managed memory, GC generations, and system architecture in a compact floating HUD.\n\n### Key Features:\n\u2022 **Real-Time Memory Telemetry**: Track managed heap size and GC frequency.\n\u2022 **One-Click Heap Trimming**: Trigger immediate memory compaction and trimming during heavy PDF sessions.\n\u2022 **Compact Floating Utility**: Stays parked neatly on top of the document workspace without obstructing tools.\n\u2022 **Deep Shell Integration**: Contributes to Command Palette (`Ctrl+Alt+T`), Status Bar (`\u26a1 HUD`), and Ribbon View Tab.",
     "rating": 4.8,
     "ratingCount": 76,
     "installCount": 1920,
@@ -155,8 +155,49 @@
     "contributedFeatures": [
       "Shell Overlay: Floating Telemetry HUD Card",
       "Command Palette: 'Toggle Telemetry HUD (Shell Overlay)'",
-      "Status Bar: Clickable '⚡ HUD' Indicator Pill",
+      "Status Bar: Clickable '\u26a1 HUD' Indicator Pill",
       "Ribbon: View Tab > Plugins > Telemetry HUD Button"
+    ],
+    "dependencies": [
+      "PdfEditorApp.Core >= 1.0.0"
+    ]
+  },
+  {
+    "id": "frypdf.overlay.musicplayer",
+    "name": "Music Player",
+    "publisher": "FryPDF Tools Team",
+    "version": "1.0.0",
+    "category": "Tools & Productivity",
+    "description": "Floating playlist-based music player with transport controls, seek/volume, and real ID3 metadata.",
+    "longDescription": "Play your own music while you work, without leaving your PDF workspace.\n\n### Key Features:\n\u2022 **Automatic M3 Expressive Card Chrome**: Draggable header, pin toggle, and minimize pill.\n\u2022 **Playlist**: Add local audio files (MP3, WAV, FLAC) and build a persistent playlist.\n\u2022 **Real Metadata**: Title, artist, album, and embedded cover art read from each file's tags.\n\u2022 **Full Transport Controls**: Play/pause, next/previous, stop, seek bar, volume, and repeat modes.\n\u2022 **Deep Shell Integration**: Contributes to Command Palette (`Ctrl+Alt+P`), Status Bar (`\ud83c\udfb5 Music`), and Ribbon View Tab.",
+    "rating": 4.9,
+    "ratingCount": 12,
+    "installCount": 340,
+    "formattedSize": "7.1 MB",
+    "iconKind": "MusicNote",
+    "iconColorHex": "#F59E0B",
+    "license": "MIT",
+    "isVerified": true,
+    "isOfficial": true,
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.musicplayer/MusicPlayer.fryplugin",
+    "tags": [
+      "music",
+      "audio",
+      "player",
+      "playlist",
+      "overlay",
+      "media"
+    ],
+    "highlights": [
+      "Playlist with real ID3 metadata & cover art",
+      "Play/Pause/Next/Previous, Seek & Volume",
+      "Persisted playlist, volume & repeat mode"
+    ],
+    "contributedFeatures": [
+      "Shell Overlay: Floating Music Player Card",
+      "Command Palette: 'Toggle Music Player (Shell Overlay)'",
+      "Status Bar: Clickable '\ud83c\udfb5 Music' Indicator Pill",
+      "Ribbon: View Tab > Plugins > Music Player Button"
     ],
     "dependencies": [
       "PdfEditorApp.Core >= 1.0.0"

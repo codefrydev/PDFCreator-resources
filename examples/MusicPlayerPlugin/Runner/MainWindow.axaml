@@ -1,0 +1,15 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="using:PdfEditorApp.Plugins.MusicPlayer"
+        mc:Ignorable="d"
+        x:Class="PdfEditorApp.Plugins.MusicPlayer.Runner.MainWindow"
+        Title="🎵 FryPDF Music Player — M3 Expressive Studio"
+        Width="400" Height="620"
+        MinWidth="360" MinHeight="500"
+        WindowStartupLocation="CenterScreen"
+        Background="#0B0F17">
+
+    <local:MusicPlayerView x:Name="PlayerView" Margin="14" />
+</Window>

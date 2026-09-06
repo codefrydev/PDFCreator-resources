@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="MusicPlayerPlugin.csproj" />
+  <Project Path="Runner/MusicPlayerPlugin.Runner.csproj" />
+</Solution>

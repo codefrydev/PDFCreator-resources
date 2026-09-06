@@ -1,0 +1,31 @@
+{
+  "id": "frypdf.overlay.musicplayer",
+  "name": "Music Player",
+  "version": "1.0.0",
+  "author": "FryPDF Tools Team",
+  "description": "Floating playlist-based M3 Expressive music player with live equalizer visualizer, tactile seek/volume, queue search, and zero-lag background metadata scanning.",
+  "entryPoint": "MusicPlayerPlugin.dll",
+  "icon": "MusicNote",
+  "dependencies": [],
+  "settingsSchema": {
+    "Volume": {
+      "type": "number",
+      "label": "Default Volume",
+      "description": "Initial playback volume (0-100).",
+      "default": 80
+    },
+    "RepeatMode": {
+      "type": "select",
+      "label": "Repeat Mode",
+      "description": "Default playlist repeat behavior on launch",
+      "default": "Off",
+      "options": ["Off", "RepeatOne", "RepeatAll"]
+    },
+    "RememberLastPlaylist": {
+      "type": "boolean",
+      "label": "Remember Last Playlist",
+      "description": "Reload the last playlist and track position on startup",
+      "default": true
+    }
+  }
+}
