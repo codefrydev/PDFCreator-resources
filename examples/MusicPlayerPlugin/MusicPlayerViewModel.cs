@@ -204,6 +204,7 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
     {
         try
         {
+            MusicPlayerPlugin.EnsureNativeAudioLibrariesLoaded();
             _engine = new MiniAudioEngine(Array.Empty<MiniAudioBackend>());
             _device = _engine.InitializePlaybackDevice(null, PlaybackFormat, new MiniAudioDeviceConfig());
             _device.Start();
@@ -219,6 +220,101 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
     private void AddFiles() => AddFilesRequested?.Invoke(this, EventArgs.Empty);
 
     /// <summary>
+    /// Discovers audio tracks automatically from the system's default Music folder (~/Music)
+    /// asynchronously on a background worker thread.
+    /// </summary>
+    [RelayCommand]
+    public async Task ScanDefaultMusicFolderAsync()
+    {
+        if (IsLoadingFiles) return;
+
+        string? musicDir = null;
+        try
+        {
+            musicDir = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
+            if (string.IsNullOrEmpty(musicDir) || !Directory.Exists(musicDir))
+            {
+                var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                var candidate = Path.Combine(home, "Music");
+                if (Directory.Exists(candidate))
+                {
+                    musicDir = candidate;
+                }
+            }
+        }
+        catch { }
+
+        if (string.IsNullOrEmpty(musicDir) || !Directory.Exists(musicDir))
+        {
+            StatusMessage = "Default Music folder not found.";
+            return;
+        }
+
+        IsLoadingFiles = true;
+        StatusMessage = $"Discovering tracks in {Path.GetFileName(musicDir)}...";
+
+        try
+        {
+            var foundPaths = await Task.Run(() =>
+            {
+                var validExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ".mp3", ".wav", ".flac", ".m4a", ".aac", ".ogg", ".wma", ".aiff"
+                };
+
+                var results = new List<string>();
+                try
+                {
+                    var opt = new EnumerationOptions
+                    {
+                        RecurseSubdirectories = true,
+                        IgnoreInaccessible = true,
+                        AttributesToSkip = FileAttributes.ReparsePoint
+                    };
+
+                    var files = Directory.EnumerateFiles(musicDir, "*.*", opt);
+                    foreach (var file in files)
+                    {
+                        if (validExtensions.Contains(Path.GetExtension(file)))
+                        {
+                            results.Add(file);
+                            if (results.Count >= 200) // Cap to first 200 tracks for responsive ingestion
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MusicPlayer] Enumeration error: {ex.Message}");
+                }
+
+                return results;
+            });
+
+            if (foundPaths.Count > 0)
+            {
+                await AddTracksAsync(foundPaths);
+                StatusMessage = $"Added {foundPaths.Count} tracks from {Path.GetFileName(musicDir)}.";
+            }
+            else
+            {
+                StatusMessage = $"No audio tracks found in {Path.GetFileName(musicDir)}.";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "Error scanning Music library.";
+            System.Diagnostics.Debug.WriteLine($"[MusicPlayer] Scan error: {ex.Message}");
+        }
+        finally
+        {
+            IsLoadingFiles = false;
+        }
+    }
+
+    /// <summary>
     /// Parses selected audio files in the background without freezing the UI event loop.
     /// </summary>
     public async Task AddTracksAsync(IEnumerable<string> filePaths)
@@ -231,11 +327,13 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
 
         try
         {
+            var existingSet = new HashSet<string>(Playlist.Select(p => p.FilePath), StringComparer.OrdinalIgnoreCase);
+            int startingIndex = Playlist.Count + 1;
+
             var newTracks = await Task.Run(() =>
             {
-                var existingSet = new HashSet<string>(Playlist.Select(p => p.FilePath), StringComparer.OrdinalIgnoreCase);
                 var loaded = new List<TrackViewModel>();
-                int nextIndex = Playlist.Count + 1;
+                int nextIndex = startingIndex;
 
                 foreach (var path in pathsList)
                 {
@@ -257,7 +355,15 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
             RebuildTrackNumbers();
             ApplySearchFilter();
             NotifyCollectionProperties();
-            SavePlaylist();
+
+            try
+            {
+                SavePlaylist();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MusicPlayer] SavePlaylist error: {ex.Message}");
+            }
 
             // If no track is selected yet, select first track
             if (CurrentTrack is null && Playlist.Count > 0)
@@ -279,6 +385,7 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
             IsLoadingFiles = false;
         }
     }
+
 
     [RelayCommand]
     public void RemoveTrack(TrackViewModel track)

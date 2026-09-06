@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
@@ -16,6 +18,12 @@ namespace PdfEditorApp.Plugins.MusicPlayer;
 /// </summary>
 public class MusicPlayerPlugin : IFryPlugin
 {
+    static MusicPlayerPlugin()
+    {
+        EnsureManagedPluginDependenciesResolvable();
+        EnsureNativeAudioLibrariesLoaded();
+    }
+
     public string Id => "frypdf.overlay.musicplayer";
     public string Name => "Music Player";
     public Version Version => new(1, 0, 0);
@@ -44,11 +52,22 @@ public class MusicPlayerPlugin : IFryPlugin
             Label = "Remember Last Playlist",
             Description = "Reload the last playlist and track position on startup",
             DefaultValue = true
+        },
+        ["AutoScanMusicOnLaunch"] = new()
+        {
+            Type = "boolean",
+            Label = "Auto-Discover Music",
+            Description = "Automatically discover tracks from default OS Music library if playlist is empty",
+            DefaultValue = false
         }
     };
 
     public Task ApplyAsync(IFryPluginContext ctx, CancellationToken ct = default)
     {
+        // Ensure managed plugin dependencies and native miniaudio audio library are resolved in isolated ALC contexts
+        EnsureManagedPluginDependenciesResolvable();
+        EnsureNativeAudioLibrariesLoaded();
+
         // 1. Register Overlay with StandardCard chrome (Auto M3 draggable header, pin, minimize, close)
         var overlayReg = ctx.RegisterOverlay(new OverlayDescriptor
         {
@@ -149,4 +168,174 @@ public class MusicPlayerPlugin : IFryPlugin
 
         return Task.CompletedTask;
     }
+
+    private static bool _nativeLoaded;
+    private static readonly object _nativeLock = new();
+
+    /// <summary>
+    /// Explicitly resolves and pre-loads the miniaudio native shared library for SoundFlow
+    /// within isolated AssemblyLoadContext (ALC) plugin environments like FryPDF.
+    /// </summary>
+    public static void EnsureNativeAudioLibrariesLoaded()
+    {
+        if (_nativeLoaded) return;
+        lock (_nativeLock)
+        {
+            if (_nativeLoaded) return;
+
+            try
+            {
+                var pluginAssembly = typeof(MusicPlayerPlugin).Assembly;
+                var pluginDir = Path.GetDirectoryName(pluginAssembly.Location);
+                if (string.IsNullOrEmpty(pluginDir))
+                {
+                    pluginDir = AppContext.BaseDirectory;
+                }
+
+                string rid;
+                string libFileName;
+                if (OperatingSystem.IsMacOS())
+                {
+                    rid = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "osx-arm64" : "osx-x64";
+                    libFileName = "libminiaudio.dylib";
+                }
+                else if (OperatingSystem.IsWindows())
+                {
+                    rid = RuntimeInformation.ProcessArchitecture switch
+                    {
+                        Architecture.Arm64 => "win-arm64",
+                        Architecture.X86 => "win-x86",
+                        _ => "win-x64"
+                    };
+                    libFileName = "miniaudio.dll";
+                }
+                else if (OperatingSystem.IsLinux())
+                {
+                    rid = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "linux-arm64" : "linux-x64";
+                    libFileName = "libminiaudio.so";
+                }
+                else
+                {
+                    return;
+                }
+
+                var candidates = new[]
+                {
+                    Path.Combine(pluginDir, "runtimes", rid, "native", libFileName),
+                    Path.Combine(pluginDir, libFileName),
+                    Path.Combine(AppContext.BaseDirectory, "runtimes", rid, "native", libFileName),
+                    Path.Combine(AppContext.BaseDirectory, libFileName)
+                };
+
+                string? foundPath = null;
+                foreach (var candidate in candidates)
+                {
+                    if (File.Exists(candidate))
+                    {
+                        foundPath = candidate;
+                        break;
+                    }
+                }
+
+                if (foundPath != null)
+                {
+                    // 1. Explicitly load into process address space so the dynamic linker caches it
+                    NativeLibrary.TryLoad(foundPath, out _);
+
+                    // 2. Set DllImportResolver on the SoundFlow assembly so any [LibraryImport("miniaudio")] delegates directly to this handle
+                    try
+                    {
+                        NativeLibrary.SetDllImportResolver(typeof(SoundFlow.Components.SoundPlayer).Assembly, (name, asm, searchPath) =>
+                        {
+                            if (name.Equals("miniaudio", StringComparison.OrdinalIgnoreCase) ||
+                                name.Equals("libminiaudio", StringComparison.OrdinalIgnoreCase))
+                            {
+                                if (NativeLibrary.TryLoad(foundPath, out var handle))
+                                {
+                                    return handle;
+                                }
+                            }
+                            return IntPtr.Zero;
+                        });
+                    }
+                    catch
+                    {
+                        // SetDllImportResolver can only be registered once per assembly
+                    }
+                }
+
+                _nativeLoaded = true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MusicPlayer] Native audio library setup warning: {ex.Message}");
+            }
+        }
+    }
+
+    private static bool _managedResolversInstalled;
+    private static readonly object _managedLock = new();
+
+    /// <summary>
+    /// Ensures that bundled managed dependencies (TagLibSharp.dll, SoundFlow.dll, etc.) can be located
+    /// and loaded inside isolated collectible AssemblyLoadContexts or via AppDomain fallbacks.
+    /// </summary>
+    public static void EnsureManagedPluginDependenciesResolvable()
+    {
+        if (_managedResolversInstalled) return;
+        lock (_managedLock)
+        {
+            if (_managedResolversInstalled) return;
+
+            try
+            {
+                var pluginAssembly = typeof(MusicPlayerPlugin).Assembly;
+                var pluginDir = Path.GetDirectoryName(pluginAssembly.Location);
+                if (string.IsNullOrEmpty(pluginDir))
+                {
+                    pluginDir = AppContext.BaseDirectory;
+                }
+
+                // 1. Register with the specific AssemblyLoadContext that loaded this plugin assembly
+                var alc = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(pluginAssembly);
+                if (alc != null && alc != System.Runtime.Loader.AssemblyLoadContext.Default)
+                {
+                    alc.Resolving += (context, asmName) =>
+                    {
+                        var candidate = Path.Combine(pluginDir, $"{asmName.Name}.dll");
+                        if (File.Exists(candidate))
+                        {
+                            return context.LoadFromAssemblyPath(candidate);
+                        }
+                        return null;
+                    };
+                }
+
+                // 2. Register fallback with AppDomain.CurrentDomain
+                AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+                {
+                    try
+                    {
+                        var reqName = new System.Reflection.AssemblyName(args.Name).Name;
+                        if (string.IsNullOrEmpty(reqName)) return null;
+
+                        var candidate = Path.Combine(pluginDir, $"{reqName}.dll");
+                        if (File.Exists(candidate))
+                        {
+                            return System.Reflection.Assembly.LoadFrom(candidate);
+                        }
+                    }
+                    catch { }
+                    return null;
+                };
+
+                _managedResolversInstalled = true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MusicPlayer] Managed resolver setup warning: {ex.Message}");
+            }
+        }
+    }
 }
+

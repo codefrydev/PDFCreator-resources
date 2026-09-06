@@ -97,6 +97,7 @@
     -->
     <ItemGroup>
       <PluginFiles Include="$(TargetDir)MusicPlayerPlugin.dll" />
+      <PluginFiles Include="$(TargetDir)MusicPlayerPlugin.deps.json" Condition="Exists('$(TargetDir)MusicPlayerPlugin.deps.json')" />
       <PluginFiles Include="$(TargetDir)SoundFlow.dll" />
       <PluginFiles Include="$(TargetDir)TagLibSharp.dll" />
       <PluginFiles Include="$(ProjectDir)plugin.json" />
