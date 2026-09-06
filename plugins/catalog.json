@@ -1,0 +1,43 @@
+[
+  {
+    "id": "com.frypdf.plugin.tictactoe",
+    "name": "Tic-Tac-Toe",
+    "publisher": "Code Fry Dev",
+    "version": "1.0.0",
+    "category": "UI & Extensions",
+    "description": "Interactive floating Tic-Tac-Toe mini-game with local 2-Player mode and intelligent AI opponent.",
+    "longDescription": "Bring playful entertainment into your PDF workflow! Features single player vs AI (with Easy, Smart, and Unbeatable difficulties) and local 2-player pass-and-play mode. Deeply integrated with FryPDF shell overlay, status bar, and command palette.\n\n### Key Features:\n\u2022 **Floating Shell Overlay**: Smoothly drags and docks on top of any document workspace.\n\u2022 **Single Player vs Smart AI**: Multiple difficulty settings with strategic minimax moves.\n\u2022 **Local 2-Player Mode**: Play head-to-head with friends or colleagues.\n\u2022 **Score Counter**: Live score tracking for wins, losses, and draws.\n\u2022 **Deep Shell Integration**: Contributes to Command Palette (), Status Bar (), and Ribbon View Tab.",
+    "rating": 5.0,
+    "ratingCount": 42,
+    "installCount": 520,
+    "formattedSize": "51 KB",
+    "iconKind": "GamepadVariantOutline",
+    "iconColorHex": "#E11D48",
+    "license": "MIT",
+    "isVerified": true,
+    "isOfficial": true,
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.tictactoe/TicTacToe.fryplugin",
+    "tags": [
+      "game",
+      "tictactoe",
+      "overlay",
+      "arcade",
+      "ai",
+      "minigame"
+    ],
+    "highlights": [
+      "Single Player vs AI & 2-Player Pass-and-Play",
+      "Shell Overlay with Drag & Dock",
+      "Configurable AI Difficulty"
+    ],
+    "contributedFeatures": [
+      "Shell Overlay: Floating Tic-Tac-Toe Game Card",
+      "Command Palette: 'Play Tic-Tac-Toe (Shell Overlay)'",
+      "Status Bar: Clickable '\ud83c\udfae Tic-Tac-Toe' Indicator Pill",
+      "Ribbon: View Tab > Plugins > Tic-Tac-Toe Action Button"
+    ],
+    "dependencies": [
+      "PdfEditorApp.Core >= 1.0.0"
+    ]
+  }
+]
