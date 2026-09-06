@@ -404,7 +404,7 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
             }
             else
             {
-                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => ApplyNewTracks(newTracks));
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => ApplyNewTracks(newTracks));
             }
 
             try

@@ -575,6 +575,16 @@
                                 </StackPanel>
                             </Button>
                         </StackPanel>
+
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource M3PrimaryBrush}"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   MaxWidth="260"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,4,0,0"
+                                   IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                     </StackPanel>
                 </Border>
 
