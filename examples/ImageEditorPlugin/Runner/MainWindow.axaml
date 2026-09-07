@@ -1,0 +1,19 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="using:PdfEditorApp.Plugins.ImageEditor"
+        mc:Ignorable="d"
+        x:Class="PdfEditorApp.Plugins.ImageEditor.Runner.MainWindow"
+        Title="🎨 Image Editor — Standalone Runner"
+        Width="820" Height="660"
+        MinWidth="760" MinHeight="580"
+        WindowStartupLocation="CenterScreen"
+        Background="#090D13">
+
+    <Grid Margin="16">
+        <local:ImageEditorView x:Name="EditorView"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+    </Grid>
+</Window>

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ImageEditorPlugin.csproj" />
+  <Project Path="Runner/ImageEditorPlugin.Runner.csproj" />
+</Solution>

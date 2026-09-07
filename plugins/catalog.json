@@ -202,5 +202,60 @@
     "dependencies": [
       "PdfEditorApp.Core >= 1.0.0"
     ]
+  },
+  {
+    "id": "frypdf.overlay.imageeditor",
+    "name": "Image Editor",
+    "publisher": "FryPDF Team",
+    "version": "3.0.0",
+    "category": "Design & Creation",
+    "description": "A Canva-style layered design editor: fill/stroke/gradient styling, layers panel, grouping, free rotation, smart guides, inline text editing, an 8-template gallery, and project save/load.",
+    "longDescription": "Compose graphics directly inside your PDF workspace with a full-featured, resizable floating design editor.\n\n### Key Features:\n\u2022 **Layer-based Canvas**: Stack Text, Rectangle, Ellipse, Arrow, and imported Images in Z-order, with a clickable Layers panel (visibility/lock/rename), multi-select, marquee-select, grouping, and align/distribute.\n\u2022 **Full Style Controls**: Fill & stroke color pickers, gradient fills (linear/radial), stroke width/dash style, corner radius, opacity, and precise numeric X/Y/Width/Height/Rotation fields.\n\u2022 **Click-to-Place Tools & Eyedropper**: Click or drag directly on the canvas to place shapes and text, or sample any on-canvas color with the eyedropper \u2014 with V/T/R/E/A keyboard shortcuts.\n\u2022 **Free-Angle Rotation & Group Resize**: Drag-to-rotate any single element or a whole multi-selection around a shared pivot (15\u00b0 Shift-snap), plus proportional group resizing.\n\u2022 **Smart Alignment Guides & Inline Text Editing**: Snapping guide lines while dragging, plus double-click-to-edit text directly on the canvas.\n\u2022 **Undo/Redo**: Full edit history across every mutation \u2014 moves, resizes, rotations, crops, grouping, and color adjustments.\n\u2022 **Zoom & Pan**: Smooth cursor-anchored zoom, pan, and fit-to-window on a resizable canvas.\n\u2022 **Per-Image Crop, Rotate & Flip**: Precise crop handles with fixed-aspect presets (1:1, 4:3, 3:2, 16:9, 9:16), 90\u00b0 rotation, and horizontal/vertical flip, with aspect-ratio lock.\n\u2022 **Deep Color Adjustments & 9 Filters**: Brightness/contrast/saturation/hue/temperature/tint/blur/sharpen sliders, one-click Auto-Enhance, and Black & White, Sepia, Vintage, Vivid, Noir, Invert, Duotone, and Vignette presets.\n\u2022 **Duplicate, Copy & Paste**: Ctrl+D to duplicate and an in-app Ctrl+C/Ctrl+V element clipboard.\n\u2022 **Template Gallery**: 8 starter templates \u2014 slide, certificate, flyer, photo collage, quote card, cover page, social post, and sticky note \u2014 each with a live-rendered preview.\n\u2022 **Project Save/Load**: Save and reopen full editable projects as `.fryimg` files, with a confirm-before-discard safeguard.\n\u2022 **PNG Export & Clipboard**: Export the full canvas to PNG, or copy it as a real image directly to the system clipboard.\n\u2022 **Material 3 Expressive UI**: Fully theme-adaptive light/dark interface with segmented tool selectors and tactile sliders.\n\u2022 **Shell Integration**: Command Palette (`Ctrl+Alt+I`), Status Bar pill, and Ribbon button.",
+    "rating": 5.0,
+    "ratingCount": 18,
+    "installCount": 640,
+    "formattedSize": "104 KB",
+    "iconKind": "ImageEditOutline",
+    "iconColorHex": "#8B5CF6",
+    "license": "MIT",
+    "isVerified": true,
+    "isOfficial": true,
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.imageeditor/ImageEditor.fryplugin",
+    "tags": [
+      "adjustments",
+      "canva",
+      "canvas",
+      "crop",
+      "design",
+      "editor",
+      "export",
+      "filters",
+      "gradient",
+      "graphics",
+      "grouping",
+      "image",
+      "layers",
+      "overlay",
+      "rotation",
+      "shapes",
+      "templates",
+      "text",
+      "undo-redo"
+    ],
+    "highlights": [
+      "Layers panel, grouping, and fill/stroke/gradient styling",
+      "Free-angle rotation, group resize, and smart alignment guides",
+      "Inline text editing, eyedropper, and duplicate/copy/paste",
+      "8-template gallery and .fryimg project save/load"
+    ],
+    "contributedFeatures": [
+      "Shell Overlay: Resizable Floating Image Editor Canvas (default 900 \u00d7 640, 680\u00d7520 to 1400\u00d71100)",
+      "Command Palette: 'Open Image Editor (Shell Overlay)' (Ctrl+Alt+I)",
+      "Status Bar: Clickable '\ud83c\udfa8 Image Editor' Indicator Pill",
+      "Ribbon: View Tab > Plugins > Image Editor Button"
+    ],
+    "dependencies": [
+      "PdfEditorApp.Core >= 1.0.0"
+    ]
   }
 ]

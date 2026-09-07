@@ -44,6 +44,17 @@ Group related plugins into a bundle (e.g. `ToolsOrganizeBundle`, `CanvasElements
 ### E. Declarative Settings Schema
 If a plugin requires configuration (API keys, URLs, model names, options), declare them via `IFryPlugin.SettingsSchema` using `PluginSettingDefinition`. The UI automatically renders an M3 Expressive configuration card in `PluginsDialog.axaml` without manual XAML forms.
 
+### F. Workspace Pages & Full Studio Views (`INavigationRegistry`)
+Plugins can introduce full-page studios, diagnostic dashboards, and editors directly into the primary application shell and left navigation sidebar:
+- Register via `ctx.RegisterNavigationItem(new NavigationItemDescriptor { ... })`.
+- Configure `Group` (`Overview`, `Categories`, `Library`, `Preferences`, or a custom header), `IconKind` (M3 icon), `BadgeText` / `BadgeColorHex`, and `Order`.
+- Select the appropriate `DisplayMode`:
+  - `NavigationDisplayMode.ScrollableDocument`: Standard scrollable container beneath the top search bar (best for logs, dashboards, documentation).
+  - `NavigationDisplayMode.FullViewport`: Edge-to-edge full-bleed container without an outer ScrollViewer (best for rich canvases, split views, and interactive studios like Canva-style Image Editor).
+  - `NavigationDisplayMode.ImmersiveStudio`: Full window takeover, collapses navigation sidebar to a 68px compact rail, and hides the global top search bar.
+- Provide `ViewFactory = sp => new MyStudioView { DataContext = new MyStudioViewModel(sp) }`.
+- Views automatically inherit Google Material Design 3 Expressive tokens (`m3-card-elevated`, `primary-btn`, dynamic theme brushes for automatic Light/Dark mode).
+
 ---
 
 ## 3. Verification

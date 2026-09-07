@@ -1,0 +1,31 @@
+{
+  "id": "frypdf.overlay.imageeditor",
+  "name": "Image Editor",
+  "version": "3.0.0",
+  "author": "FryPDF Team",
+  "description": "Canva-style layered design editor: fill/stroke/gradient styling, layers panel, grouping, free rotation, smart alignment guides, inline text editing, eyedropper, image adjustments (hue/temp/tint/blur/sharpen/9 filter presets), an 8-template gallery, and project save/load.",
+  "entryPoint": "ImageEditorPlugin.dll",
+  "icon": "ImageEditOutline",
+  "dependencies": [],
+  "settingsSchema": {
+    "DefaultBackground": {
+      "type": "select",
+      "label": "Default Canvas Background",
+      "description": "Starting canvas background color when the editor opens.",
+      "options": ["White", "Black", "Transparent"],
+      "default": "White"
+    },
+    "DefaultCanvasWidth": {
+      "type": "integer",
+      "label": "Canvas Width (px)",
+      "description": "Default canvas width in pixels.",
+      "default": 640
+    },
+    "DefaultCanvasHeight": {
+      "type": "integer",
+      "label": "Canvas Height (px)",
+      "description": "Default canvas height in pixels.",
+      "default": 480
+    }
+  }
+}

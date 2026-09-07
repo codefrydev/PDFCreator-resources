@@ -30,14 +30,16 @@ PDFCreator-resources/
 │   ├── TicTacToePlugin/                      # Tic-Tac-Toe mini-game with minimax AI
 │   ├── ScratchpadPlugin/                     # Review scratchpad and markdown notes
 │   ├── TelemetryPlugin/                      # Document telemetry and GC memory HUD
-│   └── MusicPlayerPlugin/                    # Playlist music player overlay (LibVLC)
+│   ├── MusicPlayerPlugin/                    # Playlist music player overlay (LibVLC)
+│   └── ImageEditorPlugin/                    # Canva-style layered image editor overlay
 ├── plugins/                                  # Marketplace distribution center
 │   ├── catalog.json                          # Official FryPDF remote marketplace registry
 │   ├── frypdf.overlay.snake/                 # Snake.fryplugin, plugin.json, README.md
 │   ├── com.frypdf.plugin.tictactoe/          # TicTacToe.fryplugin, plugin.json, README.md
 │   ├── frypdf.overlay.scratchpad/            # Scratchpad.fryplugin, plugin.json, README.md
 │   ├── frypdf.overlay.telemetry/             # Telemetry.fryplugin, plugin.json, README.md
-│   └── frypdf.overlay.musicplayer/           # MusicPlayer.fryplugin, plugin.json, README.md
+│   ├── frypdf.overlay.musicplayer/           # MusicPlayer.fryplugin, plugin.json, README.md
+│   └── frypdf.overlay.imageeditor/           # ImageEditor.fryplugin, plugin.json, README.md
 ├── fonts/                                    # 67+ Open-source TrueType & OpenType fonts
 ├── tools/                                    # Validation & packaging automation utilities
 │   ├── validate_plugins.py                   # Integrity check for catalog, manifests, packages
@@ -106,6 +108,11 @@ Every plugin `.csproj` must include the `PackageFryPlugin` MSBuild target trigge
 - Timers (`DispatcherTimer`) and background tasks must be stopped on unmount.
 - Use `WeakReferenceMessenger` for decoupled pub/sub messaging to prevent memory leaks.
 
+### Rule 7: Workspace Studio Pages vs. Shell Overlays
+Plugins requiring large creative design canvases or complex multi-panel tooling (such as `ImageEditorPlugin`) should register both:
+- **Workspace Navigation Page**: `ctx.RegisterNavigationItem` with `DisplayMode = NavigationDisplayMode.FullViewport` to provide an edge-to-edge dedicated studio accessible directly from the left sidebar navigation.
+- **Shell Overlay**: `ctx.RegisterOverlay` with `ChromeMode = OverlayChromeMode.StandardCard` for draggable floating window multitasking.
+
 ---
 
 ## 3. Standard Verification Checklist
@@ -119,6 +126,7 @@ dotnet build examples/TicTacToePlugin/TicTacToePlugin.slnx
 dotnet build examples/ScratchpadPlugin/ScratchpadPlugin.slnx
 dotnet build examples/TelemetryPlugin/TelemetryPlugin.slnx
 dotnet build examples/MusicPlayerPlugin/MusicPlayerPlugin.slnx
+dotnet build examples/ImageEditorPlugin/ImageEditorPlugin.slnx
 
 # 2. Package and stage release packages (if plugin code or manifests changed)
 python3 tools/package_plugin.py --all

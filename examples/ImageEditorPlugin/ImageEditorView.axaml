@@ -1,0 +1,939 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="using:PdfEditorApp.Plugins.ImageEditor"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:colorPicker="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.ColorPicker"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="640"
+             x:Class="PdfEditorApp.Plugins.ImageEditor.ImageEditorView"
+             x:DataType="local:ImageEditorViewModel"
+             MinWidth="680" MinHeight="520"
+             Focusable="True">
+
+    <!-- Chrome (header/drag/minimize/close/resize) is provided automatically by the host's
+         StandardCard overlay chrome (see ImageEditorPlugin.cs's OverlayDescriptor) — this view
+         is purely the content: toolbar + canvas + layers panel. -->
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- ══════════════════════════════════════════════════════════
+             ROW 0 — Toolbar. Left/right clusters (not fixed numeric columns) so new
+             buttons can be appended by later features without renumbering everything.
+             ══════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="0"
+                x:Name="ToolbarContainer"
+                Background="{DynamicResource M3SurfaceContainerLowestBrush}"
+                BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="10,8">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+
+                <!-- Left cluster: tools, color, text options, background -->
+                <StackPanel Grid.Column="0" x:Name="ToolbarLeftCluster" Orientation="Horizontal" Spacing="8">
+
+                    <!-- Tool Mode Segmented Capsule -->
+                    <Border Classes="m3-segmented-container">
+                        <StackPanel Orientation="Horizontal" Spacing="0">
+                            <Button Command="{Binding SetToolCommand}" CommandParameter="select"
+                                    Classes="m3-segment-btn"
+                                    Classes.active="{Binding ActiveToolMode, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=select}"
+                                    ToolTip.Tip="Select &amp; Move (V)">
+                                <materialIcons:MaterialIcon Kind="CursorDefault" Width="14" Height="14" />
+                            </Button>
+                            <Button Command="{Binding SetToolCommand}" CommandParameter="text"
+                                    Classes="m3-segment-btn"
+                                    Classes.active="{Binding ActiveToolMode, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=text}"
+                                    ToolTip.Tip="Add Text — click canvas to place (T)">
+                                <materialIcons:MaterialIcon Kind="FormatText" Width="14" Height="14" />
+                            </Button>
+                            <Button Command="{Binding SetToolCommand}" CommandParameter="rect"
+                                    Classes="m3-segment-btn"
+                                    Classes.active="{Binding ActiveToolMode, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=rect}"
+                                    ToolTip.Tip="Rectangle — click or drag on canvas (R)">
+                                <materialIcons:MaterialIcon Kind="RectangleOutline" Width="14" Height="14" />
+                            </Button>
+                            <Button Command="{Binding SetToolCommand}" CommandParameter="ellipse"
+                                    Classes="m3-segment-btn"
+                                    Classes.active="{Binding ActiveToolMode, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=ellipse}"
+                                    ToolTip.Tip="Ellipse — click or drag on canvas (E)">
+                                <materialIcons:MaterialIcon Kind="EllipseOutline" Width="14" Height="14" />
+                            </Button>
+                            <Button Command="{Binding SetToolCommand}" CommandParameter="arrow"
+                                    Classes="m3-segment-btn"
+                                    Classes.active="{Binding ActiveToolMode, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=arrow}"
+                                    ToolTip.Tip="Arrow — click or drag on canvas (A)">
+                                <materialIcons:MaterialIcon Kind="ArrowTopRight" Width="14" Height="14" />
+                            </Button>
+                            <Button Command="{Binding SetToolCommand}" CommandParameter="eyedropper"
+                                    Classes="m3-segment-btn"
+                                    Classes.active="{Binding ActiveToolMode, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=eyedropper}"
+                                    ToolTip.Tip="Eyedropper — sample a color from the canvas">
+                                <materialIcons:MaterialIcon Kind="Eyedropper" Width="14" Height="14" />
+                            </Button>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Primary color — used as the fill/stroke for the NEXT new shape/text placed -->
+                    <colorPicker:ColorPicker Color="{Binding PrimaryColor, Mode=TwoWay}"
+                                             Width="42" Height="30"
+                                             ToolTip.Tip="Default color for new shapes/text" />
+
+                    <!-- Text options (relevant when the Text tool is active) -->
+                    <StackPanel Orientation="Horizontal" Spacing="6"
+                                VerticalAlignment="Center" HorizontalAlignment="Left">
+                        <TextBox Text="{Binding NewTextContent}"
+                                 Classes="m3-outlined"
+                                 Width="120" Height="30" FontSize="12"
+                                 PlaceholderText="Text content..." />
+
+                        <NumericUpDown Value="{Binding FontSize}"
+                                       Minimum="8" Maximum="120" Increment="2"
+                                       Width="76" Height="30" FontSize="12"
+                                       ToolTip.Tip="Font Size" />
+
+                        <ToggleButton IsChecked="{Binding IsBold}" Classes="m3-glyph-toggle"
+                                      Width="30" Height="30" ToolTip.Tip="Bold">
+                            <materialIcons:MaterialIcon Kind="FormatBold" Width="15" Height="15" />
+                        </ToggleButton>
+                        <ToggleButton IsChecked="{Binding IsItalic}" Classes="m3-glyph-toggle"
+                                      Width="30" Height="30" ToolTip.Tip="Italic">
+                            <materialIcons:MaterialIcon Kind="FormatItalic" Width="15" Height="15" />
+                        </ToggleButton>
+                    </StackPanel>
+
+                    <!-- Background Segmented Capsule -->
+                    <Border Classes="m3-segmented-container">
+                        <StackPanel Orientation="Horizontal" Spacing="0">
+                            <Button Command="{Binding SetBackgroundCommand}" CommandParameter="White"
+                                    Classes="m3-segment-btn"
+                                    Classes.active="{Binding BackgroundColorName, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=White}"
+                                    ToolTip.Tip="White Background">
+                                <TextBlock Text="White" />
+                            </Button>
+                            <Button Command="{Binding SetBackgroundCommand}" CommandParameter="Black"
+                                    Classes="m3-segment-btn"
+                                    Classes.active="{Binding BackgroundColorName, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Black}"
+                                    ToolTip.Tip="Black Background">
+                                <TextBlock Text="Dark" />
+                            </Button>
+                            <Button Command="{Binding SetBackgroundCommand}" CommandParameter="Transparent"
+                                    Classes="m3-segment-btn"
+                                    Classes.active="{Binding BackgroundColorName, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Transparent}"
+                                    ToolTip.Tip="Transparent Background">
+                                <materialIcons:MaterialIcon Kind="Checkerboard" Width="13" Height="13" />
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Right cluster: file operations + undo/redo/clear -->
+                <StackPanel Grid.Column="2" x:Name="ToolbarRightCluster" Orientation="Horizontal" Spacing="6">
+                    <Button Command="{Binding OpenTemplateGalleryCommand}"
+                            Classes="m3-tonal-btn"
+                            ToolTip.Tip="Template Gallery">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <materialIcons:MaterialIcon Kind="ViewGridOutline" Width="14" Height="14" />
+                            <TextBlock Text="Templates" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+                        <Button Command="{Binding SaveProjectCommand}" Classes="m3-icon-btn" ToolTip.Tip="Save Project (.fryimg)">
+                            <materialIcons:MaterialIcon Kind="ContentSaveOutline" Width="15" Height="15" />
+                        </Button>
+                        <Button Command="{Binding LoadProjectCommand}" Classes="m3-icon-btn" ToolTip.Tip="Load Project (.fryimg)">
+                            <materialIcons:MaterialIcon Kind="FolderOpenOutline" Width="15" Height="15" />
+                        </Button>
+                    </StackPanel>
+
+                    <Button Command="{Binding ImportImageCommand}"
+                            Classes="m3-tonal-btn"
+                            ToolTip.Tip="Import Image from file">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <materialIcons:MaterialIcon Kind="ImagePlus" Width="14" Height="14" />
+                            <TextBlock Text="Image" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding ExportToPngCommand}"
+                            Classes="m3-filled-btn"
+                            Background="{DynamicResource M3SuccessBrush}"
+                            Foreground="{DynamicResource M3OnSuccessBrush}"
+                            ToolTip.Tip="Export canvas as PNG">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <materialIcons:MaterialIcon Kind="Download" Width="13" Height="13" />
+                            <TextBlock Text="Export" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+                        <Button Command="{Binding UndoCommand}" Classes="m3-icon-btn" ToolTip.Tip="Undo (Ctrl+Z)">
+                            <materialIcons:MaterialIcon Kind="UndoVariant" Width="16" Height="16" />
+                        </Button>
+                        <Button Command="{Binding RedoCommand}" Classes="m3-icon-btn" ToolTip.Tip="Redo (Ctrl+Y)">
+                            <materialIcons:MaterialIcon Kind="RedoVariant" Width="16" Height="16" />
+                        </Button>
+                    </StackPanel>
+
+                    <Button Command="{Binding ClearCanvasCommand}"
+                            Classes="m3-icon-btn"
+                            Foreground="{DynamicResource M3ErrorBrush}"
+                            ToolTip.Tip="Clear all elements">
+                        <materialIcons:MaterialIcon Kind="DeleteOutline" Width="16" Height="16" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ══════════════════════════════════════════════════════════
+             ROW 1 — Canvas + Properties Panel
+             ══════════════════════════════════════════════════════════ -->
+        <Grid Grid.Row="1"
+              x:Name="WorkspaceContainer"
+              ColumnDefinitions="*,220">
+
+            <!-- Canvas Area -->
+            <Grid Grid.Column="0">
+                <Border Margin="10"
+                        CornerRadius="{StaticResource M3ShapeCornerLarge}"
+                        ClipToBounds="True"
+                        BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                        BorderThickness="1"
+                        BoxShadow="{StaticResource M3ElevationLevel2}">
+                    <Panel>
+                        <local:EditorCanvasControl x:Name="CanvasControl"
+                                                   Width="560" Height="480"
+                                                   HorizontalAlignment="Stretch"
+                                                   VerticalAlignment="Stretch" />
+
+                        <!-- Inline double-click text editor overlay — positioned/sized in
+                             code-behind (BeginInlineTextEdit) to match the edited element. -->
+                        <TextBox x:Name="InlineTextEditBox"
+                                 IsVisible="False"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 Background="{DynamicResource M3SurfaceContainerHighestBrush}"
+                                 BorderBrush="{DynamicResource M3PrimaryBrush}"
+                                 BorderThickness="1.5"
+                                 Padding="4,2"
+                                 HorizontalAlignment="Left"
+                                 VerticalAlignment="Top"
+                                 KeyDown="InlineTextEditBox_KeyDown"
+                                 LostFocus="InlineTextEditBox_LostFocus" />
+                    </Panel>
+                </Border>
+
+                <!-- Zoom pill -->
+                <Border HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="20"
+                        Background="{DynamicResource M3SurfaceContainerHighBrush}"
+                        BorderBrush="{DynamicResource M3OutlineVariantBrush}" BorderThickness="1"
+                        CornerRadius="{StaticResource M3ShapeCornerFull}"
+                        BoxShadow="{StaticResource M3ElevationLevel1}"
+                        Padding="4">
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+                        <Button Command="{Binding ZoomOutCommand}" Classes="m3-icon-btn" ToolTip.Tip="Zoom Out">
+                            <materialIcons:MaterialIcon Kind="Minus" Width="14" Height="14" />
+                        </Button>
+                        <Button Command="{Binding FitCanvasToWindowCommand}" Classes="m3-icon-btn"
+                                Width="NaN" Padding="8,0" ToolTip.Tip="Fit to Window">
+                            <TextBlock Text="{Binding ZoomPercentageLabel}" FontSize="11" VerticalAlignment="Center" />
+                        </Button>
+                        <Button Command="{Binding ZoomInCommand}" Classes="m3-icon-btn" ToolTip.Tip="Zoom In">
+                            <materialIcons:MaterialIcon Kind="Plus" Width="14" Height="14" />
+                        </Button>
+                        <Button Command="{Binding ResetZoomToActualCommand}" Classes="m3-icon-btn"
+                                Width="NaN" Padding="8,0" ToolTip.Tip="Actual Size (100%)">
+                            <TextBlock Text="1:1" FontSize="11" VerticalAlignment="Center" />
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Properties / Layers Panel -->
+            <Border Grid.Column="1"
+                    Background="{DynamicResource M3SurfaceContainerLowBrush}"
+                    BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                    BorderThickness="1,0,0,0"
+                    Padding="8,8">
+                <Grid RowDefinitions="*,Auto,Auto" RowSpacing="8">
+
+                    <!-- Tabs: Layers list / selection+canvas Properties -->
+                    <TabControl Grid.Row="0" Padding="0">
+                        <TabItem Header="Layers">
+                            <Grid RowDefinitions="*">
+                                <ScrollViewer>
+                                    <ItemsControl ItemsSource="{Binding LayersDescendingZ}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Classes="m3-layer-row"
+                                                        Command="{Binding $parent[ItemsControl].((local:ImageEditorViewModel)DataContext).SelectElementFromLayerPanelCommand}"
+                                                        CommandParameter="{Binding}">
+                                                    <Border Classes="m3-card-elevated" Margin="0,2" Padding="8,6">
+                                                        <Grid ColumnDefinitions="Auto,*,Auto">
+                                                            <materialIcons:MaterialIcon Grid.Column="0"
+                                                                Kind="LayersOutline"
+                                                                Width="14" Height="14"
+                                                                Foreground="{DynamicResource M3OnSurfaceVariantBrush}"
+                                                                Margin="0,0,6,0"
+                                                                VerticalAlignment="Center" />
+                                                            <TextBlock Grid.Column="1"
+                                                                       Text="{Binding DisplayName}"
+                                                                       FontSize="12"
+                                                                       Foreground="{DynamicResource M3OnSurfaceBrush}"
+                                                                       VerticalAlignment="Center" />
+                                                            <TextBlock Grid.Column="2"
+                                                                       Text="{Binding ZIndex}"
+                                                                       FontSize="10"
+                                                                       Foreground="{DynamicResource M3OnSurfaceVariantBrush}"
+                                                                       Opacity="0.7"
+                                                                       VerticalAlignment="Center" />
+                                                        </Grid>
+                                                    </Border>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Grid>
+                        </TabItem>
+
+                        <TabItem Header="Properties">
+                            <ScrollViewer>
+                                <StackPanel Spacing="8">
+
+                                    <!-- Alignment (2+ selected) / Distribute (3+ selected) -->
+                                    <Border Padding="0,4,0,0" IsVisible="{Binding HasMultiSelection}">
+                                        <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="4">
+                                            <TextBlock Grid.Row="0" Text="ALIGN" FontSize="10" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource M3OnSurfaceVariantBrush}" LetterSpacing="1" Margin="0,0,0,2" />
+                                            <Grid Grid.Row="1" ColumnDefinitions="*,*,*" ColumnSpacing="4">
+                                                <Button Grid.Column="0" Command="{Binding AlignLeftCommand}" Classes="m3-icon-btn"
+                                                        Width="NaN" HorizontalAlignment="Stretch" ToolTip.Tip="Align Left">
+                                                    <materialIcons:MaterialIcon Kind="AlignHorizontalLeft" Width="14" Height="14" />
+                                                </Button>
+                                                <Button Grid.Column="1" Command="{Binding AlignCenterHorizontalCommand}" Classes="m3-icon-btn"
+                                                        Width="NaN" HorizontalAlignment="Stretch" ToolTip.Tip="Align Center (Horizontal)">
+                                                    <materialIcons:MaterialIcon Kind="AlignHorizontalCenter" Width="14" Height="14" />
+                                                </Button>
+                                                <Button Grid.Column="2" Command="{Binding AlignRightCommand}" Classes="m3-icon-btn"
+                                                        Width="NaN" HorizontalAlignment="Stretch" ToolTip.Tip="Align Right">
+                                                    <materialIcons:MaterialIcon Kind="AlignHorizontalRight" Width="14" Height="14" />
+                                                </Button>
+                                            </Grid>
+                                            <Grid Grid.Row="2" ColumnDefinitions="*,*,*" ColumnSpacing="4">
+                                                <Button Grid.Column="0" Command="{Binding AlignTopCommand}" Classes="m3-icon-btn"
+                                                        Width="NaN" HorizontalAlignment="Stretch" ToolTip.Tip="Align Top">
+                                                    <materialIcons:MaterialIcon Kind="AlignVerticalTop" Width="14" Height="14" />
+                                                </Button>
+                                                <Button Grid.Column="1" Command="{Binding AlignCenterVerticalCommand}" Classes="m3-icon-btn"
+                                                        Width="NaN" HorizontalAlignment="Stretch" ToolTip.Tip="Align Center (Vertical)">
+                                                    <materialIcons:MaterialIcon Kind="AlignVerticalCenter" Width="14" Height="14" />
+                                                </Button>
+                                                <Button Grid.Column="2" Command="{Binding AlignBottomCommand}" Classes="m3-icon-btn"
+                                                        Width="NaN" HorizontalAlignment="Stretch" ToolTip.Tip="Align Bottom">
+                                                    <materialIcons:MaterialIcon Kind="AlignVerticalBottom" Width="14" Height="14" />
+                                                </Button>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Style: fill / stroke / corner radius / text color — works for
+                                         any element type via the IHasFill/IHasStroke interfaces -->
+                                    <Border Padding="0,4,0,0"
+                                            IsVisible="{Binding SelectedElement, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6">
+                                            <TextBlock Grid.Row="0" Text="STYLE" FontSize="10" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource M3OnSurfaceVariantBrush}" LetterSpacing="1" Margin="0,0,0,2" />
+
+                                            <Grid Grid.Row="1" ColumnDefinitions="Auto,*" ColumnSpacing="6"
+                                                  IsVisible="{Binding SelectedFillable, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                                <TextBlock Grid.Column="0" Text="Fill" FontSize="10.5" VerticalAlignment="Center"
+                                                           Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="46" />
+                                                <colorPicker:ColorPicker Grid.Column="1" Color="{Binding FillColorField, Mode=TwoWay}"
+                                                                         HorizontalAlignment="Left" Width="42" Height="28"
+                                                                         IsVisible="{Binding !HasGradientField}" />
+                                                <ToggleButton Grid.Column="1" IsChecked="{Binding HasGradientField}"
+                                                              Command="{Binding ToggleGradientFillCommand}"
+                                                              Classes="m3-glyph-toggle" Width="NaN" Padding="8,4"
+                                                              HorizontalAlignment="Left" ToolTip.Tip="Gradient fill">
+                                                    <StackPanel Orientation="Horizontal" Spacing="3">
+                                                        <materialIcons:MaterialIcon Kind="GradientHorizontal" Width="12" Height="12" />
+                                                        <TextBlock Text="Gradient" FontSize="10" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </ToggleButton>
+                                            </Grid>
+
+                                            <Grid Grid.Row="2" RowDefinitions="Auto,Auto,Auto" RowSpacing="4"
+                                                  IsVisible="{Binding HasGradientField}">
+                                                <Border Grid.Row="0" Classes="m3-segmented-container" HorizontalAlignment="Left">
+                                                    <StackPanel Orientation="Horizontal" Spacing="0">
+                                                        <Button Command="{Binding SetGradientKindCommand}" CommandParameter="Linear"
+                                                                Classes="m3-segment-btn"
+                                                                Classes.active="{Binding GradientKindField, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Linear}">
+                                                            <TextBlock Text="Linear" FontSize="10" />
+                                                        </Button>
+                                                        <Button Command="{Binding SetGradientKindCommand}" CommandParameter="Radial"
+                                                                Classes="m3-segment-btn"
+                                                                Classes.active="{Binding GradientKindField, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Radial}">
+                                                            <TextBlock Text="Radial" FontSize="10" />
+                                                        </Button>
+                                                    </StackPanel>
+                                                </Border>
+                                                <Grid Grid.Row="1" ColumnDefinitions="Auto,*"
+                                                      IsVisible="{Binding GradientKindField, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Linear}">
+                                                    <TextBlock Grid.Column="0" Text="Angle" FontSize="9.5"
+                                                               Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="46" VerticalAlignment="Center" />
+                                                    <Slider Classes="m3-tactile-slider" Grid.Column="1" Minimum="0" Maximum="360" Value="{Binding GradientAngleField}" Height="20" />
+                                                </Grid>
+                                                <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="6">
+                                                    <TextBlock Grid.Column="0" Text="From" FontSize="10.5" VerticalAlignment="Center"
+                                                               Foreground="{DynamicResource M3OnSurfaceVariantBrush}" />
+                                                    <colorPicker:ColorPicker Grid.Column="1" Color="{Binding GradientStartColorField, Mode=TwoWay}"
+                                                                             Width="42" Height="28" />
+                                                    <TextBlock Grid.Column="2" Text="To" FontSize="10.5" VerticalAlignment="Center"
+                                                               Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Margin="6,0,0,0" />
+                                                    <colorPicker:ColorPicker Grid.Column="3" Color="{Binding GradientEndColorField, Mode=TwoWay}"
+                                                                             Width="42" Height="28" />
+                                                </Grid>
+                                            </Grid>
+
+                                            <Grid Grid.Row="3" RowDefinitions="Auto,Auto" RowSpacing="4"
+                                                  IsVisible="{Binding SelectedStrokeable, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                                <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*" ColumnSpacing="6">
+                                                    <TextBlock Grid.Column="0" Text="Stroke" FontSize="10.5" VerticalAlignment="Center"
+                                                               Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="46" />
+                                                    <colorPicker:ColorPicker Grid.Column="1" Color="{Binding StrokeColorField, Mode=TwoWay}"
+                                                                             HorizontalAlignment="Left" Width="42" Height="28" />
+                                                    <NumericUpDown Grid.Column="2" Value="{Binding StrokeThicknessField}"
+                                                                   Minimum="0" Maximum="40" Increment="0.5"
+                                                                   Height="28" FontSize="11" ToolTip.Tip="Stroke width" />
+                                                </Grid>
+                                                <Border Grid.Row="1" Classes="m3-segmented-container" HorizontalAlignment="Left">
+                                                    <StackPanel Orientation="Horizontal" Spacing="0">
+                                                        <Button Command="{Binding SetDashStyleCommand}" CommandParameter="Solid"
+                                                                Classes="m3-segment-btn"
+                                                                Classes.active="{Binding DashStyleField, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Solid}"
+                                                                ToolTip.Tip="Solid stroke">
+                                                            <TextBlock Text="Solid" FontSize="10" />
+                                                        </Button>
+                                                        <Button Command="{Binding SetDashStyleCommand}" CommandParameter="Dashed"
+                                                                Classes="m3-segment-btn"
+                                                                Classes.active="{Binding DashStyleField, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Dashed}"
+                                                                ToolTip.Tip="Dashed stroke">
+                                                            <TextBlock Text="Dashed" FontSize="10" />
+                                                        </Button>
+                                                        <Button Command="{Binding SetDashStyleCommand}" CommandParameter="Dotted"
+                                                                Classes="m3-segment-btn"
+                                                                Classes.active="{Binding DashStyleField, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Dotted}"
+                                                                ToolTip.Tip="Dotted stroke">
+                                                            <TextBlock Text="Dotted" FontSize="10" />
+                                                        </Button>
+                                                    </StackPanel>
+                                                </Border>
+                                            </Grid>
+
+                                            <Grid Grid.Row="4" ColumnDefinitions="Auto,*" ColumnSpacing="6"
+                                                  IsVisible="{Binding SelectedRectangleElement, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                                <TextBlock Grid.Column="0" Text="Corners" FontSize="10.5" VerticalAlignment="Center"
+                                                           Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="46" />
+                                                <Slider Classes="m3-tactile-slider" Grid.Column="1" Minimum="0" Maximum="60" Value="{Binding CornerRadiusField}" Height="20" />
+                                            </Grid>
+
+                                            <Grid Grid.Row="5" ColumnDefinitions="Auto,*" ColumnSpacing="6"
+                                                  IsVisible="{Binding SelectedTextElement, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                                <TextBlock Grid.Column="0" Text="Color" FontSize="10.5" VerticalAlignment="Center"
+                                                           Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="46" />
+                                                <colorPicker:ColorPicker Grid.Column="1" Color="{Binding TextForegroundColorField, Mode=TwoWay}"
+                                                                         HorizontalAlignment="Left" Width="42" Height="28" />
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Transform: opacity + numeric X/Y/W/H/rotation (single-selection only) -->
+                                    <Border Padding="0,4,0,0"
+                                            IsVisible="{Binding SelectedElement, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="4">
+                                            <TextBlock Grid.Row="0" Text="TRANSFORM" FontSize="10" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource M3OnSurfaceVariantBrush}" LetterSpacing="1" Margin="0,0,0,2" />
+                                            <Grid Grid.Row="1" ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                                                <TextBlock Grid.Column="0" Text="Opacity" FontSize="9.5"
+                                                           Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="46" VerticalAlignment="Center" />
+                                                <Slider Classes="m3-tactile-slider" Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding OpacityField}" Height="20" />
+                                            </Grid>
+                                            <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="4">
+                                                <NumericUpDown Grid.Column="0" Value="{Binding ElementXField}" FormatString="0.#"
+                                                               Height="28" FontSize="11" ToolTip.Tip="X position" />
+                                                <NumericUpDown Grid.Column="1" Value="{Binding ElementYField}" FormatString="0.#"
+                                                               Height="28" FontSize="11" ToolTip.Tip="Y position" />
+                                            </Grid>
+                                            <Grid Grid.Row="3" ColumnDefinitions="*,*" ColumnSpacing="4">
+                                                <NumericUpDown Grid.Column="0" Value="{Binding ElementWidthField}" FormatString="0.#"
+                                                               Minimum="1" Height="28" FontSize="11" ToolTip.Tip="Width" />
+                                                <NumericUpDown Grid.Column="1" Value="{Binding ElementHeightField}" FormatString="0.#"
+                                                               Minimum="1" Height="28" FontSize="11" ToolTip.Tip="Height" />
+                                            </Grid>
+                                            <Grid Grid.Row="4" ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                                                <TextBlock Grid.Column="0" Text="Rotate" FontSize="9.5"
+                                                           Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="46" VerticalAlignment="Center" />
+                                                <NumericUpDown Grid.Column="1" Value="{Binding ElementRotationField}" FormatString="0.#"
+                                                               Minimum="0" Maximum="360" Height="28" FontSize="11" ToolTip.Tip="Rotation (degrees)" />
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Image transform: rotate / flip / aspect-lock / crop / adjustments -->
+                                    <Border Padding="0,4,0,0"
+                                            IsVisible="{Binding SelectedElement, Converter={x:Static local:IsImageElementConverter.Instance}}">
+                                        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6">
+                                            <TextBlock Grid.Row="0" Text="IMAGE" FontSize="10" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource M3OnSurfaceVariantBrush}" LetterSpacing="1" Margin="0,0,0,2" />
+                                            <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*" ColumnSpacing="4">
+                                                <Button Grid.Column="0" Command="{Binding RotateCounterClockwiseCommand}" Classes="m3-icon-btn"
+                                                        Width="NaN" HorizontalAlignment="Stretch" ToolTip.Tip="Rotate 90° CCW">
+                                                    <materialIcons:MaterialIcon Kind="RotateLeft" Width="14" Height="14" />
+                                                </Button>
+                                                <Button Grid.Column="1" Command="{Binding RotateClockwiseCommand}" Classes="m3-icon-btn"
+                                                        Width="NaN" HorizontalAlignment="Stretch" ToolTip.Tip="Rotate 90° CW">
+                                                    <materialIcons:MaterialIcon Kind="RotateRight" Width="14" Height="14" />
+                                                </Button>
+                                                <Button Grid.Column="2" Command="{Binding FlipHorizontalCommand}" Classes="m3-icon-btn"
+                                                        Width="NaN" HorizontalAlignment="Stretch" ToolTip.Tip="Flip Horizontal">
+                                                    <materialIcons:MaterialIcon Kind="FlipHorizontal" Width="14" Height="14" />
+                                                </Button>
+                                                <Button Grid.Column="3" Command="{Binding FlipVerticalCommand}" Classes="m3-icon-btn"
+                                                        Width="NaN" HorizontalAlignment="Stretch" ToolTip.Tip="Flip Vertical">
+                                                    <materialIcons:MaterialIcon Kind="FlipVertical" Width="14" Height="14" />
+                                                </Button>
+                                            </Grid>
+
+                                            <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="4" IsVisible="{Binding !IsCropping}">
+                                                <ToggleButton Grid.Column="0" IsChecked="{Binding AspectLockedField, Mode=TwoWay}"
+                                                              Classes="m3-glyph-toggle" Width="NaN" HorizontalAlignment="Stretch"
+                                                              ToolTip.Tip="Lock Aspect Ratio">
+                                                    <StackPanel Orientation="Horizontal" Spacing="3">
+                                                        <materialIcons:MaterialIcon Kind="LockOutline" Width="12" Height="12" />
+                                                        <TextBlock Text="Lock" FontSize="10" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </ToggleButton>
+                                                <Button Grid.Column="1" Command="{Binding EnterCropModeCommand}" Classes="m3-tonal-btn"
+                                                        Width="NaN" HorizontalAlignment="Stretch" Height="30" FontSize="10.5"
+                                                        ToolTip.Tip="Crop Image">
+                                                    <StackPanel Orientation="Horizontal" Spacing="3">
+                                                        <materialIcons:MaterialIcon Kind="Crop" Width="12" Height="12" />
+                                                        <TextBlock Text="Crop" FontSize="10" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </Button>
+                                            </Grid>
+                                            <Grid Grid.Row="2" ColumnDefinitions="*,*,*" ColumnSpacing="4" IsVisible="{Binding IsCropping}">
+                                                <Button Grid.Column="0" Command="{Binding ConfirmCropCommand}" Classes="m3-filled-btn"
+                                                        Background="{DynamicResource M3SuccessBrush}" Foreground="{DynamicResource M3OnSuccessBrush}"
+                                                        Width="NaN" Height="30" Padding="0" HorizontalAlignment="Stretch" ToolTip.Tip="Confirm Crop">
+                                                    <materialIcons:MaterialIcon Kind="Check" Width="14" Height="14" />
+                                                </Button>
+                                                <Button Grid.Column="1" Command="{Binding CancelCropCommand}" Classes="m3-icon-btn"
+                                                        Width="NaN" HorizontalAlignment="Stretch" ToolTip.Tip="Cancel Crop">
+                                                    <materialIcons:MaterialIcon Kind="Close" Width="14" Height="14" />
+                                                </Button>
+                                                <Button Grid.Column="2" Command="{Binding ResetCropCommand}" Classes="m3-icon-btn"
+                                                        Width="NaN" HorizontalAlignment="Stretch" ToolTip.Tip="Reset to Full Image">
+                                                    <materialIcons:MaterialIcon Kind="Restore" Width="14" Height="14" />
+                                                </Button>
+                                            </Grid>
+
+                                            <!-- Fixed-aspect-ratio crop presets -->
+                                            <WrapPanel Grid.Row="3" ItemSpacing="4" LineSpacing="4" IsVisible="{Binding IsCropping}">
+                                                <Button Command="{Binding SetCropAspectPresetCommand}" CommandParameter="{x:Null}"
+                                                        Classes="m3-filter-chip" ToolTip.Tip="Original aspect ratio">
+                                                    <TextBlock Text="Original" />
+                                                </Button>
+                                                <Button Command="{Binding SetCropAspectPresetCommand}" CommandParameter="1:1"
+                                                        Classes="m3-filter-chip" ToolTip.Tip="Square">
+                                                    <TextBlock Text="1:1" />
+                                                </Button>
+                                                <Button Command="{Binding SetCropAspectPresetCommand}" CommandParameter="4:3"
+                                                        Classes="m3-filter-chip" ToolTip.Tip="4:3">
+                                                    <TextBlock Text="4:3" />
+                                                </Button>
+                                                <Button Command="{Binding SetCropAspectPresetCommand}" CommandParameter="3:2"
+                                                        Classes="m3-filter-chip" ToolTip.Tip="3:2">
+                                                    <TextBlock Text="3:2" />
+                                                </Button>
+                                                <Button Command="{Binding SetCropAspectPresetCommand}" CommandParameter="16:9"
+                                                        Classes="m3-filter-chip" ToolTip.Tip="16:9 widescreen">
+                                                    <TextBlock Text="16:9" />
+                                                </Button>
+                                                <Button Command="{Binding SetCropAspectPresetCommand}" CommandParameter="9:16"
+                                                        Classes="m3-filter-chip" ToolTip.Tip="9:16 portrait">
+                                                    <TextBlock Text="9:16" />
+                                                </Button>
+                                            </WrapPanel>
+
+                                            <!-- Filter presets -->
+                                            <WrapPanel Grid.Row="4" ItemSpacing="4" LineSpacing="4">
+                                                <Button Command="{Binding SetFilterPresetCommand}" CommandParameter="{x:Null}"
+                                                        Classes="m3-filter-chip"
+                                                        Classes.active="{Binding ActiveFilterPreset, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter={x:Null}}"
+                                                        ToolTip.Tip="No filter">
+                                                    <TextBlock Text="None" />
+                                                </Button>
+                                                <Button Command="{Binding SetFilterPresetCommand}" CommandParameter="BlackAndWhite"
+                                                        Classes="m3-filter-chip"
+                                                        Classes.active="{Binding ActiveFilterPreset, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=BlackAndWhite}"
+                                                        ToolTip.Tip="Black &amp; White">
+                                                    <TextBlock Text="B&amp;W" />
+                                                </Button>
+                                                <Button Command="{Binding SetFilterPresetCommand}" CommandParameter="Sepia"
+                                                        Classes="m3-filter-chip"
+                                                        Classes.active="{Binding ActiveFilterPreset, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Sepia}"
+                                                        ToolTip.Tip="Sepia">
+                                                    <TextBlock Text="Sepia" />
+                                                </Button>
+                                                <Button Command="{Binding SetFilterPresetCommand}" CommandParameter="Vintage"
+                                                        Classes="m3-filter-chip"
+                                                        Classes.active="{Binding ActiveFilterPreset, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Vintage}"
+                                                        ToolTip.Tip="Vintage">
+                                                    <TextBlock Text="Vintage" />
+                                                </Button>
+                                                <Button Command="{Binding SetFilterPresetCommand}" CommandParameter="Vivid"
+                                                        Classes="m3-filter-chip"
+                                                        Classes.active="{Binding ActiveFilterPreset, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Vivid}"
+                                                        ToolTip.Tip="Vivid">
+                                                    <TextBlock Text="Vivid" />
+                                                </Button>
+                                                <Button Command="{Binding SetFilterPresetCommand}" CommandParameter="Noir"
+                                                        Classes="m3-filter-chip"
+                                                        Classes.active="{Binding ActiveFilterPreset, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Noir}"
+                                                        ToolTip.Tip="Noir">
+                                                    <TextBlock Text="Noir" />
+                                                </Button>
+                                                <Button Command="{Binding SetFilterPresetCommand}" CommandParameter="Invert"
+                                                        Classes="m3-filter-chip"
+                                                        Classes.active="{Binding ActiveFilterPreset, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Invert}"
+                                                        ToolTip.Tip="Invert">
+                                                    <TextBlock Text="Invert" />
+                                                </Button>
+                                                <Button Command="{Binding SetFilterPresetCommand}" CommandParameter="Duotone"
+                                                        Classes="m3-filter-chip"
+                                                        Classes.active="{Binding ActiveFilterPreset, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Duotone}"
+                                                        ToolTip.Tip="Duotone">
+                                                    <TextBlock Text="Duotone" />
+                                                </Button>
+                                                <Button Command="{Binding SetFilterPresetCommand}" CommandParameter="Vignette"
+                                                        Classes="m3-filter-chip"
+                                                        Classes.active="{Binding ActiveFilterPreset, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Vignette}"
+                                                        ToolTip.Tip="Vignette">
+                                                    <TextBlock Text="Vignette" />
+                                                </Button>
+                                            </WrapPanel>
+
+                                            <!-- Brightness / Contrast / Saturation / Hue / Temperature / Tint / Blur / Sharpen sliders -->
+                                            <Grid Grid.Row="5" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="2">
+                                                <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
+                                                    <TextBlock Grid.Column="0" Text="Bright" FontSize="9.5"
+                                                               Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="46" VerticalAlignment="Center" />
+                                                    <Slider Classes="m3-tactile-slider" Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding ImgBrightness}" Height="20" />
+                                                </Grid>
+                                                <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
+                                                    <TextBlock Grid.Column="0" Text="Contrast" FontSize="9.5"
+                                                               Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="46" VerticalAlignment="Center" />
+                                                    <Slider Classes="m3-tactile-slider" Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding ImgContrast}" Height="20" />
+                                                </Grid>
+                                                <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
+                                                    <TextBlock Grid.Column="0" Text="Saturate" FontSize="9.5"
+                                                               Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="46" VerticalAlignment="Center" />
+                                                    <Slider Classes="m3-tactile-slider" Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding ImgSaturation}" Height="20" />
+                                                </Grid>
+                                                <Grid Grid.Row="3" ColumnDefinitions="Auto,*">
+                                                    <TextBlock Grid.Column="0" Text="Hue" FontSize="9.5"
+                                                               Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="46" VerticalAlignment="Center" />
+                                                    <Slider Classes="m3-tactile-slider" Grid.Column="1" Minimum="-180" Maximum="180" Value="{Binding ImgHue}" Height="20" />
+                                                </Grid>
+                                                <Grid Grid.Row="4" ColumnDefinitions="Auto,*">
+                                                    <TextBlock Grid.Column="0" Text="Temp" FontSize="9.5"
+                                                               Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="46" VerticalAlignment="Center" />
+                                                    <Slider Classes="m3-tactile-slider" Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding ImgTemperature}" Height="20" />
+                                                </Grid>
+                                                <Grid Grid.Row="5" ColumnDefinitions="Auto,*">
+                                                    <TextBlock Grid.Column="0" Text="Tint" FontSize="9.5"
+                                                               Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="46" VerticalAlignment="Center" />
+                                                    <Slider Classes="m3-tactile-slider" Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding ImgTint}" Height="20" />
+                                                </Grid>
+                                                <Grid Grid.Row="6" ColumnDefinitions="Auto,*">
+                                                    <TextBlock Grid.Column="0" Text="Blur" FontSize="9.5"
+                                                               Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="46" VerticalAlignment="Center" />
+                                                    <Slider Classes="m3-tactile-slider" Grid.Column="1" Minimum="0" Maximum="20" Value="{Binding ImgBlurRadius}" Height="20" />
+                                                </Grid>
+                                                <Grid Grid.Row="7" ColumnDefinitions="Auto,*">
+                                                    <TextBlock Grid.Column="0" Text="Sharpen" FontSize="9.5"
+                                                               Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="46" VerticalAlignment="Center" />
+                                                    <Slider Classes="m3-tactile-slider" Grid.Column="1" Minimum="0" Maximum="2" Value="{Binding ImgSharpenAmount}" Height="20" />
+                                                </Grid>
+                                            </Grid>
+
+                                            <Grid Grid.Row="6" ColumnDefinitions="*,*" ColumnSpacing="4">
+                                                <Button Grid.Column="0" Command="{Binding ResetAdjustmentsCommand}"
+                                                        Classes="m3-icon-btn" Width="NaN" Height="28" FontSize="10.5"
+                                                        HorizontalAlignment="Stretch" ToolTip.Tip="Reset all adjustments and filter">
+                                                    <TextBlock Text="Reset" FontSize="10.5" />
+                                                </Button>
+                                                <Button Grid.Column="1" Command="{Binding AutoEnhanceCommand}"
+                                                        Classes="m3-icon-btn" Width="NaN" Height="28" FontSize="10.5"
+                                                        HorizontalAlignment="Stretch" ToolTip.Tip="Auto-enhance (analyze &amp; auto-adjust)">
+                                                    <TextBlock Text="Auto-Enhance" FontSize="10.5" />
+                                                </Button>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                    </TabControl>
+
+                    <!-- Z-Order + Delete Actions (always visible, regardless of tab) -->
+                    <Border Grid.Row="1"
+                            Padding="0,8,0,0"
+                            BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                            BorderThickness="0,1,0,0">
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="4">
+
+                            <Grid Grid.Row="0" ColumnDefinitions="*,*,*" ColumnSpacing="4">
+                                <Button Grid.Column="0" Command="{Binding DuplicateCommand}" Classes="m3-icon-btn"
+                                        Width="NaN" Height="28" FontSize="10.5" HorizontalAlignment="Stretch"
+                                        ToolTip.Tip="Duplicate (Ctrl+D)">
+                                    <materialIcons:MaterialIcon Kind="ContentDuplicate" Width="13" Height="13" />
+                                </Button>
+                                <Button Grid.Column="1" Command="{Binding CopyElementsCommand}" Classes="m3-icon-btn"
+                                        Width="NaN" Height="28" FontSize="10.5" HorizontalAlignment="Stretch"
+                                        ToolTip.Tip="Copy (Ctrl+C)">
+                                    <materialIcons:MaterialIcon Kind="ContentCopy" Width="13" Height="13" />
+                                </Button>
+                                <Button Grid.Column="2" Command="{Binding PasteElementsCommand}" Classes="m3-icon-btn"
+                                        Width="NaN" Height="28" FontSize="10.5" HorizontalAlignment="Stretch"
+                                        ToolTip.Tip="Paste (Ctrl+V)">
+                                    <materialIcons:MaterialIcon Kind="ContentPaste" Width="13" Height="13" />
+                                </Button>
+                            </Grid>
+
+                            <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="4">
+                                <Button Grid.Column="0" Command="{Binding BringForwardCommand}" Classes="m3-tonal-btn"
+                                        Width="NaN" Height="30" FontSize="10.5" HorizontalAlignment="Stretch"
+                                        ToolTip.Tip="Bring Forward">
+                                    <StackPanel Orientation="Horizontal" Spacing="3">
+                                        <materialIcons:MaterialIcon Kind="ArrowUpBold" Width="12" Height="12" />
+                                        <TextBlock Text="Forward" FontSize="10" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Grid.Column="1" Command="{Binding SendBackwardCommand}" Classes="m3-tonal-btn"
+                                        Width="NaN" Height="30" FontSize="10.5" HorizontalAlignment="Stretch"
+                                        ToolTip.Tip="Send Backward">
+                                    <StackPanel Orientation="Horizontal" Spacing="3">
+                                        <materialIcons:MaterialIcon Kind="ArrowDownBold" Width="12" Height="12" />
+                                        <TextBlock Text="Backward" FontSize="10" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+
+                            <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="4">
+                                <Button Grid.Column="0" Command="{Binding GroupSelectionCommand}" Classes="m3-tonal-btn"
+                                        Width="NaN" Height="30" FontSize="10.5" HorizontalAlignment="Stretch"
+                                        IsVisible="{Binding HasMultiSelection}"
+                                        ToolTip.Tip="Group Selection">
+                                    <StackPanel Orientation="Horizontal" Spacing="3">
+                                        <materialIcons:MaterialIcon Kind="Group" Width="12" Height="12" />
+                                        <TextBlock Text="Group" FontSize="10" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Grid.Column="1" Command="{Binding UngroupSelectionCommand}" Classes="m3-tonal-btn"
+                                        Width="NaN" Height="30" FontSize="10.5" HorizontalAlignment="Stretch"
+                                        IsVisible="{Binding CanUngroupSelection}"
+                                        ToolTip.Tip="Ungroup Selection">
+                                    <StackPanel Orientation="Horizontal" Spacing="3">
+                                        <materialIcons:MaterialIcon Kind="Ungroup" Width="12" Height="12" />
+                                        <TextBlock Text="Ungroup" FontSize="10" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+
+                            <Button Grid.Row="3" Command="{Binding CopyToClipboardCommand}" Classes="m3-tonal-btn"
+                                    Width="NaN" Height="30" FontSize="10.5" HorizontalAlignment="Stretch"
+                                    ToolTip.Tip="Copy canvas to clipboard as an image">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <materialIcons:MaterialIcon Kind="ContentCopy" Width="12" Height="12" />
+                                    <TextBlock Text="Copy Canvas as Image" FontSize="11" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- Status message -->
+                    <Border Grid.Row="2"
+                            Padding="4,4"
+                            IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   FontSize="10.5"
+                                   Foreground="{DynamicResource M3OnSurfaceVariantBrush}"
+                                   TextWrapping="Wrap" />
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Template Gallery overlay -->
+        <Border Grid.Row="0" Grid.RowSpan="2"
+                IsVisible="{Binding IsTemplateGalleryOpen}"
+                Background="{DynamicResource M3ScrimBrush}">
+            <Border Classes="m3-card-elevated" MaxWidth="820" MaxHeight="640" Padding="20"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Grid RowDefinitions="Auto,*">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                        <TextBlock Grid.Column="0" Text="Template Gallery" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource M3OnSurfaceBrush}" VerticalAlignment="Center" />
+                        <Button Grid.Column="1" Command="{Binding CloseTemplateGalleryCommand}" Classes="m3-icon-btn"
+                                ToolTip.Tip="Close">
+                            <materialIcons:MaterialIcon Kind="Close" Width="16" Height="16" />
+                        </Button>
+                    </Grid>
+                    <ScrollViewer Grid.Row="1">
+                        <ItemsControl ItemsSource="{Binding TemplateCards}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Classes="m3-template-card"
+                                            Command="{Binding $parent[ItemsControl].((local:ImageEditorViewModel)DataContext).UseTemplateCommand}"
+                                            CommandParameter="{Binding Definition}"
+                                            ToolTip.Tip="{Binding Name}">
+                                        <StackPanel Spacing="6" Width="170" Margin="6">
+                                            <Border Classes="m3-card-elevated" Padding="0" ClipToBounds="True" Height="130">
+                                                <Image Source="{Binding Preview}" Stretch="Uniform" />
+                                            </Border>
+                                            <TextBlock Text="{Binding Name}" FontSize="11.5"
+                                                       HorizontalAlignment="Center" TextAlignment="Center"
+                                                       TextWrapping="Wrap"
+                                                       Foreground="{DynamicResource M3OnSurfaceBrush}" />
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Border>
+
+        <!-- Confirm-before-discard overlay (Clear / Load Project when the canvas isn't empty) -->
+        <Border Grid.Row="0" Grid.RowSpan="2"
+                IsVisible="{Binding IsConfirmingDiscard}"
+                Background="{DynamicResource M3ScrimBrush}">
+            <Border Classes="m3-card-elevated" MaxWidth="360" Padding="20"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="{Binding DiscardConfirmMessage}"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource M3OnSurfaceBrush}"
+                               FontSize="13" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <Button Grid.Column="0" Command="{Binding CancelDiscardCommand}" Classes="m3-tonal-btn"
+                                Width="NaN" HorizontalAlignment="Stretch" Content="Cancel" />
+                        <Button Grid.Column="1" Command="{Binding ConfirmDiscardCommand}" Classes="m3-filled-btn"
+                                Background="{DynamicResource M3ErrorBrush}" Foreground="{DynamicResource M3OnErrorBrush}"
+                                Width="NaN" HorizontalAlignment="Stretch" Content="Continue" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+
+    <UserControl.Styles>
+        <!-- Compact glyph toggle (Bold/Italic/Aspect-lock/Gradient) — no dedicated M3 class
+             exists for this shape, so it's styled locally using only M3 tokens (no hardcoded
+             hex). Pill-shaped to match every other button in these same toolbar/panel rows
+             (segmented buttons, icon buttons, tonal buttons all use the Full/pill radius). -->
+        <Style Selector="ToggleButton.m3-glyph-toggle">
+            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource M3OnSurfaceVariantBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerFull}" />
+            <Setter Property="Padding" Value="6,4" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="ToggleButton.m3-glyph-toggle:checked">
+            <Setter Property="Background" Value="{DynamicResource M3PrimaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource M3OnPrimaryBrush}" />
+        </Style>
+        <Style Selector="ToggleButton.m3-glyph-toggle:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighestBrush}" />
+        </Style>
+
+        <!-- Borderless button wrapper for clickable Layers-panel rows — corner radius matches
+             the m3-card-elevated child it wraps (Large, 16px) so hover/press highlights never
+             poke out past the rounded card underneath. -->
+        <Style Selector="Button.m3-layer-row">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerLarge}" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.m3-layer-row:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighestBrush}" />
+        </Style>
+
+        <!-- Borderless button wrapper for clickable Template Gallery cards. -->
+        <Style Selector="Button.m3-template-card">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerLarge}" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.m3-template-card:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighBrush}" />
+        </Style>
+
+        <!-- Tactile sliders (Corners/Opacity/image-adjustment sliders) — chubby track/thumb
+             per the M3 mandate, matching MusicPlayerPlugin's hand-rolled Slider styling. -->
+        <Style Selector="Slider.m3-tactile-slider">
+            <Style.Resources>
+                <x:Double x:Key="SliderTrackThemeHeight">6</x:Double>
+            </Style.Resources>
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="{DynamicResource M3PrimaryBrush}" />
+        </Style>
+        <Style Selector="Slider.m3-tactile-slider /template/ Thumb">
+            <Setter Property="Width" Value="16" />
+            <Setter Property="Height" Value="16" />
+            <Setter Property="Background" Value="{DynamicResource M3PrimaryBrush}" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="{DynamicResource M3OnPrimaryBrush}" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Width" Duration="0:0:0.1" />
+                    <DoubleTransition Property="Height" Duration="0:0:0.1" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Slider.m3-tactile-slider:pointerover /template/ Thumb">
+            <Setter Property="Width" Value="18" />
+            <Setter Property="Height" Value="18" />
+            <Setter Property="CornerRadius" Value="9" />
+        </Style>
+        <Style Selector="Slider.m3-tactile-slider:pressed /template/ Thumb">
+            <Setter Property="Width" Value="20" />
+            <Setter Property="Height" Value="20" />
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
+    </UserControl.Styles>
+</UserControl>
