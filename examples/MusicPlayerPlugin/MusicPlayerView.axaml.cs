@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.VisualTree;
 
 namespace PdfEditorApp.Plugins.MusicPlayer;
 
@@ -13,15 +15,16 @@ public partial class MusicPlayerView : UserControl
 {
     private MusicPlayerViewModel? _viewModel;
     private bool _isDraggingSeek;
+    private bool _wasInMiniMode;
+    private double _restoredWindowHeight = 580;
+    private double _restoredWindowWidth = 380;
 
     public MusicPlayerView()
     {
         InitializeComponent();
 
-        // Attach with handledEventsToo: true so the internal Slider Thumb does not swallow pointer events
-        SeekSlider.AddHandler(InputElement.PointerPressedEvent, SeekSlider_OnPointerPressed, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
-        SeekSlider.AddHandler(InputElement.PointerReleasedEvent, SeekSlider_OnPointerReleased, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
-        SeekSlider.AddHandler(InputElement.PointerCaptureLostEvent, SeekSlider_OnPointerCaptureLost, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
+        AttachSeekHandlers(SeekSlider);
+        AttachSeekHandlers(MiniSeekSlider);
 
         // Native Drag-and-Drop audio files and folders support (Avalonia 12)
         DragDrop.SetAllowDrop(this, true);
@@ -36,6 +39,7 @@ public partial class MusicPlayerView : UserControl
         if (_viewModel is not null)
         {
             _viewModel.AddFilesRequested -= OnAddFilesRequested;
+            _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
         }
 
         _viewModel = DataContext as MusicPlayerViewModel;
@@ -43,6 +47,46 @@ public partial class MusicPlayerView : UserControl
         if (_viewModel is not null)
         {
             _viewModel.AddFilesRequested += OnAddFilesRequested;
+            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+            UpdateHostWindowSize();
+        }
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MusicPlayerViewModel.CurrentViewMode))
+        {
+            UpdateHostWindowSize();
+        }
+    }
+
+    private void UpdateHostWindowSize()
+    {
+        if (_viewModel is null) return;
+        var topLevel = TopLevel.GetTopLevel(this);
+        // Only dynamically adjust size when hosted in the standalone Runner window.
+        // Never mutate the host document studio window of FryPDF!
+        if (topLevel is Window window && window.Title?.Contains("Music Player") == true)
+        {
+            if (_viewModel.IsMiniMode)
+            {
+                if (!_wasInMiniMode)
+                {
+                    if (window.Height >= 300) _restoredWindowHeight = window.Height;
+                    if (window.Width >= 300) _restoredWindowWidth = window.Width;
+                    _wasInMiniMode = true;
+                }
+                window.Height = 110;
+            }
+            else
+            {
+                if (_wasInMiniMode)
+                {
+                    _wasInMiniMode = false;
+                    window.Height = _restoredWindowHeight >= 400 ? _restoredWindowHeight : 580;
+                    window.Width = _restoredWindowWidth >= 340 ? _restoredWindowWidth : 380;
+                }
+            }
         }
     }
 
@@ -239,28 +283,56 @@ public partial class MusicPlayerView : UserControl
         }
     }
 
-    private void SeekSlider_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    public void OnTrackCardPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        _isDraggingSeek = true;
-        _viewModel?.BeginSeek();
-    }
+        var point = e.GetCurrentPoint(sender as Visual);
+        if (!point.Properties.IsLeftButtonPressed) return;
 
-    private void SeekSlider_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
-    {
-        if (_isDraggingSeek)
+        // If the click originated from an interactive button (Favorite, Remove, Play button), let that button handle it
+        Visual? visual = e.Source as Visual;
+        while (visual is not null && visual != sender)
         {
-            _isDraggingSeek = false;
-            _viewModel?.CommitSeek(SeekSlider.Value);
+            if (visual is Button) return;
+            visual = visual.GetVisualParent();
+        }
+
+        if (sender is Control control && control.DataContext is TrackViewModel track)
+        {
+            var vm = _viewModel ?? (DataContext as MusicPlayerViewModel);
+            if (vm is not null)
+            {
+                _ = vm.PlayTrackAsync(track);
+                e.Handled = true;
+            }
         }
     }
 
-    private void SeekSlider_OnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    private void AttachSeekHandlers(Slider? slider)
     {
-        if (_isDraggingSeek)
+        if (slider is null) return;
+        slider.AddHandler(InputElement.PointerPressedEvent, (s, e) =>
         {
-            _isDraggingSeek = false;
-            _viewModel?.CommitSeek(SeekSlider.Value);
-        }
+            _isDraggingSeek = true;
+            _viewModel?.BeginSeek();
+        }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
+
+        slider.AddHandler(InputElement.PointerReleasedEvent, (s, e) =>
+        {
+            if (_isDraggingSeek)
+            {
+                _isDraggingSeek = false;
+                _viewModel?.CommitSeek(slider.Value);
+            }
+        }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
+
+        slider.AddHandler(InputElement.PointerCaptureLostEvent, (s, e) =>
+        {
+            if (_isDraggingSeek)
+            {
+                _isDraggingSeek = false;
+                _viewModel?.CommitSeek(slider.Value);
+            }
+        }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
     }
 
     protected override void OnKeyDown(KeyEventArgs e)

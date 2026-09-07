@@ -33,6 +33,12 @@ public partial class TrackViewModel : ObservableObject
     [ObservableProperty]
     private int _trackNumber;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FavoriteIconKind))]
+    private bool _isFavorite;
+
+    public string FavoriteIconKind => IsFavorite ? "Heart" : "HeartOutline";
+
     public string TrackNumberDisplay => TrackNumber > 0 ? $"{TrackNumber:D2}" : "•";
 
     public string FileExtension
@@ -46,7 +52,7 @@ public partial class TrackViewModel : ObservableObject
 
     public string DurationDisplay => $"{(int)Duration.TotalMinutes}:{Duration.Seconds:D2}";
 
-    public TrackViewModel(string filePath, string title, string artist, string album, TimeSpan duration, Bitmap? coverArt, int trackNumber = 0)
+    public TrackViewModel(string filePath, string title, string artist, string album, TimeSpan duration, Bitmap? coverArt, int trackNumber = 0, bool isFavorite = false)
     {
         FilePath = filePath;
         _title = title;
@@ -55,6 +61,7 @@ public partial class TrackViewModel : ObservableObject
         _duration = duration;
         _coverArt = coverArt;
         _trackNumber = trackNumber;
+        _isFavorite = isFavorite;
     }
 
     /// <summary>

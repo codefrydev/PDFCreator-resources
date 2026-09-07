@@ -27,6 +27,13 @@ public enum RepeatMode
     RepeatOne
 }
 
+public enum PlayerViewMode
+{
+    Player,
+    Queue,
+    Mini
+}
+
 /// <summary>
 /// High-performance, zero-lag ViewModel for the Material Design 3 Expressive Music Player.
 /// Features fully asynchronous, off-UI-thread audio loading/seeking, live animated equalizer,
@@ -47,6 +54,8 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
     private const string SettingShuffle = "Shuffle";
     private const string SettingPlaylist = "Playlist";
     private const string SettingLastTrackIndex = "LastTrackIndex";
+    private const string SettingViewMode = "ViewMode";
+    private const string SettingFavorites = "Favorites";
 
     private static readonly AudioFormat PlaybackFormat = AudioFormat.Cd;
 
@@ -57,6 +66,7 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
     private readonly DispatcherTimer _positionTimer;
     private readonly DispatcherTimer _visualizerTimer;
     private readonly Random _random = new();
+    private readonly HashSet<string> _favoritePaths = new(StringComparer.OrdinalIgnoreCase);
 
     private FileStream? _stream;
     private StreamDataProvider? _dataProvider;
@@ -80,7 +90,47 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(CurrentTrackArtist))]
     [NotifyPropertyChangedFor(nameof(CurrentTrackAlbum))]
     [NotifyPropertyChangedFor(nameof(CurrentTrackExtension))]
+    [NotifyPropertyChangedFor(nameof(UpNextTrack))]
+    [NotifyPropertyChangedFor(nameof(UpNextDisplay))]
+    [NotifyPropertyChangedFor(nameof(HasUpNextTrack))]
+    [NotifyPropertyChangedFor(nameof(IsCurrentTrackFavorite))]
+    [NotifyPropertyChangedFor(nameof(CurrentTrackFavoriteIconKind))]
     private TrackViewModel? _currentTrack;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsPlayerMode))]
+    [NotifyPropertyChangedFor(nameof(IsQueueMode))]
+    [NotifyPropertyChangedFor(nameof(IsMiniMode))]
+    [NotifyPropertyChangedFor(nameof(IsStandardChromeVisible))]
+    private PlayerViewMode _currentViewMode = PlayerViewMode.Player;
+
+    public bool IsPlayerMode => CurrentViewMode == PlayerViewMode.Player;
+    public bool IsQueueMode => CurrentViewMode == PlayerViewMode.Queue;
+    public bool IsMiniMode => CurrentViewMode == PlayerViewMode.Mini;
+    public bool IsStandardChromeVisible => CurrentViewMode != PlayerViewMode.Mini;
+
+    partial void OnCurrentViewModeChanged(PlayerViewMode value)
+    {
+        _settingsStore?.SetSetting(PluginId, SettingViewMode, value.ToString());
+    }
+
+    public TrackViewModel? UpNextTrack
+    {
+        get
+        {
+            if (Playlist.Count == 0 || _currentIndex < 0) return null;
+            var nextIndex = _currentIndex + 1;
+            if (nextIndex < Playlist.Count) return Playlist[nextIndex];
+            if (RepeatMode == RepeatMode.RepeatAll && Playlist.Count > 1) return Playlist[0];
+            return null;
+        }
+    }
+
+    public bool HasUpNextTrack => UpNextTrack is not null;
+
+    public string UpNextDisplay => UpNextTrack is not null
+        ? $"{UpNextTrack.Title} • {UpNextTrack.Artist}"
+        : "Queue complete";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PlayPauseIconKind))]
@@ -122,6 +172,18 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     private string _searchQuery = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FavoritesFilterTooltip))]
+    private bool _filterFavoritesOnly;
+
+    partial void OnFilterFavoritesOnlyChanged(bool value) => ApplySearchFilter();
+
+    public bool IsCurrentTrackFavorite => CurrentTrack?.IsFavorite ?? false;
+    public string CurrentTrackFavoriteIconKind => IsCurrentTrackFavorite ? "Heart" : "HeartOutline";
+    public int FavoritesCount => Playlist.Count(t => t.IsFavorite);
+    public bool HasFavorites => FavoritesCount > 0;
+    public string FavoritesFilterTooltip => FilterFavoritesOnly ? "Showing Favorites Only (Click to show all)" : "Filter by Favorites";
 
     [ObservableProperty]
     private bool _isLoadingFiles;
@@ -221,6 +283,142 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
             StatusMessage = "Audio engine initialization failed.";
             System.Diagnostics.Debug.WriteLine($"[MusicPlayer] Audio init error: {ex.Message}");
         }
+    }
+
+    [RelayCommand]
+    private void SwitchToPlayerView() => CurrentViewMode = PlayerViewMode.Player;
+
+    [RelayCommand]
+    private void SwitchToQueueView() => CurrentViewMode = PlayerViewMode.Queue;
+
+    [RelayCommand]
+    private void SwitchToMiniView() => CurrentViewMode = PlayerViewMode.Mini;
+
+    [RelayCommand]
+    private void SetViewMode(string mode)
+    {
+        if (Enum.TryParse<PlayerViewMode>(mode, true, out var parsed))
+        {
+            CurrentViewMode = parsed;
+        }
+    }
+
+    [RelayCommand]
+    public void ToggleFavorite(TrackViewModel? track)
+    {
+        if (track is null) return;
+        track.IsFavorite = !track.IsFavorite;
+        if (track.IsFavorite)
+        {
+            _favoritePaths.Add(track.FilePath);
+        }
+        else
+        {
+            _favoritePaths.Remove(track.FilePath);
+        }
+
+        SaveFavorites();
+        OnPropertyChanged(nameof(FavoritesCount));
+        OnPropertyChanged(nameof(HasFavorites));
+        if (track == CurrentTrack)
+        {
+            OnPropertyChanged(nameof(IsCurrentTrackFavorite));
+            OnPropertyChanged(nameof(CurrentTrackFavoriteIconKind));
+        }
+
+        if (FilterFavoritesOnly)
+        {
+            ApplySearchFilter();
+        }
+    }
+
+    [RelayCommand]
+    public void ToggleCurrentTrackFavorite() => ToggleFavorite(CurrentTrack);
+
+    [RelayCommand]
+    public void ToggleFavoritesFilter() => FilterFavoritesOnly = !FilterFavoritesOnly;
+
+    [RelayCommand]
+    public void PlayNextInQueue(TrackViewModel? track)
+    {
+        if (track is null || !Playlist.Contains(track)) return;
+        var oldIdx = Playlist.IndexOf(track);
+        if (oldIdx == _currentIndex) return;
+
+        Playlist.RemoveAt(oldIdx);
+        var insertIdx = Math.Min(_currentIndex + 1, Playlist.Count);
+        Playlist.Insert(insertIdx, track);
+        RebuildTrackNumbers();
+        ApplySearchFilter();
+        SavePlaylist();
+        NotifyCollectionProperties();
+        StatusMessage = $"Next up: {track.Title}";
+    }
+
+    [RelayCommand]
+    public void RevealInFileManager(TrackViewModel? track)
+    {
+        if (track is null || !File.Exists(track.FilePath)) return;
+        try
+        {
+            if (OperatingSystem.IsMacOS())
+            {
+                System.Diagnostics.Process.Start("open", $"-R \"{track.FilePath}\"");
+            }
+            else if (OperatingSystem.IsWindows())
+            {
+                System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{track.FilePath}\"");
+            }
+            else if (OperatingSystem.IsLinux())
+            {
+                var dir = Path.GetDirectoryName(track.FilePath) ?? track.FilePath;
+                System.Diagnostics.Process.Start("xdg-open", $"\"{dir}\"");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MusicPlayer] Reveal error: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    public void SkipBackward10()
+    {
+        var target = Math.Clamp(PositionSeconds - 10, 0, DurationSeconds);
+        CommitSeek(target);
+    }
+
+    [RelayCommand]
+    public void SkipForward10()
+    {
+        var target = Math.Clamp(PositionSeconds + 10, 0, DurationSeconds);
+        CommitSeek(target);
+    }
+
+    [RelayCommand]
+    public void SortByTitle()
+    {
+        var current = CurrentTrack;
+        var sorted = Playlist.OrderBy(t => t.Title).ToList();
+        Playlist.Clear();
+        foreach (var t in sorted) Playlist.Add(t);
+        if (current is not null) _currentIndex = Playlist.IndexOf(current);
+        RebuildTrackNumbers();
+        ApplySearchFilter();
+        SavePlaylist();
+    }
+
+    [RelayCommand]
+    public void SortByArtist()
+    {
+        var current = CurrentTrack;
+        var sorted = Playlist.OrderBy(t => t.Artist).ThenBy(t => t.Title).ToList();
+        Playlist.Clear();
+        foreach (var t in sorted) Playlist.Add(t);
+        if (current is not null) _currentIndex = Playlist.IndexOf(current);
+        RebuildTrackNumbers();
+        ApplySearchFilter();
+        SavePlaylist();
     }
 
     [RelayCommand]
@@ -433,6 +631,7 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
     {
         foreach (var track in newTracks)
         {
+            track.IsFavorite = _favoritePaths.Contains(track.FilePath);
             Playlist.Add(track);
         }
 
@@ -918,11 +1117,19 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
         FilteredPlaylist.Clear();
         var query = SearchQuery?.Trim() ?? string.Empty;
 
-        var items = string.IsNullOrWhiteSpace(query)
-            ? Playlist
-            : Playlist.Where(t => t.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+        var items = Playlist.AsEnumerable();
+
+        if (FilterFavoritesOnly)
+        {
+            items = items.Where(t => t.IsFavorite);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            items = items.Where(t => t.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
                                   t.Artist.Contains(query, StringComparison.OrdinalIgnoreCase) ||
                                   t.Album.Contains(query, StringComparison.OrdinalIgnoreCase));
+        }
 
         foreach (var track in items)
         {
@@ -938,6 +1145,13 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HasFewTracks));
         OnPropertyChanged(nameof(TotalDurationDisplay));
         OnPropertyChanged(nameof(QueueSummaryDisplay));
+        OnPropertyChanged(nameof(UpNextTrack));
+        OnPropertyChanged(nameof(UpNextDisplay));
+        OnPropertyChanged(nameof(HasUpNextTrack));
+        OnPropertyChanged(nameof(FavoritesCount));
+        OnPropertyChanged(nameof(HasFavorites));
+        OnPropertyChanged(nameof(IsCurrentTrackFavorite));
+        OnPropertyChanged(nameof(CurrentTrackFavoriteIconKind));
     }
 
     private async Task LoadSettingsAsync()
@@ -947,6 +1161,16 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
         VolumePercent = _settingsStore.GetSetting(PluginId, SettingVolume, 80.0);
         RepeatMode = _settingsStore.GetSetting(PluginId, SettingRepeatMode, RepeatMode.Off);
         IsShuffle = _settingsStore.GetSetting(PluginId, SettingShuffle, false);
+
+        var savedMode = _settingsStore.GetSetting(PluginId, SettingViewMode, "Player");
+        if (Enum.TryParse<PlayerViewMode>(savedMode, true, out var mode))
+        {
+            CurrentViewMode = mode;
+        }
+
+        var savedFavorites = _settingsStore.GetSetting(PluginId, SettingFavorites, Array.Empty<string>());
+        _favoritePaths.Clear();
+        foreach (var f in savedFavorites) _favoritePaths.Add(f);
 
         var savedPaths = _settingsStore.GetSetting(PluginId, SettingPlaylist, Array.Empty<string>());
         var validPaths = savedPaths.Where(File.Exists).ToList();
@@ -968,11 +1192,15 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
     private void SavePlaylist()
         => _settingsStore?.SetSetting(PluginId, SettingPlaylist, Playlist.Select(t => t.FilePath).ToArray());
 
+    private void SaveFavorites()
+        => _settingsStore?.SetSetting(PluginId, SettingFavorites, _favoritePaths.ToArray());
+
     private void SaveSettings()
     {
         _settingsStore?.SetSetting(PluginId, SettingVolume, VolumePercent);
         _settingsStore?.SetSetting(PluginId, SettingRepeatMode, RepeatMode);
         _settingsStore?.SetSetting(PluginId, SettingShuffle, IsShuffle);
+        _settingsStore?.SetSetting(PluginId, SettingFavorites, _favoritePaths.ToArray());
     }
 
     private void SaveLastTrack()
