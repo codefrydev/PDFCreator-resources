@@ -527,9 +527,16 @@ public class EditorCanvasControl : Control
     {
         base.OnDetachedFromVisualTree(e);
         _cachedGridTile?.Dispose();
+        _cachedGridTile = null;
+        _cachedGridWidth = -1;
+        _cachedGridHeight = -1;
+
         _cachedCheckerTile?.Dispose();
+        _cachedCheckerTile = null;
+        _cachedCheckerWidth = -1;
+        _cachedCheckerHeight = -1;
+
         _nudgeCommitTimer.Stop();
-        _nudgeCommitTimer.Tick -= OnNudgeCommitTick;
     }
 
     private static void DrawCheckerboardBackground(DrawingContext dc, Rect bounds)

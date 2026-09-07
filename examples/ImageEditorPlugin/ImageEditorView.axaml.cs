@@ -212,7 +212,8 @@ public partial class ImageEditorView : UserControl
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromVisualTree(e);
-        (DataContext as IDisposable)?.Dispose();
+        // Note: Do NOT dispose DataContext here as the view is cached by HomeViewModel
+        // for instant tab switching. Teardown is managed by plugin unmount effect.
     }
 }
 
