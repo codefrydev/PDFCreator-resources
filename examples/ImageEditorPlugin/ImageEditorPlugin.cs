@@ -138,24 +138,223 @@ public class ImageEditorPlugin : IFryPlugin
             }
         });
 
-        // 4. Ribbon Action
-        var ribbonReg = ctx.RegisterRibbonAction(new RibbonActionDescriptor
+        // 4. Dynamic Ribbon Integration — Contributes a dedicated "Image" Ribbon Tab
+        //    plus actions in Insert and Plugins tabs so users can launch/interact directly.
+        var ribbonDisposables = new List<IDisposable>();
+
+        // 4a. Dynamic "Image" Ribbon Tab
+        var ribbonTabReg = ctx.RegisterRibbonTab(new RibbonTabDescriptor
         {
-            Id = "frypdf.ribbon.action.imageeditor",
-            TabId = "view",
-            GroupId = "plugins",
+            Id = "image",
+            Title = "Image",
+            Order = 45,
+            IsDynamic = true
+        });
+        ribbonDisposables.Add(ribbonTabReg);
+
+        // 4b. Dynamic Ribbon Groups inside the "Image" Tab
+        var groupStudioReg = ctx.RegisterRibbonGroup(new RibbonGroupDescriptor
+        {
+            Id = "studio",
+            TabId = "image",
+            Title = "Image Studio",
+            Order = 10
+        });
+        ribbonDisposables.Add(groupStudioReg);
+
+        var groupDrawReg = ctx.RegisterRibbonGroup(new RibbonGroupDescriptor
+        {
+            Id = "draw",
+            TabId = "image",
+            Title = "Shapes & Text",
+            Order = 20
+        });
+        ribbonDisposables.Add(groupDrawReg);
+
+        var groupTemplatesReg = ctx.RegisterRibbonGroup(new RibbonGroupDescriptor
+        {
+            Id = "templates",
+            TabId = "image",
+            Title = "Templates & Media",
+            Order = 30
+        });
+        ribbonDisposables.Add(groupTemplatesReg);
+
+        var groupExportReg = ctx.RegisterRibbonGroup(new RibbonGroupDescriptor
+        {
+            Id = "export",
+            TabId = "image",
+            Title = "Export & Actions",
+            Order = 40
+        });
+        ribbonDisposables.Add(groupExportReg);
+
+        // 4c. Primary Action in Studio Group: "Image Editor" (opens the overlay window)
+        ribbonDisposables.Add(ctx.RegisterRibbonAction(new RibbonActionDescriptor
+        {
+            Id = "frypdf.ribbon.action.imageeditor.open",
+            TabId = "image",
+            GroupId = "studio",
             Label = "Image Editor",
-            Tooltip = "Launch floating Canva-style image editor in shell.overlay",
+            Tooltip = "Open Canva-Style Image Editor overlay window",
+            IconKind = "ImageEditOutline",
+            Order = 10,
+            Action = sp =>
+            {
+                if (sp.GetService(typeof(IOverlayRegistry)) is IOverlayRegistry reg)
+                {
+                    reg.ShowOverlay(Id);
+                }
+            }
+        }));
+
+        ribbonDisposables.Add(ctx.RegisterRibbonAction(new RibbonActionDescriptor
+        {
+            Id = "frypdf.ribbon.action.imageeditor.new",
+            TabId = "image",
+            GroupId = "studio",
+            Label = "New Canvas",
+            Tooltip = "Create a fresh design canvas in the Image Editor",
+            IconKind = "Artboard",
+            Order = 20,
+            Action = sp =>
+            {
+                if (sp.GetService(typeof(IOverlayRegistry)) is IOverlayRegistry reg)
+                {
+                    reg.ShowOverlay(Id);
+                }
+            }
+        }));
+
+        // 4d. Draw & Add Actions
+        ribbonDisposables.Add(ctx.RegisterRibbonAction(new RibbonActionDescriptor
+        {
+            Id = "frypdf.ribbon.action.imageeditor.text",
+            TabId = "image",
+            GroupId = "draw",
+            Label = "Add Text",
+            Tooltip = "Add styled text and typography in Image Editor",
+            IconKind = "FormatText",
+            Order = 10,
+            Action = sp =>
+            {
+                if (sp.GetService(typeof(IOverlayRegistry)) is IOverlayRegistry reg)
+                {
+                    reg.ShowOverlay(Id);
+                }
+            }
+        }));
+
+        ribbonDisposables.Add(ctx.RegisterRibbonAction(new RibbonActionDescriptor
+        {
+            Id = "frypdf.ribbon.action.imageeditor.shape",
+            TabId = "image",
+            GroupId = "draw",
+            Label = "Add Shape",
+            Tooltip = "Add geometric rectangles, ellipses, or arrows",
+            IconKind = "ShapeOutline",
+            Order = 20,
+            Action = sp =>
+            {
+                if (sp.GetService(typeof(IOverlayRegistry)) is IOverlayRegistry reg)
+                {
+                    reg.ShowOverlay(Id);
+                }
+            }
+        }));
+
+        // 4e. Templates & Media Actions
+        ribbonDisposables.Add(ctx.RegisterRibbonAction(new RibbonActionDescriptor
+        {
+            Id = "frypdf.ribbon.action.imageeditor.template",
+            TabId = "image",
+            GroupId = "templates",
+            Label = "Templates",
+            Tooltip = "Open starter template gallery (social posts, banners, cards)",
+            IconKind = "ViewGridOutline",
+            Order = 10,
+            Action = sp =>
+            {
+                if (sp.GetService(typeof(IOverlayRegistry)) is IOverlayRegistry reg)
+                {
+                    reg.ShowOverlay(Id);
+                }
+            }
+        }));
+
+        ribbonDisposables.Add(ctx.RegisterRibbonAction(new RibbonActionDescriptor
+        {
+            Id = "frypdf.ribbon.action.imageeditor.import",
+            TabId = "image",
+            GroupId = "templates",
+            Label = "Import Image",
+            Tooltip = "Import external image file into canvas",
+            IconKind = "ImagePlus",
+            Order = 20,
+            Action = sp =>
+            {
+                if (sp.GetService(typeof(IOverlayRegistry)) is IOverlayRegistry reg)
+                {
+                    reg.ShowOverlay(Id);
+                }
+            }
+        }));
+
+        // 4f. Export Actions
+        ribbonDisposables.Add(ctx.RegisterRibbonAction(new RibbonActionDescriptor
+        {
+            Id = "frypdf.ribbon.action.imageeditor.export",
+            TabId = "image",
+            GroupId = "export",
+            Label = "Export PNG",
+            Tooltip = "Export canvas graphics as high-res PNG image",
+            IconKind = "Download",
+            Order = 10,
+            Action = sp =>
+            {
+                if (sp.GetService(typeof(IOverlayRegistry)) is IOverlayRegistry reg)
+                {
+                    reg.ShowOverlay(Id);
+                }
+            }
+        }));
+
+        // 4g. Integration in standard Built-in Tabs (Insert & Plugins)
+        ribbonDisposables.Add(ctx.RegisterRibbonAction(new RibbonActionDescriptor
+        {
+            Id = "frypdf.ribbon.action.imageeditor.insert",
+            TabId = "insert",
+            GroupId = "media",
+            Label = "Image Studio",
+            Tooltip = "Launch floating Canva-style image editor overlay",
             IconKind = "ImageEditOutline",
             Order = 40,
             Action = sp =>
             {
                 if (sp.GetService(typeof(IOverlayRegistry)) is IOverlayRegistry reg)
                 {
-                    reg.ToggleOverlay(Id);
+                    reg.ShowOverlay(Id);
                 }
             }
-        });
+        }));
+
+        ribbonDisposables.Add(ctx.RegisterRibbonAction(new RibbonActionDescriptor
+        {
+            Id = "frypdf.ribbon.action.imageeditor.plugins",
+            TabId = "plugins",
+            GroupId = "creative",
+            Label = "Image Editor",
+            Tooltip = "Launch floating Canva-style image editor overlay",
+            IconKind = "ImageEditOutline",
+            Order = 20,
+            Action = sp =>
+            {
+                if (sp.GetService(typeof(IOverlayRegistry)) is IOverlayRegistry reg)
+                {
+                    reg.ShowOverlay(Id);
+                }
+            }
+        }));
 
         // 5. Reversible effects for 100% clean teardown — dispose every registration
         //    handle before hiding the overlay, mirroring MusicPlayerPlugin's pattern.
@@ -165,7 +364,11 @@ public class ImageEditorPlugin : IFryPlugin
             overlayReg.Dispose();
             cmdReg.Dispose();
             statusReg.Dispose();
-            ribbonReg.Dispose();
+
+            foreach (var r in ribbonDisposables)
+            {
+                r.Dispose();
+            }
 
             if (ctx.TryGetService<IOverlayRegistry>(out var reg))
             {

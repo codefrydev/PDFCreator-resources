@@ -63,6 +63,7 @@ public static class TemplateLibrary
     private static TemplateDefinition BlankPresentationSlide() => new()
     {
         Name = "Blank Presentation Slide",
+        Category = "Documents",
         CanvasWidth = 1280,
         CanvasHeight = 720,
         BackgroundColor = Colors.White,
@@ -80,6 +81,7 @@ public static class TemplateLibrary
     private static TemplateDefinition CertificateOfCompletion() => new()
     {
         Name = "Certificate of Completion",
+        Category = "Documents",
         CanvasWidth = 1100,
         CanvasHeight = 850,
         BackgroundColor = Color.FromRgb(0xFB, 0xF7, 0xEF),
@@ -106,6 +108,7 @@ public static class TemplateLibrary
     private static TemplateDefinition SimpleFlyer() => new()
     {
         Name = "Simple Flyer",
+        Category = "Marketing",
         CanvasWidth = 800,
         CanvasHeight = 1200,
         BackgroundColor = Colors.White,
@@ -131,6 +134,7 @@ public static class TemplateLibrary
     private static TemplateDefinition PhotoCollage() => new()
     {
         Name = "Photo Collage (3-up)",
+        Category = "Social Media",
         CanvasWidth = 1200,
         CanvasHeight = 800,
         BackgroundColor = Colors.White,
@@ -149,6 +153,7 @@ public static class TemplateLibrary
     private static TemplateDefinition QuoteCard() => new()
     {
         Name = "Quote / Callout Card",
+        Category = "Social Media",
         CanvasWidth = 1080,
         CanvasHeight = 1080,
         BackgroundColor = Color.FromRgb(0x18, 0x18, 0x22),
@@ -177,6 +182,7 @@ public static class TemplateLibrary
     private static TemplateDefinition CoverPage() => new()
     {
         Name = "Cover Page",
+        Category = "Documents",
         CanvasWidth = 850,
         CanvasHeight = 1100,
         BackgroundColor = Colors.White,
@@ -205,6 +211,7 @@ public static class TemplateLibrary
     private static TemplateDefinition SocialMediaPost() => new()
     {
         Name = "Social Media Post",
+        Category = "Social Media",
         CanvasWidth = 1080,
         CanvasHeight = 1080,
         BackgroundColor = Colors.White,
@@ -230,6 +237,7 @@ public static class TemplateLibrary
     private static TemplateDefinition StickyNote() => new()
     {
         Name = "Sticky Note / Label",
+        Category = "Creative",
         CanvasWidth = 400,
         CanvasHeight = 400,
         BackgroundColor = Colors.White,

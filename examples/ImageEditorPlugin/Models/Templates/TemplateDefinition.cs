@@ -15,5 +15,6 @@ public sealed class TemplateDefinition
     public required double CanvasWidth { get; init; }
     public required double CanvasHeight { get; init; }
     public required Color BackgroundColor { get; init; }
+    public string Category { get; init; } = "General";
     public required Func<List<CanvasElement>> BuildElements { get; init; }
 }

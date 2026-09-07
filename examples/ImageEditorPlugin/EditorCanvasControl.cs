@@ -353,11 +353,15 @@ public class EditorCanvasControl : Control
         var bounds = new Rect(0, 0, Bounds.Width, Bounds.Height);
 
         // Pasteboard behind the logical canvas (visible when zoomed/panned out of frame).
-        dc.DrawRectangle(new SolidColorBrush(Color.FromRgb(0x0D, 0x11, 0x17)), null, bounds);
+        dc.DrawRectangle(new SolidColorBrush(Color.FromRgb(0x0E, 0x12, 0x1A)), null, bounds);
 
         using (dc.PushTransform(GetViewportMatrix()))
         {
             var canvasRect = new Rect(0, 0, _logicalWidth, _logicalHeight);
+
+            // Physical artboard drop shadow and depth (gives realistic paper elevation on pasteboard)
+            dc.DrawRectangle(new SolidColorBrush(Color.FromArgb(55, 0, 0, 0)), null, new Rect(-4, 4, _logicalWidth + 8, _logicalHeight + 10));
+            dc.DrawRectangle(new SolidColorBrush(Color.FromArgb(90, 0, 0, 0)), null, new Rect(-1, 1, _logicalWidth + 2, _logicalHeight + 3));
 
             // 1. Canvas background — checkerboard is cached to a tile bitmap (regenerated
             // only when the logical canvas size changes) rather than redrawn cell-by-cell on
@@ -374,6 +378,12 @@ public class EditorCanvasControl : Control
             // 2. Canvas grid dots (subtle) — same tile-caching treatment (~7000 DrawEllipse
             // calls on a large canvas, otherwise re-run on every single-pointer-move tick).
             dc.DrawImage(GetGridTile(_logicalWidth, _logicalHeight), canvasRect);
+
+            // Artboard crisp hairline boundary
+            var outlineColor = (_backgroundColor.A == 0 || (_backgroundColor.R > 200 && _backgroundColor.G > 200 && _backgroundColor.B > 200))
+                ? Color.FromArgb(45, 0, 0, 0)
+                : Color.FromArgb(55, 255, 255, 255);
+            dc.DrawRectangle(null, new Pen(new SolidColorBrush(outlineColor), 1), canvasRect);
 
             // 3. Elements (already Z-sorted by SetElements), each with its own rotate/flip transform
             foreach (var el in _elements)

@@ -5,15 +5,13 @@
         xmlns:local="using:PdfEditorApp.Plugins.ImageEditor"
         mc:Ignorable="d"
         x:Class="PdfEditorApp.Plugins.ImageEditor.Runner.MainWindow"
-        Title="🎨 Image Editor — Standalone Runner"
-        Width="820" Height="660"
-        MinWidth="760" MinHeight="580"
+        Title="🎨 Image Studio — Standalone Runner"
+        Width="1200" Height="800"
+        MinWidth="880" MinHeight="600"
         WindowStartupLocation="CenterScreen"
-        Background="#090D13">
+        Background="{DynamicResource M3SurfaceContainerLowestBrush}">
 
-    <Grid Margin="16">
-        <local:ImageEditorView x:Name="EditorView"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center" />
-    </Grid>
+    <local:ImageEditorView x:Name="EditorView"
+                           HorizontalAlignment="Stretch"
+                           VerticalAlignment="Stretch" />
 </Window>

@@ -240,3 +240,66 @@ public class IsImageElementConverter : Avalonia.Data.Converters.IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
         => throw new NotImplementedException();
 }
+
+/// <summary>Maps CanvasElement.ElementType to a Material Design icon kind.</summary>
+public class ElementTypeToIconConverter : Avalonia.Data.Converters.IValueConverter
+{
+    public static readonly ElementTypeToIconConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+    {
+        return value?.ToString() switch
+        {
+            "Text" => "FormatText",
+            "Rectangle" => "RectangleOutline",
+            "Ellipse" => "EllipseOutline",
+            "Arrow" => "ArrowTopRight",
+            "Image" => "ImageOutline",
+            _ => "ShapeOutline"
+        };
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        => throw new NotImplementedException();
+}
+
+/// <summary>Maps CanvasElement.IsLocked to a Lock/LockOpen icon kind.</summary>
+public class IsLockedToIconConverter : Avalonia.Data.Converters.IValueConverter
+{
+    public static readonly IsLockedToIconConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        => value is true ? "Lock" : "LockOpenOutline";
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        => throw new NotImplementedException();
+}
+
+/// <summary>Maps CanvasElement.IsVisible to Eye/EyeOff icon kind.</summary>
+public class IsVisibleToIconConverter : Avalonia.Data.Converters.IValueConverter
+{
+    public static readonly IsVisibleToIconConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        => value is false ? "EyeOffOutline" : "EyeOutline";
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        => throw new NotImplementedException();
+}
+
+/// <summary>Converts an Avalonia Color to a SolidColorBrush for UI swatches and borders.</summary>
+public class ColorToBrushConverter : Avalonia.Data.Converters.IValueConverter
+{
+    public static readonly ColorToBrushConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+    {
+        if (value is Color c) return new SolidColorBrush(c);
+        if (value is string s && Color.TryParse(s, out var parsed)) return new SolidColorBrush(parsed);
+        return Brushes.Transparent;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        => (value as ISolidColorBrush)?.Color ?? Colors.Transparent;
+}
+

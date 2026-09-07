@@ -48,6 +48,81 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
     private void SelectElementFromLayerPanel(CanvasElement element) => SelectedElement = element;
 
     [ObservableProperty]
+    private string _activeInspectorTab = "properties";
+
+    [RelayCommand]
+    private void SetInspectorTab(string tab) => ActiveInspectorTab = tab;
+
+    public bool IsTextSelected => SelectedTextElement != null;
+    public bool IsShapeSelected => SelectedFillable != null && SelectedImageElement == null && SelectedTextElement == null;
+    public bool IsImageSelected => SelectedImageElement != null;
+    public bool HasSelection => SelectedElement != null || HasMultiSelection;
+
+    [RelayCommand]
+    private void ToggleLayerVisibility(CanvasElement element)
+    {
+        element.IsVisible = !element.IsVisible;
+        RefreshCanvas();
+        OnPropertyChanged(nameof(LayersDescendingZ));
+    }
+
+    [RelayCommand]
+    private void ToggleLayerLock(CanvasElement element)
+    {
+        element.IsLocked = !element.IsLocked;
+        RefreshCanvas();
+        OnPropertyChanged(nameof(LayersDescendingZ));
+    }
+
+    [RelayCommand]
+    private void DeleteElementFromLayer(CanvasElement element)
+    {
+        var command = _isApplyingHistory ? null : new RemoveElementsCommand(Elements, [element]);
+        Elements.Remove(element);
+        if (SelectedElement == element) SelectedElement = null;
+        SelectedElements.Remove(element);
+        CanvasControl?.SetSelected(null);
+        RefreshCanvas();
+        if (command != null) History.Push(command);
+        OnPropertyChanged(nameof(LayersDescendingZ));
+    }
+
+    [RelayCommand]
+    private void MoveLayerUp(CanvasElement element)
+    {
+        SelectedElement = element;
+        SelectedElements.Clear();
+        SelectedElements.Add(element);
+        BringForward();
+    }
+
+    [RelayCommand]
+    private void MoveLayerDown(CanvasElement element)
+    {
+        SelectedElement = element;
+        SelectedElements.Clear();
+        SelectedElements.Add(element);
+        SendBackward();
+    }
+
+    [RelayCommand]
+    public void ResizeCanvas(string preset)
+    {
+        var parts = preset.Split('x');
+        if (parts.Length == 2 && double.TryParse(parts[0], out var w) && double.TryParse(parts[1], out var h))
+        {
+            _canvasWidth = w;
+            _canvasHeight = h;
+            OnPropertyChanged(nameof(CanvasWidth));
+            OnPropertyChanged(nameof(CanvasHeight));
+            CanvasSizeLabel = $"{(int)_canvasWidth} × {(int)_canvasHeight}";
+            CanvasControl?.SetLogicalCanvasSize(_canvasWidth, _canvasHeight);
+            CanvasControl?.FitToWindow();
+            StatusMessage = $"Resized canvas to {CanvasSizeLabel}.";
+        }
+    }
+
+    [ObservableProperty]
     private CanvasElement? _selectedElement;
 
     /// <summary>Full multi-selection mirrored from EditorCanvasControl. SelectedElement above
@@ -124,6 +199,10 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedStrokeable));
         OnPropertyChanged(nameof(SelectedTextElement));
         OnPropertyChanged(nameof(SelectedRectangleElement));
+        OnPropertyChanged(nameof(IsTextSelected));
+        OnPropertyChanged(nameof(IsShapeSelected));
+        OnPropertyChanged(nameof(IsImageSelected));
+        OnPropertyChanged(nameof(HasSelection));
         SyncAdjustmentSlidersToSelection();
         SyncStyleFieldsToSelection();
     }
@@ -1061,9 +1140,27 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         BackgroundColor = name switch
         {
             "Black" => Colors.Black,
+            "Dark" => Color.FromRgb(0x18, 0x1E, 0x2A),
+            "Gray" => Color.FromRgb(0xEA, 0xEE, 0xF4),
+            "Indigo" => Color.FromRgb(0x31, 0x2E, 0x81),
             "Transparent" => Colors.Transparent,
             _ => Colors.White
         };
+    }
+
+    [RelayCommand]
+    private void ToggleOrientation()
+    {
+        var newW = _canvasHeight;
+        var newH = _canvasWidth;
+        _canvasWidth = newW;
+        _canvasHeight = newH;
+        OnPropertyChanged(nameof(CanvasWidth));
+        OnPropertyChanged(nameof(CanvasHeight));
+        CanvasSizeLabel = $"{(int)_canvasWidth} × {(int)_canvasHeight}";
+        CanvasControl?.SetLogicalCanvasSize(_canvasWidth, _canvasHeight);
+        CanvasControl?.FitToWindow();
+        StatusMessage = $"Swapped canvas orientation to {CanvasSizeLabel}.";
     }
 
     /// <summary>Add a few sample elements to give a good first impression.</summary>
@@ -1727,17 +1824,42 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private bool _isTemplateGalleryOpen;
 
+    [ObservableProperty]
+    private string _selectedTemplateCategory = "All";
+
     public ObservableCollection<TemplateCardViewModel> TemplateCards { get; } = new();
+    public ObservableCollection<TemplateCardViewModel> FilteredTemplateCards { get; } = new();
+
+    [RelayCommand]
+    private void FilterTemplatesByCategory(string category)
+    {
+        SelectedTemplateCategory = category;
+        ApplyTemplateFilter();
+    }
+
+    private void ApplyTemplateFilter()
+    {
+        FilteredTemplateCards.Clear();
+        foreach (var card in TemplateCards)
+        {
+            if (SelectedTemplateCategory == "All" || string.Equals(card.Category, SelectedTemplateCategory, StringComparison.OrdinalIgnoreCase))
+            {
+                FilteredTemplateCards.Add(card);
+            }
+        }
+    }
 
     [RelayCommand]
     private void OpenTemplateGallery()
     {
         foreach (var card in TemplateCards) card.Preview?.Dispose();
         TemplateCards.Clear();
+        FilteredTemplateCards.Clear();
         foreach (var def in TemplateLibrary.All)
         {
             TemplateCards.Add(new TemplateCardViewModel(def, RenderTemplatePreview(def)));
         }
+        ApplyTemplateFilter();
         IsTemplateGalleryOpen = true;
     }
 
@@ -1832,6 +1954,14 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedStrokeable));
         OnPropertyChanged(nameof(SelectedTextElement));
         OnPropertyChanged(nameof(SelectedRectangleElement));
+        OnPropertyChanged(nameof(IsTextSelected));
+        OnPropertyChanged(nameof(IsShapeSelected));
+        OnPropertyChanged(nameof(IsImageSelected));
+        OnPropertyChanged(nameof(HasSelection));
+        if (value is not ImageElement && ActiveInspectorTab == "adjust")
+        {
+            ActiveInspectorTab = "properties";
+        }
         SyncAdjustmentSlidersToSelection();
         SyncStyleFieldsToSelection();
     }
@@ -1861,6 +1991,7 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
 
         foreach (var card in TemplateCards) card.Preview?.Dispose();
         TemplateCards.Clear();
+        FilteredTemplateCards.Clear();
     }
 }
 
@@ -1878,6 +2009,8 @@ public sealed class TemplateCardViewModel
     public TemplateDefinition Definition { get; }
     public Bitmap? Preview { get; }
     public string Name => Definition.Name;
+    public string Category => Definition.Category;
+    public string DimensionsLabel => $"{(int)Definition.CanvasWidth} × {(int)Definition.CanvasHeight}";
 
     public TemplateCardViewModel(TemplateDefinition definition, Bitmap? preview)
     {
