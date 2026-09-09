@@ -59,6 +59,21 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
 
     private static readonly AudioFormat PlaybackFormat = AudioFormat.Cd;
 
+    /// <summary>Milliseconds of audio per device period. See <see cref="BuildDeviceConfig"/>.</summary>
+    private const int PeriodSizeMs = 50;
+
+    /// <summary>Number of device periods, so total buffered audio is Periods x PeriodSizeMs.</summary>
+    private const int PeriodCount = 4;
+
+    /// <summary>
+    /// Samples per channel that <see cref="ChunkedDataProvider"/> decodes ahead of the callback.
+    /// </summary>
+    /// <remarks>
+    /// At 44.1 kHz this is roughly a second of read-ahead — comfortably more than any single
+    /// host stall, and cheap in memory next to the decoded bitmaps this plugin already holds.
+    /// </remarks>
+    private const int DecodeChunkSamples = 44100;
+
     private readonly IPluginSettingsStore? _settingsStore;
     private MiniAudioEngine? _engine;
     private AudioPlaybackDevice? _device;
@@ -68,8 +83,21 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
     private readonly Random _random = new();
     private readonly HashSet<string> _favoritePaths = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>
+    /// Serializes mutation of the audio graph (player, provider, stream, mixer membership).
+    /// </summary>
+    /// <remarks>
+    /// Track loading, disposal and seeking all ran on unsynchronized thread-pool threads while
+    /// the audio callback pulled from the same provider — <c>DisposeCurrentPlayer</c> could
+    /// dispose the stream out from under an in-flight seek, and the empty <c>catch</c> blocks
+    /// hid the resulting use-after-dispose. Held only across bounded field swaps and SoundFlow
+    /// calls; UI-thread readers snapshot the fields instead of taking this, so a slow track
+    /// load can never stall a frame.
+    /// </remarks>
+    private readonly object _graphLock = new();
+
     private FileStream? _stream;
-    private StreamDataProvider? _dataProvider;
+    private SoundFlow.Interfaces.ISoundDataProvider? _dataProvider;
     private SoundPlayer? _player;
 
     private bool _isSeeking;
@@ -191,12 +219,25 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _statusMessage = "Ready";
 
-    // --- Live 5-Bar Equalizer Visualizer Heights (in dips) ---
-    [ObservableProperty] private double _bar1Height = 6;
-    [ObservableProperty] private double _bar2Height = 10;
-    [ObservableProperty] private double _bar3Height = 16;
-    [ObservableProperty] private double _bar4Height = 11;
-    [ObservableProperty] private double _bar5Height = 7;
+    // --- Live 5-Bar Equalizer Visualizer ---
+    // These are ScaleY factors in 0..1 applied to a fixed-height bar via RenderTransform, not
+    // heights. They used to be bound straight to Border.Height, and Height is layout-affecting:
+    // rewriting all five at 20 Hz invalidated measure/arrange up the parent chain 20 times a
+    // second, on the UI thread the host editor shares. Eight bars are bound (five in Player
+    // view, three in Mini) and IsVisible=false does not unbind, so every one of them was live
+    // in every view mode. A ScaleY transform is GPU-composited and triggers no layout pass.
+    // See .agents/rules/performance_and_zero_lag_mandate.md section 6.
+    [ObservableProperty] private double _bar1Scale = BarScaleFloor;
+    [ObservableProperty] private double _bar2Scale = 0.71;
+    [ObservableProperty] private double _bar3Scale = 1.0;
+    [ObservableProperty] private double _bar4Scale = 0.79;
+    [ObservableProperty] private double _bar5Scale = 0.5;
+
+    /// <summary>Rendered height of an equalizer bar in dips; scale factors are relative to it.</summary>
+    private const double BarTrackHeight = 14.0;
+
+    /// <summary>Resting scale, so idle bars stay visible as dots rather than vanishing.</summary>
+    private const double BarScaleFloor = 6.0 / BarTrackHeight;
 
     // --- Computed Presentation Properties ---
     public bool HasCurrentTrack => CurrentTrack is not null;
@@ -259,11 +300,27 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
 
         InitializeAudioEngine();
 
-        _positionTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+        // Both timers used the parameterless DispatcherTimer constructor, which Avalonia
+        // documents as DispatcherPriority.Background — *below* Input. Host editor interaction
+        // therefore starved them, which is the visible half of the "music lags when I use the
+        // editor" report: the elapsed time and the equalizer freeze and then catch up in a
+        // burst. Priorities are now explicit, and split by what the timer is for.
+        //
+        // The position readout is functional and cheap (4 Hz), so it runs at Input: not starved
+        // below interaction, but not preempting it either.
+        _positionTimer = new DispatcherTimer(DispatcherPriority.Input)
+        {
+            Interval = TimeSpan.FromMilliseconds(250)
+        };
         _positionTimer.Tick += OnPositionTimerTick;
-        _positionTimer.Start();
 
-        _visualizerTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
+        // The equalizer is pure decoration at 20 Hz, so it stays below Input deliberately —
+        // it *should* yield to the user interacting with the host. Raising it would repeat the
+        // mistake WavySlider made by animating at Render priority.
+        _visualizerTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromMilliseconds(50)
+        };
         _visualizerTimer.Tick += OnVisualizerTick;
 
         _ = LoadSettingsAsync();
@@ -275,7 +332,7 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
         {
             MusicPlayerPlugin.EnsureNativeAudioLibrariesLoaded();
             _engine = new MiniAudioEngine(Array.Empty<MiniAudioBackend>());
-            _device = _engine.InitializePlaybackDevice(null, PlaybackFormat, new MiniAudioDeviceConfig());
+            _device = _engine.InitializePlaybackDevice(null, PlaybackFormat, BuildDeviceConfig());
             _device.Start();
         }
         catch (Exception ex)
@@ -284,6 +341,26 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
             System.Diagnostics.Debug.WriteLine($"[MusicPlayer] Audio init error: {ex.Message}");
         }
     }
+
+    /// <summary>
+    /// Builds the playback device config with enough buffer to ride out host hitches.
+    /// </summary>
+    /// <remarks>
+    /// This used to pass a default <see cref="MiniAudioDeviceConfig"/>, leaving period size and
+    /// count at miniaudio's low-latency defaults — roughly 10 ms x 3 periods, about 30 ms of
+    /// slack in total. SoundFlow decodes on miniaudio's callback thread, which is a
+    /// CLR-attached managed thread, so any GC pause or scheduling delay longer than that
+    /// underruns and is audible.
+    ///
+    /// Music playback has no latency requirement at all: nothing is synchronised to it and
+    /// nobody is monitoring live input. Trading latency for resilience is free here, so buffer
+    /// for ~200 ms and survive a host stall of that length without a dropout.
+    /// </remarks>
+    private static MiniAudioDeviceConfig BuildDeviceConfig() => new()
+    {
+        PeriodSizeInMilliseconds = PeriodSizeMs,
+        Periods = PeriodCount
+    };
 
     [RelayCommand]
     private void SwitchToPlayerView() => CurrentViewMode = PlayerViewMode.Player;
@@ -752,33 +829,54 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
         {
             await Task.Run(() =>
             {
-                DisposeCurrentPlayer();
-
-                if (!File.Exists(track.FilePath))
+                // One critical section for teardown and setup together: a half-swapped graph
+                // (old stream disposed, new player not yet in the mixer) must never be visible
+                // to a concurrent seek or to another track change.
+                lock (_graphLock)
                 {
-                    throw new FileNotFoundException("Track file not found.", track.FilePath);
+                    DisposeCurrentPlayerLocked();
+
+                    if (!File.Exists(track.FilePath))
+                    {
+                        throw new FileNotFoundException("Track file not found.", track.FilePath);
+                    }
+
+                    // FileOptions.SequentialScan lets the OS read ahead; the provider below decodes
+                    // in chunks off the audio callback, so this stream is no longer touched from a
+                    // real-time thread.
+                    var stream = new FileStream(
+                        track.FilePath,
+                        FileMode.Open,
+                        FileAccess.Read,
+                        FileShare.Read,
+                        bufferSize: 64 * 1024,
+                        FileOptions.SequentialScan);
+
+                    // Was StreamDataProvider, which is pull-on-demand: the miniaudio callback thread
+                    // did the FileStream read and the MP3 decode itself, so disk contention or a GC
+                    // pause landed directly on the audio deadline. ChunkedDataProvider buffers ahead
+                    // instead, which is what SoundFlow's own NetworkDataProvider does "to prevent
+                    // network issues from crashing the audio thread".
+                    var provider = new ChunkedDataProvider(_engine, PlaybackFormat, stream, DecodeChunkSamples);
+                    var player = new SoundPlayer(_engine, PlaybackFormat, provider)
+                    {
+                        Volume = IsMuted ? 0f : (float)(Math.Clamp(VolumePercent, 0, 100) / 100.0)
+                    };
+                    player.PlaybackEnded += OnPlaybackEnded;
+
+                    _stream = stream;
+                    _dataProvider = provider;
+                    _player = player;
+
+                    _device.MasterMixer.AddComponent(player);
+
+                    if (!_device.IsRunning)
+                    {
+                        _device.Start();
+                    }
+
+                    player.Play();
                 }
-
-                var stream = File.OpenRead(track.FilePath);
-                var provider = new StreamDataProvider(_engine, PlaybackFormat, stream);
-                var player = new SoundPlayer(_engine, PlaybackFormat, provider)
-                {
-                    Volume = IsMuted ? 0f : (float)(Math.Clamp(VolumePercent, 0, 100) / 100.0)
-                };
-                player.PlaybackEnded += OnPlaybackEnded;
-
-                _stream = stream;
-                _dataProvider = provider;
-                _player = player;
-
-                _device.MasterMixer.AddComponent(player);
-
-                if (!_device.IsRunning)
-                {
-                    _device.Start();
-                }
-
-                player.Play();
             });
 
             IsPlaying = true;
@@ -989,13 +1087,21 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
         {
             Task.Run(() =>
             {
-                try
+                lock (_graphLock)
                 {
-                    _player.Seek((float)clamped);
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[MusicPlayer] Seek error: {ex.Message}");
+                    // Re-read under the lock: the field may have been swapped or nulled by a
+                    // track change between this seek being queued and it running.
+                    var player = _player;
+                    if (player is null) return;
+
+                    try
+                    {
+                        player.Seek((float)clamped);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[MusicPlayer] Seek error: {ex.Message}");
+                    }
                 }
             });
         }
@@ -1016,7 +1122,49 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
         SaveSettings();
     }
 
-    partial void OnSearchQueryChanged(string value) => ApplySearchFilter();
+    /// <summary>
+    /// Re-filters the queue after the user stops typing.
+    /// </summary>
+    /// <remarks>
+    /// This used to call <see cref="ApplySearchFilter"/> on every keystroke, and that method
+    /// does <c>Clear()</c> then one <c>Add()</c> per match on a collection bound to the queue
+    /// list — so each character re-realized every visible track card. Debounced per
+    /// .agents/rules/performance_and_zero_lag_mandate.md section 4 (150-250ms for text filters).
+    /// </remarks>
+    partial void OnSearchQueryChanged(string value)
+    {
+        _searchDebounceCts?.Cancel();
+        _searchDebounceCts?.Dispose();
+        var cts = new CancellationTokenSource();
+        _searchDebounceCts = cts;
+        var token = cts.Token;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(SearchDebounceMs, token);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            if (token.IsCancellationRequested) return;
+
+            // The filter mutates FilteredPlaylist, which is bound to the queue list, so it has
+            // to run on the UI thread. Post rather than Invoke: nothing here waits on the result.
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (!token.IsCancellationRequested) ApplySearchFilter();
+            }, DispatcherPriority.Background);
+        }, token);
+    }
+
+    /// <summary>Quiet period before the queue search re-filters, in milliseconds.</summary>
+    private const int SearchDebounceMs = 180;
+
+    private CancellationTokenSource? _searchDebounceCts;
 
     partial void OnCurrentTrackChanged(TrackViewModel? oldValue, TrackViewModel? newValue)
     {
@@ -1061,6 +1209,29 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
         });
     }
 
+    /// <summary>
+    /// Runs the position timer only while audio is actually playing.
+    /// </summary>
+    /// <remarks>
+    /// The timer used to be started in the constructor and never stopped, so it ticked every
+    /// 250 ms for the life of the process even with an empty queue — reading _player.Time and
+    /// fanning out to four dependent display properties and two two-way-bound sliders. Reading
+    /// player state also takes SoundFlow's internal locks from the UI thread, which the
+    /// real-time audio callback contends for, so an idle player was needlessly poking the
+    /// audio graph four times a second.
+    /// </remarks>
+    partial void OnIsPlayingChanged(bool value)
+    {
+        if (value)
+        {
+            if (!_positionTimer.IsEnabled) _positionTimer.Start();
+        }
+        else
+        {
+            if (_positionTimer.IsEnabled) _positionTimer.Stop();
+        }
+    }
+
     private void OnPositionTimerTick(object? sender, EventArgs e)
     {
         if (_isSeeking || _player is null || !IsPlaying) return;
@@ -1082,21 +1253,28 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
 
         _visualizerPhase += 0.32;
 
-        Bar1Height = 6 + Math.Abs(Math.Sin(_visualizerPhase * 1.3)) * 14 + (_random.NextDouble() * 3);
-        Bar2Height = 8 + Math.Abs(Math.Sin(_visualizerPhase * 1.7 + 0.5)) * 18 + (_random.NextDouble() * 4);
-        Bar3Height = 10 + Math.Abs(Math.Cos(_visualizerPhase * 1.1 + 0.9)) * 20 + (_random.NextDouble() * 5);
-        Bar4Height = 7 + Math.Abs(Math.Sin(_visualizerPhase * 2.1 + 1.3)) * 16 + (_random.NextDouble() * 4);
-        Bar5Height = 5 + Math.Abs(Math.Cos(_visualizerPhase * 1.5 + 1.7)) * 12 + (_random.NextDouble() * 3);
+        // Same waveform as before, expressed as a 0..1 scale of BarTrackHeight. The old dip
+        // values ran well past the 14px container and were simply clipped, so clamping here
+        // preserves the look.
+        Bar1Scale = BarScale(6 + Math.Abs(Math.Sin(_visualizerPhase * 1.3)) * 14 + (_random.NextDouble() * 3));
+        Bar2Scale = BarScale(8 + Math.Abs(Math.Sin(_visualizerPhase * 1.7 + 0.5)) * 18 + (_random.NextDouble() * 4));
+        Bar3Scale = BarScale(10 + Math.Abs(Math.Cos(_visualizerPhase * 1.1 + 0.9)) * 20 + (_random.NextDouble() * 5));
+        Bar4Scale = BarScale(7 + Math.Abs(Math.Sin(_visualizerPhase * 2.1 + 1.3)) * 16 + (_random.NextDouble() * 4));
+        Bar5Scale = BarScale(5 + Math.Abs(Math.Cos(_visualizerPhase * 1.5 + 1.7)) * 12 + (_random.NextDouble() * 3));
     }
 
     private void ResetVisualizerBars()
     {
-        Bar1Height = 6;
-        Bar2Height = 6;
-        Bar3Height = 6;
-        Bar4Height = 6;
-        Bar5Height = 6;
+        Bar1Scale = BarScaleFloor;
+        Bar2Scale = BarScaleFloor;
+        Bar3Scale = BarScaleFloor;
+        Bar4Scale = BarScaleFloor;
+        Bar5Scale = BarScaleFloor;
     }
+
+    /// <summary>Converts a legacy bar height in dips to a clamped 0..1 ScaleY factor.</summary>
+    private static double BarScale(double heightInDips)
+        => Math.Clamp(heightInDips / BarTrackHeight, BarScaleFloor, 1.0);
 
     private static string FormatTime(double totalSeconds)
     {
@@ -1206,7 +1384,24 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
     private void SaveLastTrack()
         => _settingsStore?.SetSetting(PluginId, SettingLastTrackIndex, _currentIndex);
 
+    /// <summary>
+    /// Tears the current player, provider and stream down in dependency order.
+    /// </summary>
+    /// <remarks>
+    /// Stop, then remove from the mixer, then dispose: the component must be out of the graph
+    /// before its provider and stream go away, or the audio callback can read a disposed
+    /// stream. Callers may be on any thread, so <see cref="_graphLock"/> serializes this
+    /// against track loading and seeking.
+    /// </remarks>
     private void DisposeCurrentPlayer()
+    {
+        lock (_graphLock)
+        {
+            DisposeCurrentPlayerLocked();
+        }
+    }
+
+    private void DisposeCurrentPlayerLocked()
     {
         if (_player is not null)
         {
@@ -1233,6 +1428,10 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        _searchDebounceCts?.Cancel();
+        _searchDebounceCts?.Dispose();
+        _searchDebounceCts = null;
+
         _positionTimer.Stop();
         _positionTimer.Tick -= OnPositionTimerTick;
 

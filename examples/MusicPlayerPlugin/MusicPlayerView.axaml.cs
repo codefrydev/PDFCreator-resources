@@ -307,9 +307,19 @@ public partial class MusicPlayerView : UserControl
         }
     }
 
+    /// <summary>
+    /// Adds seek handling to a plain <see cref="Slider"/>.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="WavySlider"/> already handles pointer press/move/release/capture-lost itself,
+    /// and these handlers register with <c>handledEventsToo: true</c> — so attaching them to the
+    /// wavy seek slider meant every scrub called <c>CommitSeek</c> twice, issuing two seeks and
+    /// two decoder resets per gesture (an audible click). It self-manages; skip it.
+    /// </remarks>
     private void AttachSeekHandlers(Slider? slider)
     {
         if (slider is null) return;
+        if (slider is WavySlider) return;
         slider.AddHandler(InputElement.PointerPressedEvent, (s, e) =>
         {
             _isDraggingSeek = true;

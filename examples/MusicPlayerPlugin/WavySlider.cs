@@ -5,6 +5,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Avalonia.Threading;
 
 namespace PdfEditorApp.Plugins.MusicPlayer;
@@ -67,6 +68,37 @@ public class WavySlider : Slider
     private Thumb? _thumb;
     private DispatcherTimer? _animationTimer;
     private double _phase;
+
+    /// <summary>
+    /// Fallback brushes, allocated once.
+    /// </summary>
+    /// <remarks>
+    /// These were constructed inside Render, so the null-brush case allocated two brushes on
+    /// every one of ~30 frames per second. Immutable brushes are safe to share.
+    /// </remarks>
+    private static readonly IBrush DefaultUnplayedBrush =
+        new ImmutableSolidColorBrush(Color.FromArgb(50, 255, 255, 255));
+
+    private static readonly IBrush DefaultPlayedBrush =
+        new ImmutableSolidColorBrush(Color.FromRgb(30, 94, 235));
+
+    // Pens are rebuilt only when their inputs change. Render used to allocate both on every
+    // frame; at 30 FPS that is 60 pens a second of pure GC pressure, and GC pauses suspend the
+    // audio callback thread this plugin depends on.
+    private Pen? _cachedUnplayedPen;
+    private Pen? _cachedPlayedPen;
+    private IBrush? _cachedUnplayedSource;
+    private IBrush? _cachedPlayedSource;
+    private double _cachedStroke = double.NaN;
+
+    /// <summary>
+    /// Horizontal sampling step for the sine curve, in pixels.
+    /// </summary>
+    /// <remarks>
+    /// Was 2px, i.e. ~175 LineTo calls and Points per frame on a typical slider. At 4px the
+    /// ripple is visually identical at this amplitude and wavelength for half the cost.
+    /// </remarks>
+    private const double WaveSampleStep = 4.0;
     private bool _isInteracting;
 
     public WavySlider()
@@ -191,6 +223,7 @@ public class WavySlider : Slider
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
+
         UpdateAnimationState();
     }
 
@@ -200,9 +233,19 @@ public class WavySlider : Slider
         StopAnimation();
     }
 
+    /// <summary>
+    /// Starts or stops the ripple based on playback state and whether we are actually on screen.
+    /// </summary>
+    /// <remarks>
+    /// IsEffectivelyVisible, not just VisualRoot: the player's three view modes are
+    /// IsVisible-toggled siblings in a single Panel, and setting IsVisible=false does not detach
+    /// a control from the visual tree. So OnDetachedFromVisualTree never fired for the hidden
+    /// modes and this timer kept animating an invisible slider in Mini and Queue view.
+    /// <see cref="OnAnimationTick"/> re-checks it, since the property has no change event.
+    /// </remarks>
     private void UpdateAnimationState()
     {
-        if (IsPlaying && VisualRoot != null)
+        if (IsPlaying && VisualRoot != null && IsEffectivelyVisible)
         {
             StartAnimation();
         }
@@ -216,7 +259,10 @@ public class WavySlider : Slider
     {
         if (_animationTimer == null)
         {
-            _animationTimer = new DispatcherTimer(DispatcherPriority.Render)
+            // Was DispatcherPriority.Render, which sits well above Input in Avalonia's scale —
+            // a decorative 30 Hz ripple was preempting the host application's own input
+            // handling. Decoration must yield to interaction, so this runs at Background.
+            _animationTimer = new DispatcherTimer(DispatcherPriority.Background)
             {
                 Interval = TimeSpan.FromMilliseconds(33) // ~30 FPS liquid ripple
             };
@@ -240,9 +286,46 @@ public class WavySlider : Slider
 
     private void OnAnimationTick(object? sender, EventArgs e)
     {
+        // The player's three view modes are IsVisible-toggled siblings in one Panel, and
+        // setting IsVisible=false does not detach a control from the visual tree — so
+        // OnDetachedFromVisualTree never fires for the hidden modes and this timer used to keep
+        // animating an off-screen slider. IsEffectivelyVisible is a plain CLR property in
+        // Avalonia 12 with no public change event, so it is checked here, where we are already
+        // being called, rather than watched.
+        if (!IsEffectivelyVisible)
+        {
+            StopAnimation();
+            return;
+        }
+
         // Smoothly advance phase while music is actively playing
         _phase = (_phase + 0.12) % (Math.PI * 2.0);
         InvalidateVisual();
+    }
+
+    /// <summary>
+    /// Rebuilds the cached pens only when the stroke thickness or a source brush changed.
+    /// </summary>
+    private void EnsurePens(double stroke)
+    {
+        var unplayedSource = UnplayedBrush ?? DefaultUnplayedBrush;
+        var playedSource = Foreground ?? DefaultPlayedBrush;
+
+        bool strokeChanged = _cachedStroke != stroke;
+
+        if (strokeChanged || _cachedUnplayedPen == null || !ReferenceEquals(_cachedUnplayedSource, unplayedSource))
+        {
+            _cachedUnplayedPen = new Pen(unplayedSource, stroke, lineCap: PenLineCap.Round);
+            _cachedUnplayedSource = unplayedSource;
+        }
+
+        if (strokeChanged || _cachedPlayedPen == null || !ReferenceEquals(_cachedPlayedSource, playedSource))
+        {
+            _cachedPlayedPen = new Pen(playedSource, stroke, lineCap: PenLineCap.Round, lineJoin: PenLineJoin.Round);
+            _cachedPlayedSource = playedSource;
+        }
+
+        _cachedStroke = stroke;
     }
 
     public override void Render(DrawingContext context)
@@ -270,25 +353,22 @@ public class WavySlider : Slider
         double thumbX = leftX + (ratio * availableWidth);
 
         // 1. Draw unplayed straight line (from thumbX to rightX)
+        EnsurePens(stroke);
+
         if (thumbX < rightX)
         {
-            var unplayedBrush = UnplayedBrush ?? new SolidColorBrush(Color.FromArgb(50, 255, 255, 255));
-            var unplayedPen = new Pen(unplayedBrush, stroke, lineCap: PenLineCap.Round);
-            context.DrawLine(unplayedPen, new Point(thumbX, centerY), new Point(rightX, centerY));
+            context.DrawLine(_cachedUnplayedPen!, new Point(thumbX, centerY), new Point(rightX, centerY));
         }
 
         // 2. Draw played wavy sine curve (from leftX to thumbX)
         if (thumbX > leftX)
         {
-            var playedBrush = Foreground ?? new SolidColorBrush(Color.FromRgb(30, 94, 235));
-            var playedPen = new Pen(playedBrush, stroke, lineCap: PenLineCap.Round, lineJoin: PenLineJoin.Round);
-
             var geometry = new StreamGeometry();
             using (var sgc = geometry.Open())
             {
                 double waveLen = Math.Max(12.0, WaveLength);
                 double baseAmp = WaveAmplitude;
-                double step = 2.0;
+                double step = WaveSampleStep;
 
                 sgc.BeginFigure(new Point(leftX, centerY), false);
 
@@ -310,7 +390,7 @@ public class WavySlider : Slider
                 sgc.EndFigure(false);
             }
 
-            context.DrawGeometry(null, playedPen, geometry);
+            context.DrawGeometry(null, _cachedPlayedPen!, geometry);
         }
 
         // Render thumb on top

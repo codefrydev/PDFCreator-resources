@@ -361,15 +361,40 @@
                                     Padding="8,4">
                                 <StackPanel Orientation="Horizontal" Spacing="2" Height="14" VerticalAlignment="Center">
                                     <Border Width="2.5" CornerRadius="1.25" Background="{DynamicResource M3PrimaryBrush}"
-                                            VerticalAlignment="Bottom" Height="{Binding Bar1Height}" />
+                                            VerticalAlignment="Bottom" Height="14"
+                                            RenderTransformOrigin="0.5,1">
+                                        <Border.RenderTransform>
+                                            <ScaleTransform ScaleY="{Binding Bar1Scale}" />
+                                        </Border.RenderTransform>
+                                    </Border>
                                     <Border Width="2.5" CornerRadius="1.25" Background="{DynamicResource M3PrimaryBrush}"
-                                            VerticalAlignment="Bottom" Height="{Binding Bar2Height}" />
+                                            VerticalAlignment="Bottom" Height="14"
+                                            RenderTransformOrigin="0.5,1">
+                                        <Border.RenderTransform>
+                                            <ScaleTransform ScaleY="{Binding Bar2Scale}" />
+                                        </Border.RenderTransform>
+                                    </Border>
                                     <Border Width="2.5" CornerRadius="1.25" Background="{DynamicResource M3PrimaryBrush}"
-                                            VerticalAlignment="Bottom" Height="{Binding Bar3Height}" />
+                                            VerticalAlignment="Bottom" Height="14"
+                                            RenderTransformOrigin="0.5,1">
+                                        <Border.RenderTransform>
+                                            <ScaleTransform ScaleY="{Binding Bar3Scale}" />
+                                        </Border.RenderTransform>
+                                    </Border>
                                     <Border Width="2.5" CornerRadius="1.25" Background="{DynamicResource M3PrimaryBrush}"
-                                            VerticalAlignment="Bottom" Height="{Binding Bar4Height}" />
+                                            VerticalAlignment="Bottom" Height="14"
+                                            RenderTransformOrigin="0.5,1">
+                                        <Border.RenderTransform>
+                                            <ScaleTransform ScaleY="{Binding Bar4Scale}" />
+                                        </Border.RenderTransform>
+                                    </Border>
                                     <Border Width="2.5" CornerRadius="1.25" Background="{DynamicResource M3PrimaryBrush}"
-                                            VerticalAlignment="Bottom" Height="{Binding Bar5Height}" />
+                                            VerticalAlignment="Bottom" Height="14"
+                                            RenderTransformOrigin="0.5,1">
+                                        <Border.RenderTransform>
+                                            <ScaleTransform ScaleY="{Binding Bar5Scale}" />
+                                        </Border.RenderTransform>
+                                    </Border>
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -733,9 +758,27 @@
 
                 <!-- Row 3: FULL SCROLLABLE TRACK LIST -->
                 <Grid Grid.Row="3">
-                    <ScrollViewer IsVisible="{Binding HasTracks}" Padding="0,0,4,8">
-                        <StackPanel Spacing="3">
+                    <Grid IsVisible="{Binding HasTracks}" RowDefinitions="*,Auto">
+                        <ScrollViewer Grid.Row="0" Padding="0,0,4,8">
                             <ItemsControl ItemsSource="{Binding FilteredPlaylist}">
+                                <!--
+                                    Virtualized deliberately. This was a plain ItemsControl
+                                    inside a ScrollViewer wrapped in a StackPanel, so the
+                                    list got infinite available height and every one of up
+                                    to 300 track cards - each with a full ContextMenu and
+                                    several MaterialIcons - stayed realized and measured.
+                                    ApplySearchFilter does Clear() + Add() per item, so a
+                                    single keystroke tore down and rebuilt all of them.
+                                    Required by .agents/rules/performance_and_zero_lag_mandate.md
+                                    section 3. The Grid above gives the ScrollViewer a bounded
+                                    height, without which a VirtualizingStackPanel here would
+                                    realize everything anyway.
+                                -->
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <VirtualizingStackPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="local:TrackViewModel">
                                         <Border Classes="track-card"
@@ -880,41 +923,42 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
+                        </ScrollViewer>
 
-                            <!-- Dropzone card when queue has few tracks (<= 2) -->
-                            <Button IsVisible="{Binding HasFewTracks}"
-                                    Command="{Binding AddFilesCommand}"
-                                    Classes="m3-outlined-btn"
-                                    HorizontalAlignment="Stretch"
-                                    HorizontalContentAlignment="Stretch"
-                                    Background="{DynamicResource M3SurfaceContainerLowestBrush}"
-                                    BorderBrush="{DynamicResource M3OutlineVariantBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="{StaticResource M3ShapeCornerMedium}"
-                                    Padding="12,10"
-                                    Margin="0,6,0,0"
-                                    Cursor="Hand">
-                                <Grid ColumnDefinitions="36,*">
-                                    <Border Grid.Column="0" Width="36" Height="36"
-                                            CornerRadius="{StaticResource M3ShapeCornerFull}"
-                                            Background="{DynamicResource M3SurfaceContainerHighBrush}"
-                                            VerticalAlignment="Center">
-                                        <materialIcons:MaterialIcon Kind="TrayArrowDown" Width="18" Height="18"
-                                                                     Foreground="{DynamicResource M3PrimaryBrush}"
-                                                                     HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                    </Border>
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0" Spacing="2">
-                                        <TextBlock Text="Add more audio files"
-                                                   FontSize="11.5" FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource M3OnSurfaceBrush}" />
-                                        <TextBlock Text="Click to browse MP3, WAV, FLAC files"
-                                                   FontSize="10"
-                                                   Foreground="{DynamicResource M3OnSurfaceVariantBrush}" />
-                                    </StackPanel>
-                                </Grid>
-                            </Button>
-                        </StackPanel>
-                    </ScrollViewer>
+                        <!-- Dropzone card when queue has few tracks (<= 2) -->
+                        <Button Grid.Row="1"
+                                IsVisible="{Binding HasFewTracks}"
+                                Command="{Binding AddFilesCommand}"
+                                Classes="m3-outlined-btn"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch"
+                                Background="{DynamicResource M3SurfaceContainerLowestBrush}"
+                                BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                                BorderThickness="1"
+                                CornerRadius="{StaticResource M3ShapeCornerMedium}"
+                                Padding="12,10"
+                                Margin="0,6,0,0"
+                                Cursor="Hand">
+                            <Grid ColumnDefinitions="36,*">
+                                <Border Grid.Column="0" Width="36" Height="36"
+                                        CornerRadius="{StaticResource M3ShapeCornerFull}"
+                                        Background="{DynamicResource M3SurfaceContainerHighBrush}"
+                                        VerticalAlignment="Center">
+                                    <materialIcons:MaterialIcon Kind="TrayArrowDown" Width="18" Height="18"
+                                                                 Foreground="{DynamicResource M3PrimaryBrush}"
+                                                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0" Spacing="2">
+                                    <TextBlock Text="Add more audio files"
+                                               FontSize="11.5" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource M3OnSurfaceBrush}" />
+                                    <TextBlock Text="Click to browse MP3, WAV, FLAC files"
+                                               FontSize="10"
+                                               Foreground="{DynamicResource M3OnSurfaceVariantBrush}" />
+                                </StackPanel>
+                            </Grid>
+                        </Button>
+                    </Grid>
 
                     <!-- Empty Queue State Illustration -->
                     <Border IsVisible="{Binding IsEmpty}"
@@ -1099,11 +1143,26 @@
                                 <!-- Mini Equalizer bars -->
                                 <StackPanel Orientation="Horizontal" Spacing="1.5" Height="9" VerticalAlignment="Center">
                                     <Border Width="2" CornerRadius="1" Background="{DynamicResource M3PrimaryBrush}"
-                                            VerticalAlignment="Bottom" Height="{Binding Bar1Height}" />
+                                            VerticalAlignment="Bottom" Height="9"
+                                            RenderTransformOrigin="0.5,1">
+                                        <Border.RenderTransform>
+                                            <ScaleTransform ScaleY="{Binding Bar1Scale}" />
+                                        </Border.RenderTransform>
+                                    </Border>
                                     <Border Width="2" CornerRadius="1" Background="{DynamicResource M3PrimaryBrush}"
-                                            VerticalAlignment="Bottom" Height="{Binding Bar3Height}" />
+                                            VerticalAlignment="Bottom" Height="9"
+                                            RenderTransformOrigin="0.5,1">
+                                        <Border.RenderTransform>
+                                            <ScaleTransform ScaleY="{Binding Bar3Scale}" />
+                                        </Border.RenderTransform>
+                                    </Border>
                                     <Border Width="2" CornerRadius="1" Background="{DynamicResource M3PrimaryBrush}"
-                                            VerticalAlignment="Bottom" Height="{Binding Bar5Height}" />
+                                            VerticalAlignment="Bottom" Height="9"
+                                            RenderTransformOrigin="0.5,1">
+                                        <Border.RenderTransform>
+                                            <ScaleTransform ScaleY="{Binding Bar5Scale}" />
+                                        </Border.RenderTransform>
+                                    </Border>
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
