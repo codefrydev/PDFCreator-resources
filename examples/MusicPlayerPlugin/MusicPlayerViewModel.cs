@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
+using PdfEditorApp.Core.Plugins.Realtime;
 using PdfEditorApp.Core.Plugins.Settings;
 using SoundFlow.Abstracts.Devices;
 using SoundFlow.Backends.MiniAudio;
@@ -75,6 +76,20 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
     private const int DecodeChunkSamples = 44100;
 
     private readonly IPluginSettingsStore? _settingsStore;
+
+    /// <summary>
+    /// Host coordinator used to declare that a real-time audio thread is live.
+    /// </summary>
+    /// <remarks>
+    /// SoundFlow's playback callback is a reverse P/Invoke from miniaudio's real-time thread
+    /// that runs managed code, so it is CLR-attached and suspended by every GC. Telling the
+    /// host lets it switch to SustainedLowLatency and avoid blocking gen-2 collections while
+    /// audio is playing. Null when the host predates this contract.
+    /// </remarks>
+    private readonly IRealtimeWorkCoordinator? _realtimeCoordinator;
+
+    /// <summary>Non-null while playback is active; see <see cref="_realtimeCoordinator"/>.</summary>
+    private IDisposable? _realtimeScope;
     private MiniAudioEngine? _engine;
     private AudioPlaybackDevice? _device;
 
@@ -297,6 +312,7 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
     public MusicPlayerViewModel(IServiceProvider? serviceProvider = null)
     {
         _settingsStore = serviceProvider?.GetService<IPluginSettingsStore>();
+        _realtimeCoordinator = serviceProvider?.GetService<IRealtimeWorkCoordinator>();
 
         InitializeAudioEngine();
 
@@ -1225,10 +1241,17 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
         if (value)
         {
             if (!_positionTimer.IsEnabled) _positionTimer.Start();
+            _realtimeScope ??= _realtimeCoordinator?.BeginRealtimeWork("music playback");
         }
         else
         {
             if (_positionTimer.IsEnabled) _positionTimer.Stop();
+
+            // Released on pause/stop rather than held for the view model's lifetime: the
+            // latency mode costs the whole process throughput, so it should only be raised
+            // while audio is actually on a deadline.
+            _realtimeScope?.Dispose();
+            _realtimeScope = null;
         }
     }
 
@@ -1428,6 +1451,9 @@ public partial class MusicPlayerViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        _realtimeScope?.Dispose();
+        _realtimeScope = null;
+
         _searchDebounceCts?.Cancel();
         _searchDebounceCts?.Dispose();
         _searchDebounceCts = null;
