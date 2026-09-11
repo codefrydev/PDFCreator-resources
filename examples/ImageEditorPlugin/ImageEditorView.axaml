@@ -4,6 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:local="using:PdfEditorApp.Plugins.ImageEditor"
              xmlns:models="using:PdfEditorApp.Plugins.ImageEditor.Models"
+             xmlns:models_textstyles="using:PdfEditorApp.Plugins.ImageEditor.Models.TextStyles"
+             xmlns:models_stickers="using:PdfEditorApp.Plugins.ImageEditor.Models.Stickers"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:colorPicker="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.ColorPicker"
              mc:Ignorable="d" d:DesignWidth="1180" d:DesignHeight="780"
@@ -179,6 +181,61 @@
                                    Width="74" Height="28" FontSize="11"
                                    ToolTip.Tip="Font Size" VerticalAlignment="Center" />
 
+                    <!-- Font Family Picker: a font-name-labeled trigger (not an icon-only button)
+                         since choosing the typeface is a primary, frequent action — the gap this
+                         whole feature exists to close (TextElement.FontFamily was previously
+                         hardcoded at construction with no UI to change it at all). -->
+                    <Button Classes="m3-tonal-btn" Height="28" Padding="8,0" MaxWidth="104" ToolTip.Tip="Font Family">
+                        <Button.Flyout>
+                            <Flyout Placement="Bottom">
+                                <Border Background="{DynamicResource M3SurfaceContainerHighBrush}"
+                                        BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="{StaticResource M3ShapeCornerMedium}"
+                                        BoxShadow="{StaticResource M3ElevationLevel3}"
+                                        Width="260">
+                                    <DockPanel LastChildFill="True" MaxHeight="420">
+                                        <TextBlock DockPanel.Dock="Top" Text="Typefaces" FontSize="11.5" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource M3OnSurfaceBrush}" Margin="12,10,12,6" />
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                            <ItemsControl ItemsSource="{Binding FontGroups}" Margin="4,0,4,8">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="local:FontGroupViewModel">
+                                                        <StackPanel Spacing="1" Margin="4,6,4,2">
+                                                            <TextBlock Text="{Binding GroupName}" FontSize="9.5" FontWeight="Bold"
+                                                                       Foreground="{DynamicResource M3PrimaryBrush}" LetterSpacing="0.6"
+                                                                       Margin="8,2,8,3" />
+                                                            <ItemsControl ItemsSource="{Binding Fonts}">
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate x:DataType="local:FontChoiceViewModel">
+                                                                        <Button Command="{Binding $parent[UserControl].((local:ImageEditorViewModel)DataContext).SetTextFontFamilyCommand}"
+                                                                                CommandParameter="{Binding}"
+                                                                                Classes="m3-layer-row" HorizontalAlignment="Stretch"
+                                                                                HorizontalContentAlignment="Left" Padding="8,7">
+                                                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                                                <TextBlock Text="{Binding FamilyName}" FontFamily="{Binding PreviewFamily}"
+                                                                                           FontSize="13.5" Foreground="{DynamicResource M3OnSurfaceBrush}" />
+                                                                                <materialIcons:MaterialIcon Kind="CloudDownloadOutline" Width="12" Height="12"
+                                                                                    Foreground="{DynamicResource M3OnSurfaceVariantBrush}"
+                                                                                    IsVisible="{Binding Package, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                                                                    ToolTip.Tip="Downloads automatically the first time you use it" />
+                                                                            </StackPanel>
+                                                                        </Button>
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                            </ItemsControl>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </DockPanel>
+                                </Border>
+                            </Flyout>
+                        </Button.Flyout>
+                        <TextBlock Text="{Binding FontFamilyNameField}" FontSize="10.5" TextTrimming="CharacterEllipsis" />
+                    </Button>
+
                     <!-- Bold / Italic Toggles -->
                     <ToggleButton IsChecked="{Binding IsBold}" Classes="m3-glyph-toggle"
                                   Width="28" Height="28" ToolTip.Tip="Bold (B)">
@@ -188,6 +245,155 @@
                                   Width="28" Height="28" ToolTip.Tip="Italic (I)">
                         <materialIcons:MaterialIcon Kind="FormatItalic" Width="14" Height="14" />
                     </ToggleButton>
+
+                    <!-- More Text Formatting: Underline/Strikethrough/Highlight/Alignment/Case/Line
+                         Height — properties TextElement already models but no control ever bound to. -->
+                    <Button Classes="m3-icon-btn" Width="28" Height="28" ToolTip.Tip="More Text Formatting">
+                        <Button.Flyout>
+                            <Flyout Placement="Bottom">
+                                <Border Background="{DynamicResource M3SurfaceContainerHighBrush}"
+                                        BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="{StaticResource M3ShapeCornerMedium}"
+                                        Padding="12"
+                                        BoxShadow="{StaticResource M3ElevationLevel3}"
+                                        Width="260">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="Text Formatting" FontSize="11.5" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource M3OnSurfaceBrush}" />
+
+                                        <!-- Style Presets: one-click font+size+weight+color+case
+                                             combos (Models/TextStyles/TextStyleLibrary.cs) — a
+                                             shortcut over setting each property by hand, not a
+                                             replacement for them, so it lives as a section here
+                                             rather than a second top-level flyout trigger. -->
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="Styles" FontSize="10" Foreground="{DynamicResource M3OnSurfaceVariantBrush}" />
+                                            <ScrollViewer MaxHeight="180" VerticalScrollBarVisibility="Auto">
+                                                <ItemsControl ItemsSource="{Binding TextStyleGroups}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="local:TextStyleGroupViewModel">
+                                                            <StackPanel Spacing="1" Margin="0,2,0,2">
+                                                                <TextBlock Text="{Binding GroupName}" FontSize="9" FontWeight="Bold"
+                                                                           Foreground="{DynamicResource M3PrimaryBrush}" LetterSpacing="0.6"
+                                                                           Margin="2,3,2,2" />
+                                                                <ItemsControl ItemsSource="{Binding Styles}">
+                                                                    <ItemsControl.ItemTemplate>
+                                                                        <DataTemplate x:DataType="models_textstyles:TextStyleDefinition">
+                                                                            <Button Command="{Binding $parent[UserControl].((local:ImageEditorViewModel)DataContext).ApplyTextStyleCommand}"
+                                                                                    CommandParameter="{Binding}"
+                                                                                    Classes="m3-layer-row" HorizontalAlignment="Stretch"
+                                                                                    HorizontalContentAlignment="Left" Padding="6,6">
+                                                                                <TextBlock Text="{Binding Name}" FontFamily="{Binding PreviewFamily}"
+                                                                                           FontSize="12.5" Foreground="{DynamicResource M3OnSurfaceBrush}"
+                                                                                           TextTrimming="CharacterEllipsis" />
+                                                                            </Button>
+                                                                        </DataTemplate>
+                                                                    </ItemsControl.ItemTemplate>
+                                                                </ItemsControl>
+                                                            </StackPanel>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </ScrollViewer>
+                                        </StackPanel>
+
+                                        <Rectangle Height="1" Fill="{DynamicResource M3OutlineVariantBrush}" />
+
+                                        <!-- Underline / Strikethrough / Highlight -->
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <ToggleButton IsChecked="{Binding IsUnderline}" Classes="m3-glyph-toggle"
+                                                          Width="28" Height="28" ToolTip.Tip="Underline">
+                                                <materialIcons:MaterialIcon Kind="FormatUnderline" Width="14" Height="14" />
+                                            </ToggleButton>
+                                            <ToggleButton IsChecked="{Binding IsStrikethrough}" Classes="m3-glyph-toggle"
+                                                          Width="28" Height="28" ToolTip.Tip="Strikethrough">
+                                                <materialIcons:MaterialIcon Kind="FormatStrikethroughVariant" Width="14" Height="14" />
+                                            </ToggleButton>
+                                            <ToggleButton IsChecked="{Binding HasHighlightField}" Classes="m3-glyph-toggle"
+                                                          Width="28" Height="28" ToolTip.Tip="Text Highlight">
+                                                <materialIcons:MaterialIcon Kind="FormatColorHighlight" Width="14" Height="14" />
+                                            </ToggleButton>
+                                            <colorPicker:ColorPicker Color="{Binding HighlightColorField, Mode=TwoWay}"
+                                                                     Width="36" Height="28"
+                                                                     IsVisible="{Binding HasHighlightField}"
+                                                                     ToolTip.Tip="Highlight Color" />
+                                        </StackPanel>
+
+                                        <!-- Alignment -->
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="Alignment" FontSize="10" Foreground="{DynamicResource M3OnSurfaceVariantBrush}" />
+                                            <Border Classes="m3-segmented-container" HorizontalAlignment="Left">
+                                                <StackPanel Orientation="Horizontal" Spacing="0">
+                                                    <Button Command="{Binding SetTextAlignmentCommand}" CommandParameter="Left" Classes="m3-segment-btn"
+                                                            Classes.active="{Binding TextAlignmentField, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Left}"
+                                                            ToolTip.Tip="Align Left">
+                                                        <materialIcons:MaterialIcon Kind="FormatAlignLeft" Width="14" Height="14" />
+                                                    </Button>
+                                                    <Button Command="{Binding SetTextAlignmentCommand}" CommandParameter="Center" Classes="m3-segment-btn"
+                                                            Classes.active="{Binding TextAlignmentField, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Center}"
+                                                            ToolTip.Tip="Align Center">
+                                                        <materialIcons:MaterialIcon Kind="FormatAlignCenter" Width="14" Height="14" />
+                                                    </Button>
+                                                    <Button Command="{Binding SetTextAlignmentCommand}" CommandParameter="Right" Classes="m3-segment-btn"
+                                                            Classes.active="{Binding TextAlignmentField, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Right}"
+                                                            ToolTip.Tip="Align Right">
+                                                        <materialIcons:MaterialIcon Kind="FormatAlignRight" Width="14" Height="14" />
+                                                    </Button>
+                                                    <Button Command="{Binding SetTextAlignmentCommand}" CommandParameter="Justify" Classes="m3-segment-btn"
+                                                            Classes.active="{Binding TextAlignmentField, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Justify}"
+                                                            ToolTip.Tip="Justify">
+                                                        <materialIcons:MaterialIcon Kind="FormatAlignJustify" Width="14" Height="14" />
+                                                    </Button>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+
+                                        <!-- Case -->
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="Case" FontSize="10" Foreground="{DynamicResource M3OnSurfaceVariantBrush}" />
+                                            <Border Classes="m3-segmented-container" HorizontalAlignment="Stretch">
+                                                <Grid ColumnDefinitions="*,*,*,*">
+                                                    <Button Grid.Column="0" Command="{Binding SetTextCaseCommand}" CommandParameter="None"
+                                                            Classes="m3-segment-btn" HorizontalAlignment="Stretch"
+                                                            Classes.active="{Binding TextCaseField, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=None}"
+                                                            ToolTip.Tip="As Typed">
+                                                        <TextBlock Text="Aa" FontSize="10" HorizontalAlignment="Center" />
+                                                    </Button>
+                                                    <Button Grid.Column="1" Command="{Binding SetTextCaseCommand}" CommandParameter="Uppercase"
+                                                            Classes="m3-segment-btn" HorizontalAlignment="Stretch"
+                                                            Classes.active="{Binding TextCaseField, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Uppercase}"
+                                                            ToolTip.Tip="UPPERCASE">
+                                                        <TextBlock Text="AA" FontSize="10" HorizontalAlignment="Center" />
+                                                    </Button>
+                                                    <Button Grid.Column="2" Command="{Binding SetTextCaseCommand}" CommandParameter="TitleCase"
+                                                            Classes="m3-segment-btn" HorizontalAlignment="Stretch"
+                                                            Classes.active="{Binding TextCaseField, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=TitleCase}"
+                                                            ToolTip.Tip="Title Case">
+                                                        <TextBlock Text="Ab" FontSize="10" HorizontalAlignment="Center" />
+                                                    </Button>
+                                                    <Button Grid.Column="3" Command="{Binding SetTextCaseCommand}" CommandParameter="Lowercase"
+                                                            Classes="m3-segment-btn" HorizontalAlignment="Stretch"
+                                                            Classes.active="{Binding TextCaseField, Converter={x:Static local:StringEqualsConverter.Instance}, ConverterParameter=Lowercase}"
+                                                            ToolTip.Tip="lowercase">
+                                                        <TextBlock Text="aa" FontSize="10" HorizontalAlignment="Center" />
+                                                    </Button>
+                                                </Grid>
+                                            </Border>
+                                        </StackPanel>
+
+                                        <!-- Line Height -->
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="Line Height" FontSize="10" Foreground="{DynamicResource M3OnSurfaceVariantBrush}" />
+                                            <Slider Classes="m3-tactile-slider" Minimum="0" Maximum="200"
+                                                    Value="{Binding LineHeightField}" Height="20" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </Flyout>
+                        </Button.Flyout>
+                        <materialIcons:MaterialIcon Kind="DotsVertical" Width="14" Height="14" />
+                    </Button>
 
                     <!-- Text Color Swatch -->
                     <colorPicker:ColorPicker Color="{Binding TextForegroundColorField, Mode=TwoWay}"
@@ -567,6 +773,123 @@
 
                     <Rectangle Width="32" Height="1" Fill="{DynamicResource M3OutlineVariantBrush}" Margin="0,3" />
 
+                    <!-- Shapes Library (beyond the 3 basic draw tools above — a browsable
+                         library of presets, not another draw tool, hence a Flyout trigger here
+                         rather than a SetToolCommand button like Select/Rect/Ellipse/Arrow/Text). -->
+                    <Button Classes="m3-rail-btn" ToolTip.Tip="Shapes Library">
+                        <Button.Flyout>
+                            <Flyout Placement="RightEdgeAlignedTop">
+                                <Border Background="{DynamicResource M3SurfaceContainerHighBrush}"
+                                        BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="{StaticResource M3ShapeCornerMedium}"
+                                        BoxShadow="{StaticResource M3ElevationLevel3}"
+                                        Width="260">
+                                    <DockPanel LastChildFill="True" MaxHeight="420">
+                                        <TextBlock DockPanel.Dock="Top" Text="Shapes" FontSize="11.5" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource M3OnSurfaceBrush}" Margin="12,10,12,6" />
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                            <ItemsControl ItemsSource="{Binding ShapeGroups}" Margin="8,0,8,8">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="local:ShapeGroupViewModel">
+                                                        <StackPanel Spacing="4" Margin="0,6,0,2">
+                                                            <TextBlock Text="{Binding GroupName}" FontSize="9.5" FontWeight="Bold"
+                                                                       Foreground="{DynamicResource M3PrimaryBrush}" LetterSpacing="0.6"
+                                                                       Margin="4,2,4,2" />
+                                                            <ItemsControl ItemsSource="{Binding Shapes}">
+                                                                <ItemsControl.ItemsPanel>
+                                                                    <ItemsPanelTemplate>
+                                                                        <WrapPanel Orientation="Horizontal" />
+                                                                    </ItemsPanelTemplate>
+                                                                </ItemsControl.ItemsPanel>
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate x:DataType="local:ShapeCardViewModel">
+                                                                        <Button Command="{Binding $parent[UserControl].((local:ImageEditorViewModel)DataContext).InsertShapeCommand}"
+                                                                                CommandParameter="{Binding Definition}"
+                                                                                Classes="m3-card-elevated" Width="60" Height="60" Margin="3" Padding="6"
+                                                                                ToolTip.Tip="{Binding Definition.Name}">
+                                                                            <local:ShapePreviewControl Element="{Binding PreviewElement}" />
+                                                                        </Button>
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                            </ItemsControl>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </DockPanel>
+                                </Border>
+                            </Flyout>
+                        </Button.Flyout>
+                        <StackPanel Spacing="2" HorizontalAlignment="Center">
+                            <Border Classes="m3-rail-indicator">
+                                <materialIcons:MaterialIcon Kind="ShapePolygonPlus" Width="17" Height="17"
+                                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <TextBlock Text="Shapes" FontSize="9.5" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Stickers Library (large-glyph TextElements — see StickerDefinition) -->
+                    <Button Classes="m3-rail-btn" ToolTip.Tip="Stickers Library">
+                        <Button.Flyout>
+                            <Flyout Placement="RightEdgeAlignedTop">
+                                <Border Background="{DynamicResource M3SurfaceContainerHighBrush}"
+                                        BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="{StaticResource M3ShapeCornerMedium}"
+                                        BoxShadow="{StaticResource M3ElevationLevel3}"
+                                        Width="260">
+                                    <DockPanel LastChildFill="True" MaxHeight="420">
+                                        <TextBlock DockPanel.Dock="Top" Text="Stickers" FontSize="11.5" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource M3OnSurfaceBrush}" Margin="12,10,12,6" />
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                            <ItemsControl ItemsSource="{Binding StickerGroups}" Margin="8,0,8,8">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="local:StickerGroupViewModel">
+                                                        <StackPanel Spacing="4" Margin="0,6,0,2">
+                                                            <TextBlock Text="{Binding GroupName}" FontSize="9.5" FontWeight="Bold"
+                                                                       Foreground="{DynamicResource M3PrimaryBrush}" LetterSpacing="0.6"
+                                                                       Margin="4,2,4,2" />
+                                                            <ItemsControl ItemsSource="{Binding Stickers}">
+                                                                <ItemsControl.ItemsPanel>
+                                                                    <ItemsPanelTemplate>
+                                                                        <WrapPanel Orientation="Horizontal" />
+                                                                    </ItemsPanelTemplate>
+                                                                </ItemsControl.ItemsPanel>
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate x:DataType="models_stickers:StickerDefinition">
+                                                                        <Button Command="{Binding $parent[UserControl].((local:ImageEditorViewModel)DataContext).InsertStickerCommand}"
+                                                                                CommandParameter="{Binding}"
+                                                                                Classes="m3-card-elevated" Width="52" Height="52" Margin="3"
+                                                                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                                                                ToolTip.Tip="{Binding Name}">
+                                                                            <TextBlock Text="{Binding Glyph}" FontSize="26" />
+                                                                        </Button>
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                            </ItemsControl>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </DockPanel>
+                                </Border>
+                            </Flyout>
+                        </Button.Flyout>
+                        <StackPanel Spacing="2" HorizontalAlignment="Center">
+                            <Border Classes="m3-rail-indicator">
+                                <materialIcons:MaterialIcon Kind="EmoticonHappyOutline" Width="17" Height="17"
+                                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <TextBlock Text="Stickers" FontSize="9.5" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Rectangle Width="32" Height="1" Fill="{DynamicResource M3OutlineVariantBrush}" Margin="0,3" />
+
                     <!-- Primary Color Swatch Button with Flyout (No ugly chevron/dropdown) -->
                     <Button Classes="m3-color-swatch-btn" ToolTip.Tip="Active Color (Click to change)">
                         <Button.Flyout>
@@ -631,7 +954,8 @@
                 <!-- Custom Canvas Interactive Control filling the workspace edge-to-edge -->
                 <local:EditorCanvasControl x:Name="CanvasControl"
                                            HorizontalAlignment="Stretch"
-                                           VerticalAlignment="Stretch" />
+                                           VerticalAlignment="Stretch"
+                                           ClipToBounds="True" />
 
                 <!-- Inline double-click text editor overlay -->
                 <TextBox x:Name="InlineTextEditBox"
@@ -646,6 +970,32 @@
                          VerticalAlignment="Top"
                          KeyDown="InlineTextEditBox_KeyDown"
                          LostFocus="InlineTextEditBox_LostFocus" />
+
+                <!-- Floating quick-actions cluster: anchored to the selection's screen-space
+                     bounds from code-behind (RepositionQuickActionsCluster), never the ribbon's
+                     font/color/fill controls — those stay docked in the ribbon/inspector only,
+                     so this never grows into a second, competing full-property toolbar. Hidden
+                     during crop/inline-text-edit via ShowQuickActionsCluster. -->
+                <Border x:Name="QuickActionsCluster"
+                        IsVisible="{Binding ShowQuickActionsCluster}"
+                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                        Classes="m3-floating-hud">
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+                        <Button Command="{Binding DuplicateCommand}" Classes="m3-icon-btn" Width="28" Height="28" ToolTip.Tip="Duplicate (Ctrl+D)">
+                            <materialIcons:MaterialIcon Kind="ContentDuplicate" Width="14" Height="14" />
+                        </Button>
+                        <Button Command="{Binding BringForwardCommand}" Classes="m3-icon-btn" Width="28" Height="28" ToolTip.Tip="Bring Forward">
+                            <materialIcons:MaterialIcon Kind="ArrowUpBold" Width="14" Height="14" />
+                        </Button>
+                        <Button Command="{Binding SendBackwardCommand}" Classes="m3-icon-btn" Width="28" Height="28" ToolTip.Tip="Send Backward">
+                            <materialIcons:MaterialIcon Kind="ArrowDownBold" Width="14" Height="14" />
+                        </Button>
+                        <Button Command="{Binding DeleteSelectedElementCommand}" Classes="m3-icon-btn" Width="28" Height="28"
+                                Foreground="{DynamicResource M3ErrorBrush}" ToolTip.Tip="Delete (Del)">
+                            <materialIcons:MaterialIcon Kind="DeleteOutline" Width="14" Height="14" />
+                        </Button>
+                    </StackPanel>
+                </Border>
 
                 <!-- Floating M3 Zoom & Viewport HUD (Bottom-Right) -->
                 <Border HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="24"
@@ -1100,7 +1450,7 @@
                                 <!-- Card 3: Arrange, Z-Order, Grouping & Clipboard (Segmented Capsule - No Squashed Pills) -->
                                 <Border Classes="m3-card-elevated" Padding="10"
                                         IsVisible="{Binding SelectedElement, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                    <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+                                    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
                                         <TextBlock Grid.Row="0" Text="ARRANGE &amp; CLIPBOARD" FontSize="10" FontWeight="Bold"
                                                    Foreground="{DynamicResource M3PrimaryBrush}" LetterSpacing="0.8" />
 
@@ -1131,28 +1481,69 @@
                                             </Grid>
                                         </Border>
 
-                                        <!-- Forward / Backward Segmented Capsule -->
+                                        <!-- Z-Order: Forward/Backward (single-step) + To Front/To Back (jump-to-
+                                             extreme) as ONE 4-segment row — was two stacked 2-segment rows, which
+                                             read as more repetitive clutter than four related z-order actions
+                                             deserve. Icon-only (tooltips carry the label) to match the Align to
+                                             Page row immediately below, rather than squeezing 4 text labels in. -->
                                         <Border Grid.Row="2" Classes="m3-segmented-container" HorizontalAlignment="Stretch">
-                                            <Grid ColumnDefinitions="*,*">
+                                            <Grid ColumnDefinitions="*,*,*,*">
                                                 <Button Grid.Column="0" Command="{Binding BringForwardCommand}" Classes="m3-segment-btn"
                                                         HorizontalAlignment="Stretch" ToolTip.Tip="Bring Forward">
-                                                    <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
-                                                        <materialIcons:MaterialIcon Kind="ArrowUpBold" Width="12" Height="12" />
-                                                        <TextBlock Text="Forward" FontSize="10" VerticalAlignment="Center" />
-                                                    </StackPanel>
+                                                    <materialIcons:MaterialIcon Kind="ArrowUpBold" Width="13" Height="13" />
                                                 </Button>
                                                 <Button Grid.Column="1" Command="{Binding SendBackwardCommand}" Classes="m3-segment-btn"
                                                         HorizontalAlignment="Stretch" ToolTip.Tip="Send Backward">
-                                                    <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
-                                                        <materialIcons:MaterialIcon Kind="ArrowDownBold" Width="12" Height="12" />
-                                                        <TextBlock Text="Backward" FontSize="10" VerticalAlignment="Center" />
-                                                    </StackPanel>
+                                                    <materialIcons:MaterialIcon Kind="ArrowDownBold" Width="13" Height="13" />
+                                                </Button>
+                                                <Button Grid.Column="2" Command="{Binding BringToFrontCommand}" Classes="m3-segment-btn"
+                                                        HorizontalAlignment="Stretch" ToolTip.Tip="Bring to Front">
+                                                    <materialIcons:MaterialIcon Kind="ArrowCollapseUp" Width="13" Height="13" />
+                                                </Button>
+                                                <Button Grid.Column="3" Command="{Binding SendToBackCommand}" Classes="m3-segment-btn"
+                                                        HorizontalAlignment="Stretch" ToolTip.Tip="Send to Back">
+                                                    <materialIcons:MaterialIcon Kind="ArrowCollapseDown" Width="13" Height="13" />
                                                 </Button>
                                             </Grid>
                                         </Border>
 
+                                        <!-- Align to Page (single-element — distinct from the multi-selection
+                                             align capsule in the Contextual Ribbon, which needs 2+ elements) -->
+                                        <StackPanel Grid.Row="3" Spacing="4">
+                                            <TextBlock Text="ALIGN TO PAGE" FontSize="10" FontWeight="Bold"
+                                                       Foreground="{DynamicResource M3PrimaryBrush}" LetterSpacing="0.8" />
+                                            <Border Classes="m3-segmented-container" HorizontalAlignment="Stretch">
+                                                <Grid ColumnDefinitions="*,*,*,*,*,*">
+                                                    <Button Grid.Column="0" Command="{Binding AlignToPageLeftCommand}" Classes="m3-segment-btn"
+                                                            HorizontalAlignment="Stretch" ToolTip.Tip="Align Left">
+                                                        <materialIcons:MaterialIcon Kind="AlignHorizontalLeft" Width="13" Height="13" />
+                                                    </Button>
+                                                    <Button Grid.Column="1" Command="{Binding AlignToPageCenterHorizontalCommand}" Classes="m3-segment-btn"
+                                                            HorizontalAlignment="Stretch" ToolTip.Tip="Align Center">
+                                                        <materialIcons:MaterialIcon Kind="AlignHorizontalCenter" Width="13" Height="13" />
+                                                    </Button>
+                                                    <Button Grid.Column="2" Command="{Binding AlignToPageRightCommand}" Classes="m3-segment-btn"
+                                                            HorizontalAlignment="Stretch" ToolTip.Tip="Align Right">
+                                                        <materialIcons:MaterialIcon Kind="AlignHorizontalRight" Width="13" Height="13" />
+                                                    </Button>
+                                                    <Button Grid.Column="3" Command="{Binding AlignToPageTopCommand}" Classes="m3-segment-btn"
+                                                            HorizontalAlignment="Stretch" ToolTip.Tip="Align Top">
+                                                        <materialIcons:MaterialIcon Kind="AlignVerticalTop" Width="13" Height="13" />
+                                                    </Button>
+                                                    <Button Grid.Column="4" Command="{Binding AlignToPageCenterVerticalCommand}" Classes="m3-segment-btn"
+                                                            HorizontalAlignment="Stretch" ToolTip.Tip="Align Middle">
+                                                        <materialIcons:MaterialIcon Kind="AlignVerticalCenter" Width="13" Height="13" />
+                                                    </Button>
+                                                    <Button Grid.Column="5" Command="{Binding AlignToPageBottomCommand}" Classes="m3-segment-btn"
+                                                            HorizontalAlignment="Stretch" ToolTip.Tip="Align Bottom">
+                                                        <materialIcons:MaterialIcon Kind="AlignVerticalBottom" Width="13" Height="13" />
+                                                    </Button>
+                                                </Grid>
+                                            </Border>
+                                        </StackPanel>
+
                                         <!-- Copy Canvas as Image -->
-                                        <Button Grid.Row="3" Command="{Binding CopyToClipboardCommand}" Classes="m3-tonal-btn"
+                                        <Button Grid.Row="4" Command="{Binding CopyToClipboardCommand}" Classes="m3-tonal-btn"
                                                 Height="30" Padding="8,0" HorizontalAlignment="Stretch"
                                                 ToolTip.Tip="Copy Full Canvas to System Clipboard">
                                             <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
@@ -1228,33 +1619,59 @@
                                 <!-- Fine Adjustments Card -->
                                 <Border Classes="m3-card-elevated" Padding="10">
                                     <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
-                                        <TextBlock Grid.Row="0" Text="COLOR &amp; LIGHT ADJUSTMENTS" FontSize="10" FontWeight="Bold"
-                                                   Foreground="{DynamicResource M3PrimaryBrush}" LetterSpacing="0.8" />
+                                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="COLOR &amp; LIGHT ADJUSTMENTS" FontSize="10" FontWeight="Bold"
+                                                       Foreground="{DynamicResource M3PrimaryBrush}" LetterSpacing="0.8" VerticalAlignment="Center" />
+                                            <ToggleButton Grid.Column="1" IsChecked="{Binding IsAdjustPreviewingOriginal}"
+                                                          Classes="m3-glyph-toggle" Width="24" Height="24"
+                                                          IsVisible="{Binding IsImageSelected}"
+                                                          ToolTip.Tip="Preview Original (Before/After)">
+                                                <materialIcons:MaterialIcon Kind="CompareHorizontal" Width="13" Height="13" />
+                                            </ToggleButton>
+                                        </Grid>
 
                                         <Grid Grid.Row="1" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="2">
                                             <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
                                                 <TextBlock Grid.Column="0" Text="Bright" FontSize="9.5" Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="48" VerticalAlignment="Center" />
-                                                <Slider Classes="m3-tactile-slider" Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding ImgBrightness}" Height="20" />
+                                                <Panel Grid.Column="1">
+                                                    <Slider Classes="m3-tactile-slider" Minimum="-100" Maximum="100" Value="{Binding ImgBrightness}" Height="20" />
+                                                    <Border Classes="m3-slider-zero-tick" />
+                                                </Panel>
                                             </Grid>
                                             <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
                                                 <TextBlock Grid.Column="0" Text="Contrast" FontSize="9.5" Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="48" VerticalAlignment="Center" />
-                                                <Slider Classes="m3-tactile-slider" Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding ImgContrast}" Height="20" />
+                                                <Panel Grid.Column="1">
+                                                    <Slider Classes="m3-tactile-slider" Minimum="-100" Maximum="100" Value="{Binding ImgContrast}" Height="20" />
+                                                    <Border Classes="m3-slider-zero-tick" />
+                                                </Panel>
                                             </Grid>
                                             <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
                                                 <TextBlock Grid.Column="0" Text="Saturate" FontSize="9.5" Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="48" VerticalAlignment="Center" />
-                                                <Slider Classes="m3-tactile-slider" Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding ImgSaturation}" Height="20" />
+                                                <Panel Grid.Column="1">
+                                                    <Slider Classes="m3-tactile-slider" Minimum="-100" Maximum="100" Value="{Binding ImgSaturation}" Height="20" />
+                                                    <Border Classes="m3-slider-zero-tick" />
+                                                </Panel>
                                             </Grid>
                                             <Grid Grid.Row="3" ColumnDefinitions="Auto,*">
                                                 <TextBlock Grid.Column="0" Text="Hue" FontSize="9.5" Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="48" VerticalAlignment="Center" />
-                                                <Slider Classes="m3-tactile-slider" Grid.Column="1" Minimum="-180" Maximum="180" Value="{Binding ImgHue}" Height="20" />
+                                                <Panel Grid.Column="1">
+                                                    <Slider Classes="m3-tactile-slider" Minimum="-180" Maximum="180" Value="{Binding ImgHue}" Height="20" />
+                                                    <Border Classes="m3-slider-zero-tick" />
+                                                </Panel>
                                             </Grid>
                                             <Grid Grid.Row="4" ColumnDefinitions="Auto,*">
                                                 <TextBlock Grid.Column="0" Text="Temp" FontSize="9.5" Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="48" VerticalAlignment="Center" />
-                                                <Slider Classes="m3-tactile-slider" Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding ImgTemperature}" Height="20" />
+                                                <Panel Grid.Column="1">
+                                                    <Slider Classes="m3-tactile-slider" Minimum="-100" Maximum="100" Value="{Binding ImgTemperature}" Height="20" />
+                                                    <Border Classes="m3-slider-zero-tick" />
+                                                </Panel>
                                             </Grid>
                                             <Grid Grid.Row="5" ColumnDefinitions="Auto,*">
                                                 <TextBlock Grid.Column="0" Text="Tint" FontSize="9.5" Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="48" VerticalAlignment="Center" />
-                                                <Slider Classes="m3-tactile-slider" Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding ImgTint}" Height="20" />
+                                                <Panel Grid.Column="1">
+                                                    <Slider Classes="m3-tactile-slider" Minimum="-100" Maximum="100" Value="{Binding ImgTint}" Height="20" />
+                                                    <Border Classes="m3-slider-zero-tick" />
+                                                </Panel>
                                             </Grid>
                                             <Grid Grid.Row="6" ColumnDefinitions="Auto,*">
                                                 <TextBlock Grid.Column="0" Text="Blur" FontSize="9.5" Foreground="{DynamicResource M3OnSurfaceVariantBrush}" Width="48" VerticalAlignment="Center" />
@@ -1609,6 +2026,22 @@
             <Setter Property="Width" Value="20" />
             <Setter Property="Height" Value="20" />
             <Setter Property="CornerRadius" Value="10" />
+        </Style>
+
+        <!-- Neutral-zero marker for bipolar Adjust sliders (Brightness/Contrast/Saturate/Hue/
+             Temp/Tint) — every one of those ranges is symmetric (Minimum = -Maximum), so the
+             zero point is always exactly the horizontal center; layer this over the slider in
+             a Panel rather than templating the shared slider style itself. Not applied to
+             Blur/Sharpen, whose Minimum is 0 (already the visual left edge, not a midpoint). -->
+        <Style Selector="Border.m3-slider-zero-tick">
+            <Setter Property="Width" Value="2" />
+            <Setter Property="Height" Value="9" />
+            <Setter Property="CornerRadius" Value="1" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Background" Value="{DynamicResource M3OutlineBrush}" />
+            <Setter Property="Opacity" Value="0.55" />
+            <Setter Property="IsHitTestVisible" Value="False" />
         </Style>
     </UserControl.Styles>
 </UserControl>

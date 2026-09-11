@@ -35,6 +35,16 @@ public partial class ImageEditorView : UserControl
         // Keep the zoom-percentage readout in sync with the canvas's own zoom state.
         CanvasControl.ZoomChanged += zoom => vm.ZoomLevel = zoom;
 
+        // Keep the floating quick-actions cluster anchored to the selection whenever anything
+        // that could move its screen position happens (selection change, a live drag, pan, or
+        // zoom), plus once more as soon as the cluster's own size is first known (it starts at
+        // zero size before its first layout pass, so the very first appearance would otherwise
+        // anchor from the top-left corner instead of centered for one frame).
+        CanvasControl.SelectionChanged += _ => RepositionQuickActionsCluster();
+        CanvasControl.CanvasChanged += RepositionQuickActionsCluster;
+        CanvasControl.ZoomChanged += _ => RepositionQuickActionsCluster();
+        QuickActionsCluster.SizeChanged += (_, _) => RepositionQuickActionsCluster();
+
         // Move/resize commit into undo history once per completed drag (not per-tick).
         CanvasControl.ElementsMoved += moves => vm.RecordElementsMoved(moves);
         CanvasControl.ElementResized += (el, oldBounds, newBounds) => vm.RecordElementResized(el, oldBounds, newBounds);
@@ -60,12 +70,25 @@ public partial class ImageEditorView : UserControl
         // the element, live only while editing.
         CanvasControl.TextEditRequested += BeginInlineTextEdit;
 
-        // Keep the canvas's tool mode in sync with the toolbar's selected tool.
+        // Keep the canvas's tool mode in sync with the toolbar's selected tool. Also keep the
+        // inline text-edit overlay's own formatting in sync with ribbon toggles — without this,
+        // clicking Bold/Italic/Alignment while InlineTextEditBox is open updates the underlying
+        // model immediately but leaves the visible overlay showing the stale formatting until
+        // the user commits (Enter/click-away) and the canvas re-renders from the model.
         vm.PropertyChanged += (_, args) =>
         {
             if (args.PropertyName == nameof(ImageEditorViewModel.ActiveToolMode))
             {
                 CanvasControl.ActiveToolMode = vm.ActiveToolMode;
+            }
+            else if (_editingTextElement is { } editing &&
+                     (args.PropertyName == nameof(ImageEditorViewModel.IsBold) ||
+                      args.PropertyName == nameof(ImageEditorViewModel.IsItalic) ||
+                      args.PropertyName == nameof(ImageEditorViewModel.TextAlignmentField)))
+            {
+                InlineTextEditBox.FontWeight = editing.FontWeight;
+                InlineTextEditBox.FontStyle = editing.FontStyle;
+                InlineTextEditBox.TextAlignment = editing.Alignment;
             }
         };
         CanvasControl.ActiveToolMode = vm.ActiveToolMode;
@@ -143,6 +166,21 @@ public partial class ImageEditorView : UserControl
 
         if (ctrl) return; // avoid stealing other Ctrl+letter shortcuts as tool switches
 
+        // Bold/Italic only act when a TextElement is selected — otherwise fall through so B/I
+        // don't accidentally swallow other future single-letter shortcuts.
+        if (e.Key == Key.B && vm.SelectedTextElement != null)
+        {
+            vm.IsBold = !vm.IsBold;
+            e.Handled = true;
+            return;
+        }
+        if (e.Key == Key.I && vm.SelectedTextElement != null)
+        {
+            vm.IsItalic = !vm.IsItalic;
+            e.Handled = true;
+            return;
+        }
+
         switch (e.Key)
         {
             case Key.V: vm.SetToolCommand.Execute("select"); e.Handled = true; break;
@@ -154,12 +192,26 @@ public partial class ImageEditorView : UserControl
         }
     }
 
+    // ── Floating quick-actions cluster ──────────────────────────────────────
+    /// <summary>Positions QuickActionsCluster relative to the current selection's screen-space
+    /// bounds — a no-op when nothing is selected (the cluster is hidden via its IsVisible
+    /// binding in that case, so there's nothing to position).</summary>
+    private void RepositionQuickActionsCluster()
+    {
+        if (CanvasControl.GetSelectionScreenBounds() is not { } selectionBounds) return;
+
+        var anchor = CanvasControl.GetFloatingChromeAnchor(selectionBounds, QuickActionsCluster.Bounds.Size);
+        QuickActionsCluster.Margin = new Thickness(anchor.X, anchor.Y, 0, 0);
+    }
+
     // ── Inline double-click text editing ────────────────────────────────────
     private Models.TextElement? _editingTextElement;
 
     private void BeginInlineTextEdit(Models.TextElement textEl)
     {
         _editingTextElement = textEl;
+        if (DataContext is ImageEditorViewModel beginVm) beginVm.IsInlineEditingText = true;
+
         var screenRect = CanvasControl.CanvasToScreenRect(textEl.Bounds);
 
         InlineTextEditBox.Margin = new Thickness(screenRect.X, screenRect.Y, 0, 0);
@@ -182,9 +234,13 @@ public partial class ImageEditorView : UserControl
         _editingTextElement = null;
         InlineTextEditBox.IsVisible = false;
 
-        if (el != null && !cancel && DataContext is ImageEditorViewModel vm)
+        if (DataContext is ImageEditorViewModel vm)
         {
-            vm.CommitTextEdit(el, InlineTextEditBox.Text ?? string.Empty);
+            vm.IsInlineEditingText = false;
+            if (el != null && !cancel)
+            {
+                vm.CommitTextEdit(el, InlineTextEditBox.Text ?? string.Empty);
+            }
         }
         CanvasControl.Focus();
     }
@@ -264,25 +320,31 @@ public class ElementTypeToIconConverter : Avalonia.Data.Converters.IValueConvert
         => throw new NotImplementedException();
 }
 
-/// <summary>Maps CanvasElement.IsLocked to a Lock/LockOpen icon kind.</summary>
+/// <summary>Maps CanvasElement.IsLocked to a lock icon kind. Neither "Lock" nor
+/// "LockOpenOutline" exist in the installed Material.Icons 3.0.2 package (verified via
+/// `strings -a` on the package DLL — this version has no bare Lock/LockOpen aliases, only
+/// badged variants), so this previously rendered a blank/missing icon at runtime; a converter's
+/// output isn't compile-time validated against MaterialIconKind the way a XAML literal is.</summary>
 public class IsLockedToIconConverter : Avalonia.Data.Converters.IValueConverter
 {
     public static readonly IsLockedToIconConverter Instance = new();
 
     public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
-        => value is true ? "Lock" : "LockOpenOutline";
+        => value is true ? "LockCheckOutline" : "LockOpenVariantOutline";
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
         => throw new NotImplementedException();
 }
 
-/// <summary>Maps CanvasElement.IsVisible to Eye/EyeOff icon kind.</summary>
+/// <summary>Maps CanvasElement.IsVisible to an eye icon kind. Neither "EyeOutline" nor
+/// "EyeOffOutline" exist in the installed Material.Icons 3.0.2 package (verified via
+/// `strings -a` on the package DLL) — same missing-icon issue as IsLockedToIconConverter above.</summary>
 public class IsVisibleToIconConverter : Avalonia.Data.Converters.IValueConverter
 {
     public static readonly IsVisibleToIconConverter Instance = new();
 
     public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
-        => value is false ? "EyeOffOutline" : "EyeOutline";
+        => value is false ? "EyeClosed" : "EyeCheck";
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
         => throw new NotImplementedException();
@@ -302,5 +364,46 @@ public class ColorToBrushConverter : Avalonia.Data.Converters.IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
         => (value as ISolidColorBrush)?.Color ?? Colors.Transparent;
+}
+
+/// <summary>Renders a single CanvasElement scaled to fit the control's own bounds — used for
+/// Shapes-library thumbnails. Draws the SAME Draw(DrawingContext) every real element uses (the
+/// same principle as ImageEditorViewModel.RenderTemplatePreview's own doc comment: the preview
+/// must always match what actually gets inserted), rather than a separately-maintained
+/// hand-drawn thumbnail per shape.</summary>
+public class ShapePreviewControl : Control
+{
+    public static readonly StyledProperty<Models.CanvasElement?> ElementProperty =
+        AvaloniaProperty.Register<ShapePreviewControl, Models.CanvasElement?>(nameof(Element));
+
+    public Models.CanvasElement? Element
+    {
+        get => GetValue(ElementProperty);
+        set => SetValue(ElementProperty, value);
+    }
+
+    static ShapePreviewControl()
+    {
+        AffectsRender<ShapePreviewControl>(ElementProperty);
+    }
+
+    public override void Render(DrawingContext context)
+    {
+        base.Render(context);
+        if (Element is not { } el) return;
+
+        var bounds = el.GetRotatedBounds();
+        if (bounds.Width <= 0 || bounds.Height <= 0 || Bounds.Width <= 0 || Bounds.Height <= 0) return;
+
+        // 0.85 leaves a small margin so a shape's stroke/points aren't clipped at the edge.
+        double scale = Math.Min(Bounds.Width / bounds.Width, Bounds.Height / bounds.Height) * 0.85;
+        double offsetX = (Bounds.Width - bounds.Width * scale) / 2 - bounds.X * scale;
+        double offsetY = (Bounds.Height - bounds.Height * scale) / 2 - bounds.Y * scale;
+
+        using (context.PushTransform(Matrix.CreateScale(scale, scale) * Matrix.CreateTranslation(offsetX, offsetY)))
+        {
+            el.Draw(context);
+        }
+    }
 }
 

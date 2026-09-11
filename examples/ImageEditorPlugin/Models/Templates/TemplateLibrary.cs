@@ -71,9 +71,14 @@ public static class TemplateLibrary
         {
             var els = new List<CanvasElement>();
             void Add(CanvasElement e) { e.ZIndex = els.Count; els.Add(e); }
+            var accent = Color.FromArgb(255, 79, 70, 229);
 
+            // "Blank" doesn't have to mean "bare" — a subtle edge accent + underline reads as a
+            // deliberate minimalist theme rather than an unfinished/empty thumbnail.
+            Add(new RectangleElement { X = 0, Y = 0, Width = 14, Height = 720, FillColor = accent, StrokeThickness = 0, CornerRadius = 0 });
             Add(CreateText(100, 280, "Click to add title", 54, Color.FromArgb(255, 30, 30, 30), FontWeight.Bold));
             Add(CreateText(100, 380, "Click to add subtitle", 24, Color.FromArgb(180, 80, 80, 80)));
+            Add(new RectangleElement { X = 100, Y = 440, Width = 80, Height = 6, FillColor = accent, StrokeThickness = 0, CornerRadius = 3 });
             return els;
         },
     };
@@ -101,6 +106,14 @@ public static class TemplateLibrary
             Add(CreateWrappedText(150, 460, 800, "has successfully completed the requirements of this course", 18, FontWeight.Normal, inkSoft, TextAlignment.Center));
             Add(new RectangleElement { X = 400, Y = 700, Width = 300, Height = 2, FillColor = ink, StrokeThickness = 0 });
             Add(CreateText(460, 715, "Signature", 14, inkSoft));
+
+            // Gold seal badge — a classic certificate motif, missing entirely before.
+            Add(new EllipseElement { X = 860, Y = 640, Width = 120, Height = 120, FillColor = gold, StrokeColor = ink, StrokeThickness = 2 });
+            Add(new StarElement
+            {
+                X = 880, Y = 660, Width = 80, Height = 80, PointCount = 5, InnerRadiusRatio = 0.45,
+                FillColor = Color.FromRgb(0xFB, 0xF7, 0xEF), StrokeThickness = 0,
+            });
             return els;
         },
     };
@@ -121,10 +134,15 @@ public static class TemplateLibrary
             Add(new RectangleElement { X = 0, Y = 0, Width = 800, Height = 320, FillColor = accent, StrokeThickness = 0, CornerRadius = 0 });
             Add(CreateText(60, 120, "EVENT TITLE", 56, Colors.White, FontWeight.Bold));
             Add(CreateText(60, 200, "A short, punchy tagline goes here", 22, Color.FromArgb(230, 255, 255, 255)));
-            Add(CreateText(60, 400, "Date & Time", 24, Color.FromArgb(255, 30, 30, 30), FontWeight.Bold));
-            Add(CreateText(60, 440, "Saturday, January 1 · 6:00 PM", 18, Color.FromArgb(255, 90, 90, 90)));
-            Add(CreateText(60, 520, "Location", 24, Color.FromArgb(255, 30, 30, 30), FontWeight.Bold));
-            Add(CreateText(60, 560, "123 Main Street, Your City", 18, Color.FromArgb(255, 90, 90, 90)));
+
+            // A flyer with 700px of blank white between the header and the details reads as
+            // unfinished — a photo placeholder is the single biggest thing this was missing.
+            Add(new ImageElement { X = 60, Y = 360, Width = 680, Height = 380 });
+
+            Add(CreateText(60, 780, "Date & Time", 24, Color.FromArgb(255, 30, 30, 30), FontWeight.Bold));
+            Add(CreateText(60, 820, "Saturday, January 1 · 6:00 PM", 18, Color.FromArgb(255, 90, 90, 90)));
+            Add(CreateText(60, 900, "Location", 24, Color.FromArgb(255, 30, 30, 30), FontWeight.Bold));
+            Add(CreateText(60, 940, "123 Main Street, Your City", 18, Color.FromArgb(255, 90, 90, 90)));
             Add(new RectangleElement { X = 60, Y = 1020, Width = 260, Height = 70, FillColor = accent, StrokeThickness = 0, CornerRadius = 35 });
             Add(CreateText(110, 1040, "RSVP NOW", 22, Colors.White, FontWeight.Bold));
             return els;
@@ -137,15 +155,19 @@ public static class TemplateLibrary
         Category = "Social Media",
         CanvasWidth = 1200,
         CanvasHeight = 800,
-        BackgroundColor = Colors.White,
+        // A white background made the ~20px gaps between the 3 panels nearly invisible against
+        // the placeholders' own light-grey fill — a dark neutral makes the grid actually read as
+        // a grid, and matches a common photo-collage aesthetic besides.
+        BackgroundColor = Color.FromRgb(0x18, 0x18, 0x1C),
         BuildElements = () =>
         {
             var els = new List<CanvasElement>();
             void Add(CanvasElement e) { e.ZIndex = els.Count; els.Add(e); }
 
-            Add(new ImageElement { X = 20, Y = 20, Width = 373, Height = 760 });
-            Add(new ImageElement { X = 413, Y = 20, Width = 373, Height = 760 });
-            Add(new ImageElement { X = 806, Y = 20, Width = 373, Height = 760 });
+            Add(new ImageElement { X = 20, Y = 20, Width = 373, Height = 700 });
+            Add(new ImageElement { X = 413, Y = 20, Width = 373, Height = 700 });
+            Add(new ImageElement { X = 806, Y = 20, Width = 373, Height = 700 });
+            Add(CreateWrappedText(20, 740, 1160, "Your Caption Here", 22, FontWeight.Bold, Colors.White, TextAlignment.Center));
             return els;
         },
     };
@@ -240,19 +262,32 @@ public static class TemplateLibrary
         Category = "Creative",
         CanvasWidth = 400,
         CanvasHeight = 400,
-        BackgroundColor = Colors.White,
+        // A plain white canvas around a small tilted square just looked like empty space — a
+        // neutral "desk surface" tone gives the note something to sit on.
+        BackgroundColor = Color.FromRgb(0xEC, 0xE9, 0xE2),
         BuildElements = () =>
         {
             var els = new List<CanvasElement>();
             void Add(CanvasElement e) { e.ZIndex = els.Count; els.Add(e); }
 
+            // Faux drop shadow: no per-element shadow property exists yet, so a darker, offset
+            // copy underneath fakes the same effect — the missing sense of depth was the main
+            // thing making this read as a flat colored square rather than a physical note.
             Add(new RectangleElement
             {
-                X = 20, Y = 20, Width = 360, Height = 360,
-                FillColor = Color.FromArgb(255, 253, 224, 71), StrokeThickness = 0, CornerRadius = 4,
-                RotationDegrees = -2,
+                X = 32, Y = 32, Width = 340, Height = 340,
+                FillColor = Color.FromArgb(70, 0, 0, 0), StrokeThickness = 0, CornerRadius = 4,
+                RotationDegrees = -3,
             });
-            Add(CreateWrappedText(60, 160, 280, "Don't forget!", 32, FontWeight.Bold, Color.FromArgb(255, 60, 50, 10), TextAlignment.Center));
+            Add(new RectangleElement
+            {
+                X = 20, Y = 20, Width = 340, Height = 340,
+                FillColor = Color.FromArgb(255, 253, 224, 71), StrokeThickness = 0, CornerRadius = 4,
+                RotationDegrees = -3,
+            });
+            var noteText = CreateWrappedText(60, 155, 260, "Don't forget!", 32, FontWeight.Bold, Color.FromArgb(255, 60, 50, 10), TextAlignment.Center);
+            noteText.RotationDegrees = -3; // matches the note's own tilt instead of floating upright over it
+            Add(noteText);
             return els;
         },
     };

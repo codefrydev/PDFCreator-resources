@@ -952,6 +952,8 @@ public class EditorCanvasControl : Control
             var delta = currentScreenPos - _panLastScreenPos;
             _panOffset = new Point(_panOffset.X + delta.X, _panOffset.Y + delta.Y);
             _panLastScreenPos = currentScreenPos;
+            ClampPanOffset(); // same unbounded-pan gap as the wheel handler — see its comment
+            CanvasChanged?.Invoke();
             InvalidateVisual();
             return;
         }
@@ -1329,6 +1331,18 @@ public class EditorCanvasControl : Control
             _isFitModeActive = false;
         }
 
+        // Every branch above sets _panOffset directly with no bound — unlike OnSizeChanged,
+        // which already clamped after its own pan-affecting change. Without this, repeated
+        // scrolling pushes the pan arbitrarily far, and the canvas's own hand-drawn content
+        // (Render() draws at whatever the viewport matrix says, with no automatic clip back to
+        // this control's own arranged bounds) ends up rendering outside its Grid cell —
+        // including over the rows above it.
+        ClampPanOffset();
+
+        // Every branch above moves the screen-space mapping of canvas content (pan or zoom-to-
+        // cursor) — CanvasChanged is the one signal external listeners (e.g. a floating chrome
+        // element anchored to the selection) need regardless of which branch ran.
+        CanvasChanged?.Invoke();
         e.Handled = true;
         InvalidateVisual();
     }
@@ -1336,8 +1350,12 @@ public class EditorCanvasControl : Control
     protected override void OnSizeChanged(SizeChangedEventArgs e)
     {
         base.OnSizeChanged(e);
-        if (_isFitModeActive) FitToWindow();
-        else ClampPanOffset();
+        if (_isFitModeActive) FitToWindow(); // raises ZoomChanged itself, which listeners also key off
+        else
+        {
+            ClampPanOffset();
+            CanvasChanged?.Invoke();
+        }
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -1452,6 +1470,36 @@ public class EditorCanvasControl : Control
         var topLeft = canvasRect.TopLeft.Transform(m);
         var bottomRight = canvasRect.BottomRight.Transform(m);
         return new Rect(topLeft, bottomRight);
+    }
+
+    /// <summary>Screen-space bounding rect of the current selection (single or multi), or null
+    /// when nothing is selected. The viewport transform is a pure scale+translate (no
+    /// rotation), so unioning each element's own rotated bounds in canvas-space first and
+    /// converting once is equivalent to converting-then-unioning — same math
+    /// <see cref="ComputeGroupBounds"/> uses for the multi-selection outline.</summary>
+    public Rect? GetSelectionScreenBounds()
+    {
+        if (_selection.Count == 0) return null;
+        var bounds = _selection[0].GetRotatedBounds();
+        for (int i = 1; i < _selection.Count; i++) bounds = bounds.Union(_selection[i].GetRotatedBounds());
+        return CanvasToScreenRect(bounds);
+    }
+
+    /// <summary>Where a fixed-size piece of floating chrome (e.g. a quick-actions cluster)
+    /// should sit relative to a selection's screen-space bounds: horizontally centered and
+    /// clamped so it never renders off either side of the visible viewport; prefers directly
+    /// above the selection but flips to below when there isn't room (e.g. the selection sits
+    /// flush against the top of the canvas) — the collision-avoidance the reference screenshots'
+    /// floating toolbar was missing.</summary>
+    public Point GetFloatingChromeAnchor(Rect selectionScreenBounds, Size chromeSize, double gap = 8)
+    {
+        double x = selectionScreenBounds.Center.X - chromeSize.Width / 2;
+        x = Math.Clamp(x, 0, Math.Max(0, Bounds.Width - chromeSize.Width));
+
+        double yAbove = selectionScreenBounds.Y - chromeSize.Height - gap;
+        double y = yAbove >= 0 ? yAbove : selectionScreenBounds.Bottom + gap;
+
+        return new Point(x, y);
     }
 
     private void ApplyResize(double dx, double dy, bool shiftHeld)

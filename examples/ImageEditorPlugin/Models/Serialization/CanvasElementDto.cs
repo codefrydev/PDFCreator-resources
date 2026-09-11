@@ -15,6 +15,8 @@ namespace PdfEditorApp.Plugins.ImageEditor.Models.Serialization;
 [JsonDerivedType(typeof(ArrowElementDto), "arrow")]
 [JsonDerivedType(typeof(TextElementDto), "text")]
 [JsonDerivedType(typeof(ImageElementDto), "image")]
+[JsonDerivedType(typeof(PolygonElementDto), "polygon")]
+[JsonDerivedType(typeof(StarElementDto), "star")]
 public abstract class CanvasElementDto
 {
     public double X { get; set; }
@@ -63,6 +65,27 @@ public sealed class EllipseElementDto : CanvasElementDto
     public string StrokeColor { get; set; } = "#FF000000";
     public double StrokeThickness { get; set; }
     public string DashStyle { get; set; } = "Solid";
+}
+
+public sealed class PolygonElementDto : CanvasElementDto
+{
+    public string FillColor { get; set; } = "#FFFFFFFF";
+    public GradientFillDto? Gradient { get; set; }
+    public string StrokeColor { get; set; } = "#FF000000";
+    public double StrokeThickness { get; set; }
+    public string DashStyle { get; set; } = "Solid";
+    public int SideCount { get; set; } = 3;
+}
+
+public sealed class StarElementDto : CanvasElementDto
+{
+    public string FillColor { get; set; } = "#FFFFFFFF";
+    public GradientFillDto? Gradient { get; set; }
+    public string StrokeColor { get; set; } = "#FF000000";
+    public double StrokeThickness { get; set; }
+    public string DashStyle { get; set; } = "Solid";
+    public int PointCount { get; set; } = 5;
+    public double InnerRadiusRatio { get; set; } = 0.5;
 }
 
 public sealed class ArrowElementDto : CanvasElementDto

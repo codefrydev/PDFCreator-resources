@@ -54,6 +54,11 @@ public class ImageElement : CanvasElement
     /// <summary>Race-guard for out-of-order async adjustment recomputation — not serialized.</summary>
     public int AdjustmentVersion;
 
+    /// <summary>Transient "before" preview toggle for the Adjust panel — when true, Draw()
+    /// shows the original unedited image regardless of AdjustedSource. Never serialized/cloned;
+    /// the ViewModel owns clearing it when the preview is dismissed or selection changes.</summary>
+    public bool PreviewOriginal { get; set; }
+
     public ImageElement()
     {
         Width = 200;
@@ -65,7 +70,7 @@ public class ImageElement : CanvasElement
 
     public override void Draw(DrawingContext dc)
     {
-        var toDraw = AdjustedSource ?? Source;
+        var toDraw = PreviewOriginal ? Source : (AdjustedSource ?? Source);
         if (toDraw is null)
         {
             // Draw placeholder if no image loaded
@@ -94,7 +99,7 @@ public class ImageElement : CanvasElement
             : new Rect(0, 0, toDraw.PixelSize.Width, toDraw.PixelSize.Height);
         dc.DrawImage(toDraw, sourceRect, new Rect(X, Y, Width, Height));
 
-        if (ActiveFilterPreset == "Vignette")
+        if (!PreviewOriginal && ActiveFilterPreset == "Vignette")
         {
             DrawVignetteOverlay(dc);
         }

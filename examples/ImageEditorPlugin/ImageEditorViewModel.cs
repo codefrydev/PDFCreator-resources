@@ -18,11 +18,17 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
+using PdfEditorApp.Core.Models;
 using PdfEditorApp.Core.Plugins.Settings;
+using PdfEditorApp.Core.Services;
 using PdfEditorApp.Plugins.ImageEditor.Models;
 using PdfEditorApp.Plugins.ImageEditor.Models.Templates;
 using PdfEditorApp.Plugins.ImageEditor.Models.Serialization;
+using PdfEditorApp.Plugins.ImageEditor.Models.Shapes;
+using PdfEditorApp.Plugins.ImageEditor.Models.Stickers;
+using PdfEditorApp.Plugins.ImageEditor.Models.TextStyles;
 using PdfEditorApp.Plugins.ImageEditor.Models.Undo;
+using PdfEditorApp.Services;
 using SkiaSharp;
 
 namespace PdfEditorApp.Plugins.ImageEditor;
@@ -35,6 +41,11 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
 {
     private const string PluginId = "frypdf.overlay.imageeditor";
     private readonly IPluginSettingsStore? _settingsStore;
+
+    /// <summary>Null in the standalone Runner (its minimal IServiceProvider only supplies
+    /// IPluginSettingsStore) — the Typefaces picker degrades to the always-available "Basics"
+    /// group in that case, since FontHelper's embedded-asset resolution needs no DI service.</summary>
+    private readonly IFontPackageService? _fontPackageService;
 
     // ── Canvas state ───────────────────────────────────────────────────────
     [ObservableProperty]
@@ -203,6 +214,7 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsShapeSelected));
         OnPropertyChanged(nameof(IsImageSelected));
         OnPropertyChanged(nameof(HasSelection));
+        OnPropertyChanged(nameof(ShowQuickActionsCluster));
         SyncAdjustmentSlidersToSelection();
         SyncStyleFieldsToSelection();
     }
@@ -248,6 +260,113 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     private string _newTextContent = "Text";
+
+    // ── Typefaces picker (font-family flyout on the text ribbon row) ────────
+    /// <summary>Populated once at construction — resolving a FontFamily is cheap (it just wraps
+    /// a resource-URI string; no glyph/file I/O happens until something is actually rendered in
+    /// that face), so there's no need for the lazy-on-first-open pattern OpenTemplateGallery
+    /// uses for its (much more expensive, per-item-rendered) preview bitmaps.</summary>
+    public ObservableCollection<FontGroupViewModel> FontGroups { get; } = new();
+
+    private void BuildFontGroups()
+    {
+        FontGroups.Clear();
+
+        // Always available — resolves via FontHelper's embedded-asset fallback with no
+        // IFontPackageService dependency, so this group exists even in the standalone Runner.
+        string[] basics =
+        [
+            "Inter", "Roboto", "Open Sans", "Montserrat", "Lora", "Merriweather", "Playfair Display",
+            "Source Sans 3", "Fira Code", "Bebas Neue", "Caveat", "Cinzel", "Comic Neue",
+            "Dancing Script", "Great Vibes", "Lobster", "Orbitron", "Oswald", "Pacifico",
+            "Roboto Mono", "Noto Sans",
+        ];
+        FontGroups.Add(new FontGroupViewModel("Basics", basics.Select(n => new FontChoiceViewModel(n, null)).ToList()));
+
+        if (_fontPackageService == null) return;
+        foreach (var package in _fontPackageService.GetAllPackages())
+        {
+            if (package.IncludedFontFamilies.Count == 0) continue;
+            FontGroups.Add(new FontGroupViewModel(package.Name,
+                package.IncludedFontFamilies.Select(n => new FontChoiceViewModel(n, package)).ToList()));
+        }
+    }
+
+    /// <summary>Applies a font choice to the selected text immediately using whatever's already
+    /// resolvable (embedded asset or a system font of the same name), then — if the family's
+    /// package isn't downloaded yet — fetches it in the background and silently upgrades the
+    /// element to the real asset once it lands. That upgrade is a direct mutation, not a second
+    /// undo step: it's the same logical edit ("changed the font to X") completing
+    /// asynchronously, not a separate user action.</summary>
+    [RelayCommand]
+    private async Task SetTextFontFamily(FontChoiceViewModel choice)
+    {
+        if (SelectedTextElement is not { } target) return;
+
+        var before = target.FontFamily;
+        var immediate = FontHelper.CreateFontFamily(choice.FamilyName);
+        ApplyStyleField(target, before, immediate, (t, v) => t.FontFamily = v, "Change font");
+
+        if (_fontPackageService == null || choice.Package == null || _fontPackageService.IsPackageInstalled(choice.Package))
+        {
+            return;
+        }
+
+        StatusMessage = $"Downloading {choice.FamilyName}…";
+        bool ok = await _fontPackageService.DownloadPackageAsync(choice.Package);
+        if (!ok)
+        {
+            StatusMessage = $"Couldn't download {choice.FamilyName} — showing a fallback font instead.";
+            return;
+        }
+
+        FontHelper.InvalidateFontFamilyCache();
+        if (ReferenceEquals(SelectedElement, target))
+        {
+            target.FontFamily = FontHelper.CreateFontFamily(choice.FamilyName);
+            RefreshCanvas();
+        }
+        StatusMessage = $"{choice.FamilyName} ready.";
+    }
+
+    // ── Text Styles picker (preset font/size/weight/color/case combos) ─────
+    public ObservableCollection<TextStyleGroupViewModel> TextStyleGroups { get; } = new();
+
+    private void BuildTextStyleGroups()
+    {
+        TextStyleGroups.Clear();
+        foreach (var group in TextStyleLibrary.All.GroupBy(s => s.Category))
+        {
+            TextStyleGroups.Add(new TextStyleGroupViewModel(group.Key, group.ToList()));
+        }
+    }
+
+    /// <summary>Applies a preset's whole property set to the selected text as one undo step —
+    /// mirrors ApplyStyleField's immediate-apply-then-debounced-commit shape, but since a style
+    /// pick is a single discrete action (not a drag), the "before" snapshot and the History push
+    /// happen in the same call rather than via the debounce timer.</summary>
+    [RelayCommand]
+    private void ApplyTextStyle(TextStyleDefinition style)
+    {
+        if (SelectedTextElement is not { } target) return;
+        var before = TextStyleSnapshot.CaptureFrom(target);
+
+        style.ApplyTo(target);
+        RefreshCanvas();
+        SyncStyleFieldsToSelection();
+
+        if (!_isApplyingHistory)
+        {
+            History.Push(new GenericPropertyCommand<TextElement, TextStyleSnapshot>(
+                target,
+                (t, v) =>
+                {
+                    v.ApplyTo(t);
+                    if (ReferenceEquals(SelectedElement, t)) SyncStyleFieldsToSelection();
+                },
+                before, TextStyleSnapshot.CaptureFrom(target), $"Apply style: {style.Name}"));
+        }
+    }
 
     // ── Canvas control reference (set by code-behind) ──────────────────────
     public EditorCanvasControl? CanvasControl { get; set; }
@@ -376,7 +495,20 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
 
     // ── Crop (per-image) ───────────────────────────────────────────────────
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowQuickActionsCluster))]
     private bool _isCropping;
+
+    /// <summary>Set by the view's code-behind while the inline double-click text editor
+    /// overlay is open — kept in the ViewModel (rather than left as view-only state) purely so
+    /// <see cref="ShowQuickActionsCluster"/> can account for it declaratively.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowQuickActionsCluster))]
+    private bool _isInlineEditingText;
+
+    /// <summary>Gates the floating quick-actions cluster (Duplicate/Forward/Backward/Delete,
+    /// anchored to the selection) — hidden during crop mode and inline text editing so it never
+    /// competes with those overlays for the same screen region.</summary>
+    public bool ShowQuickActionsCluster => HasSelection && !IsCropping && !IsInlineEditingText;
 
     [RelayCommand]
     private void EnterCropMode()
@@ -440,6 +572,31 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string? _activeFilterPreset;
 
+    /// <summary>Before/after preview toggle for the Adjust panel — display-only, never pushed
+    /// to undo history. <see cref="_previewOriginalTarget"/> tracks which image is currently
+    /// being previewed so it can be cleared even if the user changes selection without
+    /// switching the toggle back off first.</summary>
+    [ObservableProperty]
+    private bool _isAdjustPreviewingOriginal;
+
+    private ImageElement? _previewOriginalTarget;
+
+    partial void OnIsAdjustPreviewingOriginalChanged(bool value)
+    {
+        if (_isSyncingAdjustmentSliders) return; // programmatic reset during selection sync, not a user toggle
+        if (value && SelectedElement is ImageElement img)
+        {
+            _previewOriginalTarget = img;
+            img.PreviewOriginal = true;
+        }
+        else if (_previewOriginalTarget != null)
+        {
+            _previewOriginalTarget.PreviewOriginal = false;
+            _previewOriginalTarget = null;
+        }
+        RefreshCanvas();
+    }
+
     private readonly DispatcherTimer _adjustmentDebounce = new() { Interval = TimeSpan.FromMilliseconds(200) };
     private ImageElement? _pendingAdjustmentTarget;
     private ImageAdjustmentSnapshot? _adjustmentUndoSnapshot;
@@ -462,6 +619,16 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         _isSyncingAdjustmentSliders = true;
         try
         {
+            // A before/after preview is only ever meaningful for the image it was toggled on —
+            // moving selection away must clear it, or the old image would silently keep
+            // rendering as "original" the next time it's selected.
+            if (_previewOriginalTarget != null && !ReferenceEquals(_previewOriginalTarget, SelectedElement))
+            {
+                _previewOriginalTarget.PreviewOriginal = false;
+                _previewOriginalTarget = null;
+            }
+            IsAdjustPreviewingOriginal = false;
+
             if (SelectedElement is ImageElement img)
             {
                 ImgBrightness = img.Brightness;
@@ -758,6 +925,7 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
     [ObservableProperty] private StrokeDashStyle _dashStyleField = StrokeDashStyle.Solid;
     [ObservableProperty] private double _cornerRadiusField;
     [ObservableProperty] private Color _textForegroundColorField = Colors.Black;
+    [ObservableProperty] private string _fontFamilyNameField = "Inter";
     [ObservableProperty] private double _opacityField = 100;
     [ObservableProperty] private double _elementXField;
     [ObservableProperty] private double _elementYField;
@@ -765,6 +933,16 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
     [ObservableProperty] private double _elementHeightField;
     [ObservableProperty] private double _elementRotationField;
     [ObservableProperty] private bool _aspectLockedField;
+
+    // ── Text-only style fields (Underline/Strikethrough/Alignment/Case/LineHeight/Highlight —
+    // properties TextElement already modeled but no control ever bound to) ──────────────────
+    [ObservableProperty] private bool _isUnderline;
+    [ObservableProperty] private bool _isStrikethrough;
+    [ObservableProperty] private TextAlignment _textAlignmentField = TextAlignment.Left;
+    [ObservableProperty] private TextCaseTransform _textCaseField = TextCaseTransform.None;
+    [ObservableProperty] private double _lineHeightField;
+    [ObservableProperty] private bool _hasHighlightField;
+    [ObservableProperty] private Color _highlightColorField = Colors.Yellow;
 
     /// <summary>Refreshes the Properties-tab fields to match the newly-selected element,
     /// without treating the refresh itself as a user edit.</summary>
@@ -801,9 +979,17 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
                 if (el is TextElement text)
                 {
                     TextForegroundColorField = text.ForegroundColor;
+                    FontFamilyNameField = text.FontFamily.Name;
                     FontSize = text.FontSize;
                     IsBold = text.FontWeight == FontWeight.Bold;
                     IsItalic = text.FontStyle == FontStyle.Italic;
+                    IsUnderline = text.IsUnderline;
+                    IsStrikethrough = text.IsStrikethrough;
+                    TextAlignmentField = text.Alignment;
+                    TextCaseField = text.TextCaseTransform;
+                    LineHeightField = text.LineHeight;
+                    HasHighlightField = text.BackgroundColor.HasValue;
+                    HighlightColorField = text.BackgroundColor ?? Colors.Yellow;
                 }
                 OpacityField = el.Opacity * 100;
                 ElementXField = el.X;
@@ -999,6 +1185,63 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         ApplyStyleField(target, target.FontStyle, newStyle, (t, v) => t.FontStyle = v, "Toggle italic");
     }
 
+    partial void OnIsUnderlineChanged(bool value)
+    {
+        if (_isSyncingStyleFields || SelectedTextElement is not { } target) return;
+        ApplyStyleField(target, target.IsUnderline, value, (t, v) => t.IsUnderline = v, "Toggle underline");
+    }
+
+    partial void OnIsStrikethroughChanged(bool value)
+    {
+        if (_isSyncingStyleFields || SelectedTextElement is not { } target) return;
+        ApplyStyleField(target, target.IsStrikethrough, value, (t, v) => t.IsStrikethrough = v, "Toggle strikethrough");
+    }
+
+    partial void OnTextAlignmentFieldChanged(TextAlignment value)
+    {
+        if (_isSyncingStyleFields || SelectedTextElement is not { } target) return;
+        ApplyStyleField(target, target.Alignment, value, (t, v) => t.Alignment = v, "Change text alignment");
+    }
+
+    partial void OnTextCaseFieldChanged(TextCaseTransform value)
+    {
+        if (_isSyncingStyleFields || SelectedTextElement is not { } target) return;
+        ApplyStyleField(target, target.TextCaseTransform, value, (t, v) => t.TextCaseTransform = v, "Change text case");
+    }
+
+    partial void OnLineHeightFieldChanged(double value)
+    {
+        if (_isSyncingStyleFields || SelectedTextElement is not { } target) return;
+        ApplyStyleField(target, target.LineHeight, Math.Max(0, value), (t, v) => t.LineHeight = v, "Change line height");
+    }
+
+    /// <summary>Toggling highlight off clears BackgroundColor to null rather than leaving a
+    /// zero-alpha color, so "no highlight" round-trips cleanly through save/load.</summary>
+    partial void OnHasHighlightFieldChanged(bool value)
+    {
+        if (_isSyncingStyleFields || SelectedTextElement is not { } target) return;
+        Color? newValue = value ? HighlightColorField : null;
+        ApplyStyleField(target, target.BackgroundColor, newValue, (t, v) => t.BackgroundColor = v, "Toggle text highlight");
+    }
+
+    partial void OnHighlightColorFieldChanged(Color value)
+    {
+        if (_isSyncingStyleFields || !HasHighlightField || SelectedTextElement is not { } target) return;
+        ApplyStyleField(target, target.BackgroundColor, (Color?)value, (t, v) => t.BackgroundColor = v, "Change text highlight color");
+    }
+
+    [RelayCommand]
+    private void SetTextAlignment(string alignment)
+    {
+        if (Enum.TryParse<TextAlignment>(alignment, out var value)) TextAlignmentField = value;
+    }
+
+    [RelayCommand]
+    private void SetTextCase(string caseName)
+    {
+        if (Enum.TryParse<TextCaseTransform>(caseName, out var value)) TextCaseField = value;
+    }
+
     [RelayCommand]
     private void SetDashStyle(string styleName)
     {
@@ -1098,6 +1341,7 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
     public ImageEditorViewModel(IServiceProvider? serviceProvider = null)
     {
         _settingsStore = serviceProvider?.GetService<IPluginSettingsStore>();
+        _fontPackageService = serviceProvider?.GetService<IFontPackageService>();
         History.HistoryChanged += (_, _) =>
         {
             UndoCommand.NotifyCanExecuteChanged();
@@ -1106,6 +1350,10 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         Elements.CollectionChanged += (_, _) => OnPropertyChanged(nameof(LayersDescendingZ));
         LoadSettings();
         AddSampleElements();
+        BuildFontGroups();
+        BuildTextStyleGroups();
+        BuildShapeGroups();
+        BuildStickerGroups();
     }
 
     private void LoadSettings()
@@ -1279,6 +1527,52 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         CommitNewElement(el);
     }
 
+    // ── Shapes library (beyond the 3 basic draw tools above) ────────────────
+    public ObservableCollection<ShapeGroupViewModel> ShapeGroups { get; } = new();
+
+    /// <summary>Builds one extra preview-only instance per definition (never inserted, never
+    /// mutated by canvas interaction) so ShapePreviewControl can render it live — the actual
+    /// InsertShape command below always calls shape.Build() fresh, per TemplateDefinition's own
+    /// "factory, not a fixed instance" design.</summary>
+    private void BuildShapeGroups()
+    {
+        ShapeGroups.Clear();
+        foreach (var group in ShapeLibrary.All.GroupBy(s => s.Category))
+        {
+            var cards = group.Select(s => new ShapeCardViewModel(s, s.Build())).ToList();
+            ShapeGroups.Add(new ShapeGroupViewModel(group.Key, cards));
+        }
+    }
+
+    [RelayCommand]
+    private void InsertShape(ShapeDefinition shape) => InsertLibraryElement(shape.Build());
+
+    // ── Stickers library (large-glyph TextElements — see StickerDefinition) ──
+    public ObservableCollection<StickerGroupViewModel> StickerGroups { get; } = new();
+
+    private void BuildStickerGroups()
+    {
+        StickerGroups.Clear();
+        foreach (var group in StickerLibrary.All.GroupBy(s => s.Category))
+        {
+            StickerGroups.Add(new StickerGroupViewModel(group.Key, group.ToList()));
+        }
+    }
+
+    [RelayCommand]
+    private void InsertSticker(StickerDefinition sticker) => InsertLibraryElement(sticker.Build());
+
+    /// <summary>Shared insert path for both Shapes and Stickers: centers the freshly-built
+    /// element on the canvas at its own modest natural size (never the reference's mistake of
+    /// dropping an oversized default that buries existing content), then commits it through the
+    /// normal single-element insert-and-undo path.</summary>
+    private void InsertLibraryElement(CanvasElement el)
+    {
+        el.X = (_canvasWidth - el.Width) / 2;
+        el.Y = (_canvasHeight - el.Height) / 2;
+        CommitNewElement(el);
+    }
+
     [RelayCommand]
     private async Task ImportImageAsync()
     {
@@ -1373,6 +1667,34 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
 
     [RelayCommand]
     private void SendBackward() => ShiftZOrder(forward: false);
+
+    [RelayCommand]
+    private void BringToFront() => ShiftZOrderToExtreme(toFront: true);
+
+    [RelayCommand]
+    private void SendToBack() => ShiftZOrderToExtreme(toFront: false);
+
+    /// <summary>Moves the whole selected block to the very front/back of the Z stack in one
+    /// step — unlike ShiftZOrder, which only swaps past one neighbor at a time.</summary>
+    private void ShiftZOrderToExtreme(bool toFront)
+    {
+        if (SelectedElements.Count == 0) return;
+
+        var ordered = Elements.OrderBy(e => e.ZIndex).ToList();
+        var before = ordered.ToDictionary(e => e, e => e.ZIndex);
+        var selectedSet = new HashSet<CanvasElement>(SelectedElements);
+
+        var selected = ordered.Where(selectedSet.Contains).ToList();
+        var others = ordered.Where(e => !selectedSet.Contains(e)).ToList();
+        var result = toFront ? others.Concat(selected).ToList() : selected.Concat(others).ToList();
+
+        for (int i = 0; i < result.Count; i++) result[i].ZIndex = i;
+        var after = result.ToDictionary(e => e, e => e.ZIndex);
+
+        RefreshCanvas();
+        OnPropertyChanged(nameof(LayersDescendingZ));
+        if (!_isApplyingHistory) History.Push(new ZOrderShiftCommand(before, after));
+    }
 
     /// <summary>Moves the whole selected block past exactly one non-selected neighbor —
     /// generalizes the old single-element swap to work for any multi-selection.</summary>
@@ -1493,6 +1815,34 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         if (SelectedElements.Count < 2) return;
         var before = SelectedElements.ToDictionary(e => e, e => new Point(e.X, e.Y));
         foreach (var el in SelectedElements) apply(el);
+        PushMoveCommand(before);
+    }
+
+    // ── Align single element to the page/canvas bounds (distinct from AlignSelection above,
+    // which aligns 2+ elements to their shared group bounds) ────────────────────────────────
+    [RelayCommand]
+    private void AlignToPageLeft() => AlignElementToPage(el => el.X = 0);
+
+    [RelayCommand]
+    private void AlignToPageRight() => AlignElementToPage(el => el.X = CanvasWidth - el.Width);
+
+    [RelayCommand]
+    private void AlignToPageTop() => AlignElementToPage(el => el.Y = 0);
+
+    [RelayCommand]
+    private void AlignToPageBottom() => AlignElementToPage(el => el.Y = CanvasHeight - el.Height);
+
+    [RelayCommand]
+    private void AlignToPageCenterHorizontal() => AlignElementToPage(el => el.X = (CanvasWidth - el.Width) / 2);
+
+    [RelayCommand]
+    private void AlignToPageCenterVertical() => AlignElementToPage(el => el.Y = (CanvasHeight - el.Height) / 2);
+
+    private void AlignElementToPage(Action<CanvasElement> apply)
+    {
+        if (SelectedElement is not { } el) return;
+        var before = new Dictionary<CanvasElement, Point> { [el] = new Point(el.X, el.Y) };
+        apply(el);
         PushMoveCommand(before);
     }
 
@@ -1958,6 +2308,7 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsShapeSelected));
         OnPropertyChanged(nameof(IsImageSelected));
         OnPropertyChanged(nameof(HasSelection));
+        OnPropertyChanged(nameof(ShowQuickActionsCluster));
         if (value is not ImageElement && ActiveInspectorTab == "adjust")
         {
             ActiveInspectorTab = "properties";
@@ -2017,4 +2368,61 @@ public sealed class TemplateCardViewModel
         Definition = definition;
         Preview = preview;
     }
+}
+
+/// <summary>One selectable font in the Typefaces flyout. Resolves its own FontFamily eagerly
+/// (cheap — just wraps a resource-URI string) so each row can render its own name in its own
+/// face, the one unambiguously good idea from the Canva-style reference this feature is
+/// modeled on. Package is null for the always-available "Basics" group.</summary>
+public sealed class FontChoiceViewModel
+{
+    public string FamilyName { get; }
+    public FontFamily PreviewFamily { get; }
+    public FontPackageInfo? Package { get; }
+
+    public FontChoiceViewModel(string familyName, FontPackageInfo? package)
+    {
+        FamilyName = familyName;
+        Package = package;
+        PreviewFamily = FontHelper.CreateFontFamily(familyName);
+    }
+}
+
+/// <summary>One category row in the Typefaces flyout — a font package's included families, or
+/// the always-available "Basics" group.</summary>
+public sealed class FontGroupViewModel(string groupName, IReadOnlyList<FontChoiceViewModel> fonts)
+{
+    public string GroupName { get; } = groupName;
+    public IReadOnlyList<FontChoiceViewModel> Fonts { get; } = fonts;
+}
+
+/// <summary>One category row in the Text Styles flyout.</summary>
+public sealed class TextStyleGroupViewModel(string groupName, IReadOnlyList<TextStyleDefinition> styles)
+{
+    public string GroupName { get; } = groupName;
+    public IReadOnlyList<TextStyleDefinition> Styles { get; } = styles;
+}
+
+/// <summary>One category row in the Shapes library panel.</summary>
+public sealed class ShapeGroupViewModel(string groupName, IReadOnlyList<ShapeCardViewModel> shapes)
+{
+    public string GroupName { get; } = groupName;
+    public IReadOnlyList<ShapeCardViewModel> Shapes { get; } = shapes;
+}
+
+/// <summary>Pairs a ShapeDefinition with a preview-only built instance for ShapePreviewControl
+/// to render — mirrors TemplateCardViewModel pairing a TemplateDefinition with a preview
+/// bitmap, just rendered live instead of pre-baked (a shape preview is cheap to redraw; a
+/// multi-element template's preview isn't, which is why that one IS pre-baked to a bitmap).</summary>
+public sealed class ShapeCardViewModel(ShapeDefinition definition, CanvasElement previewElement)
+{
+    public ShapeDefinition Definition { get; } = definition;
+    public CanvasElement PreviewElement { get; } = previewElement;
+}
+
+/// <summary>One category row in the Stickers library panel.</summary>
+public sealed class StickerGroupViewModel(string groupName, IReadOnlyList<StickerDefinition> stickers)
+{
+    public string GroupName { get; } = groupName;
+    public IReadOnlyList<StickerDefinition> Stickers { get; } = stickers;
 }

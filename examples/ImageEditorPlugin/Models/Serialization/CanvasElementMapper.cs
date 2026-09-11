@@ -3,6 +3,7 @@ using System.IO;
 using Avalonia;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using PdfEditorApp.Services;
 
 namespace PdfEditorApp.Plugins.ImageEditor.Models.Serialization;
 
@@ -17,6 +18,8 @@ public static class CanvasElementMapper
         ArrowElement a => ToArrowDto(a),
         TextElement t => ToTextDto(t),
         ImageElement img => ToImageDto(img),
+        PolygonElement p => ToPolygonDto(p),
+        StarElement s => ToStarDto(s),
         _ => throw new NotSupportedException($"No DTO mapping for element type '{element.GetType().Name}'."),
     };
 
@@ -27,6 +30,8 @@ public static class CanvasElementMapper
         ArrowElementDto a => FromArrowDto(a),
         TextElementDto t => FromTextDto(t),
         ImageElementDto img => FromImageDto(img),
+        PolygonElementDto p => FromPolygonDto(p),
+        StarElementDto s => FromStarDto(s),
         _ => throw new NotSupportedException($"No element mapping for DTO type '{dto.GetType().Name}'."),
     };
 
@@ -133,6 +138,68 @@ public static class CanvasElementMapper
         return e;
     }
 
+    private static PolygonElementDto ToPolygonDto(PolygonElement p)
+    {
+        var dto = new PolygonElementDto
+        {
+            FillColor = p.FillColor.ToString(),
+            Gradient = ToGradientDto(p.Gradient),
+            StrokeColor = p.StrokeColor.ToString(),
+            StrokeThickness = p.StrokeThickness,
+            DashStyle = p.DashStyle.ToString(),
+            SideCount = p.SideCount,
+        };
+        CopyBaseToDto(p, dto);
+        return dto;
+    }
+
+    private static PolygonElement FromPolygonDto(PolygonElementDto dto)
+    {
+        var p = new PolygonElement
+        {
+            FillColor = Color.Parse(dto.FillColor),
+            Gradient = FromGradientDto(dto.Gradient),
+            StrokeColor = Color.Parse(dto.StrokeColor),
+            StrokeThickness = dto.StrokeThickness,
+            DashStyle = Enum.Parse<StrokeDashStyle>(dto.DashStyle),
+            SideCount = dto.SideCount,
+        };
+        CopyBaseFromDto(dto, p);
+        return p;
+    }
+
+    private static StarElementDto ToStarDto(StarElement s)
+    {
+        var dto = new StarElementDto
+        {
+            FillColor = s.FillColor.ToString(),
+            Gradient = ToGradientDto(s.Gradient),
+            StrokeColor = s.StrokeColor.ToString(),
+            StrokeThickness = s.StrokeThickness,
+            DashStyle = s.DashStyle.ToString(),
+            PointCount = s.PointCount,
+            InnerRadiusRatio = s.InnerRadiusRatio,
+        };
+        CopyBaseToDto(s, dto);
+        return dto;
+    }
+
+    private static StarElement FromStarDto(StarElementDto dto)
+    {
+        var s = new StarElement
+        {
+            FillColor = Color.Parse(dto.FillColor),
+            Gradient = FromGradientDto(dto.Gradient),
+            StrokeColor = Color.Parse(dto.StrokeColor),
+            StrokeThickness = dto.StrokeThickness,
+            DashStyle = Enum.Parse<StrokeDashStyle>(dto.DashStyle),
+            PointCount = dto.PointCount,
+            InnerRadiusRatio = dto.InnerRadiusRatio,
+        };
+        CopyBaseFromDto(dto, s);
+        return s;
+    }
+
     private static ArrowElementDto ToArrowDto(ArrowElement a)
     {
         var dto = new ArrowElementDto
@@ -189,7 +256,11 @@ public static class CanvasElementMapper
         // a remeasure) don't clobber the dimensions restored by CopyBaseFromDto — mirrors
         // TextElement.Clone()'s same construction-order guard.
         var t = new TextElement { IsWidthAutoFitEnabled = false, IsHeightAutoFitEnabled = false };
-        t.FontFamily = new FontFamily(dto.FontFamily);
+        // FontHelper.CreateFontFamily (not a bare `new FontFamily(name)`) re-resolves through the
+        // embedded-asset/user-downloaded-cache chain — a plain constructor call only matches an
+        // OS-installed font of that exact name, so a project saved with a Typefaces-picker font
+        // would silently fall back to the default face on reload without this.
+        t.FontFamily = FontHelper.CreateFontFamily(dto.FontFamily);
         t.Text = dto.Text;
         t.FontSize = dto.FontSize;
         t.FontWeight = Enum.Parse<FontWeight>(dto.FontWeight);
