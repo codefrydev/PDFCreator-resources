@@ -15,6 +15,204 @@
              Focusable="True"
              Background="{DynamicResource M3SurfaceContainerLowestBrush}">
 
+<!-- ══════════════════════════════════════════════════════════
+         USER CONTROL STYLES & M3 EXPRESSIVE REFINEMENTS
+         ══════════════════════════════════════════════════════════ -->
+    <UserControl.Styles>
+        <!-- Left Tool Rail Button & M3 Capsule Pill Indicator -->
+        <Style Selector="Border.m3-rail-indicator">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Width" Value="44" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="CornerRadius" Value="13" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.m3-rail-btn">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource M3OnSurfaceVariantBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerMedium}" />
+            <Setter Property="Padding" Value="2,4" />
+            <Setter Property="Width" Value="54" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.m3-rail-btn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="Button.m3-rail-btn:pointerover Border.m3-rail-indicator">
+            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighestBrush}" />
+        </Style>
+        <Style Selector="Button.m3-rail-btn.active Border.m3-rail-indicator">
+            <Setter Property="Background" Value="{DynamicResource M3PrimaryContainerBrush}" />
+        </Style>
+        <Style Selector="Button.m3-rail-btn.active materialIcons|MaterialIcon">
+            <Setter Property="Foreground" Value="{DynamicResource M3OnPrimaryContainerBrush}" />
+        </Style>
+        <Style Selector="Button.m3-rail-btn.active TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource M3OnSurfaceBrush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="Button.m3-rail-btn.active /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+
+        <!-- Color Swatch Button in Rail -->
+        <Style Selector="Button.m3-color-swatch-btn">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="2,4" />
+            <Setter Property="Width" Value="54" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.m3-color-swatch-btn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+
+        <!-- Filter Chip Button for Templates -->
+        <Style Selector="Button.m3-filter-chip">
+            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource M3OnSurfaceVariantBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource M3OutlineVariantBrush}" />
+            <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerFull}" />
+            <Setter Property="Padding" Value="12,4" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.12" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.m3-filter-chip:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighestBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource M3OnSurfaceBrush}" />
+        </Style>
+        <Style Selector="Button.m3-filter-chip.active">
+            <Setter Property="Background" Value="{DynamicResource M3PrimaryContainerBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource M3OnPrimaryContainerBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource M3PrimaryBrush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="Button.m3-filter-chip.active /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource M3PrimaryContainerBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource M3OnPrimaryContainerBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource M3PrimaryBrush}" />
+        </Style>
+
+        <!-- Compact glyph toggle (Bold/Italic/Aspect-lock/Gradient) -->
+        <Style Selector="ToggleButton.m3-glyph-toggle">
+            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource M3OnSurfaceVariantBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerFull}" />
+            <Setter Property="Padding" Value="6,4" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="ToggleButton.m3-glyph-toggle:checked">
+            <Setter Property="Background" Value="{DynamicResource M3PrimaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource M3OnPrimaryBrush}" />
+        </Style>
+        <Style Selector="ToggleButton.m3-glyph-toggle:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighestBrush}" />
+        </Style>
+
+        <!-- Clickable Layer Row Item Wrapper -->
+        <Style Selector="Button.m3-layer-row">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerMedium}" />
+            <Setter Property="Padding" Value="4,2" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.m3-layer-row:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighestBrush}" />
+        </Style>
+
+        <!-- Template Card Button Wrapper -->
+        <Style Selector="Button.m3-template-card">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerLarge}" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.m3-template-card:pointerover">
+            <Setter Property="RenderTransform" Value="scale(1.02)" />
+        </Style>
+        <Style Selector="Button.m3-template-card:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighBrush}" />
+        </Style>
+
+        <!-- Chubby Tactile Sliders (M3 Expressive) -->
+        <Style Selector="Slider.m3-tactile-slider">
+            <Style.Resources>
+                <x:Double x:Key="SliderTrackThemeHeight">7</x:Double>
+            </Style.Resources>
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="{DynamicResource M3PrimaryBrush}" />
+        </Style>
+        <Style Selector="Slider.m3-tactile-slider /template/ Thumb">
+            <Setter Property="Width" Value="16" />
+            <Setter Property="Height" Value="16" />
+            <Setter Property="Background" Value="{DynamicResource M3PrimaryBrush}" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="{DynamicResource M3OnPrimaryBrush}" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Width" Duration="0:0:0.1" />
+                    <DoubleTransition Property="Height" Duration="0:0:0.1" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Slider.m3-tactile-slider:pointerover /template/ Thumb">
+            <Setter Property="Width" Value="18" />
+            <Setter Property="Height" Value="18" />
+            <Setter Property="CornerRadius" Value="9" />
+        </Style>
+        <Style Selector="Slider.m3-tactile-slider:pressed /template/ Thumb">
+            <Setter Property="Width" Value="20" />
+            <Setter Property="Height" Value="20" />
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
+
+        <!-- Neutral-zero marker for bipolar Adjust sliders (Brightness/Contrast/Saturate/Hue/
+             Temp/Tint) — every one of those ranges is symmetric (Minimum = -Maximum), so the
+             zero point is always exactly the horizontal center; layer this over the slider in
+             a Panel rather than templating the shared slider style itself. Not applied to
+             Blur/Sharpen, whose Minimum is 0 (already the visual left edge, not a midpoint). -->
+        <Style Selector="Border.m3-slider-zero-tick">
+            <Setter Property="Width" Value="2" />
+            <Setter Property="Height" Value="9" />
+            <Setter Property="CornerRadius" Value="1" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Background" Value="{DynamicResource M3OutlineBrush}" />
+            <Setter Property="Opacity" Value="0.55" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+        </Style>
+    </UserControl.Styles>
+
     <!-- Top-level Studio Shell: Top Bar + Contextual Ribbon + 3-Column Studio Workspace -->
     <Grid RowDefinitions="Auto,Auto,*">
 
@@ -26,29 +224,55 @@
                 Background="{DynamicResource M3SurfaceContainerLowestBrush}"
                 BorderBrush="{DynamicResource M3OutlineVariantBrush}"
                 BorderThickness="0,0,0,1"
-                Padding="12,8">
+                Height="48"
+                Padding="12,6">
             <Grid ColumnDefinitions="Auto,*,Auto">
 
-                <!-- Left Cluster: Studio Brand Pill, Dimensions Capsule, Background Selector -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <!-- Brand Pill Badge -->
-                    <Border Background="{DynamicResource M3PrimaryContainerBrush}"
-                            CornerRadius="{StaticResource M3ShapeCornerFull}"
-                            Padding="10,5">
-                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <!-- Left Cluster: Back Navigation, Studio Brand Pill, Dimensions Capsule, Background Selector -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <!-- Back to Tools / Home Button -->
+                    <Button Classes="m3-icon-btn"
+                            Command="{Binding GoBackCommand}"
+                            ToolTip.Tip="Back to Tools / Workspace (Home)"
+                            Width="34" Height="34"
+                            Padding="0"
+                            Margin="0,0,4,0">
+                        <materialIcons:MaterialIcon Kind="ArrowLeft" Width="18" Height="18"
+                                                    Foreground="{DynamicResource M3OnSurfaceBrush}"
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Button>
+
+                    <!-- Studio Brand Badge & Status Pill -->
+                    <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                        <Border Background="{DynamicResource M3PrimaryContainerBrush}"
+                                CornerRadius="{StaticResource M3ShapeCornerMedium}"
+                                Width="28" Height="28">
                             <materialIcons:MaterialIcon Kind="PaletteOutline" Width="16" Height="16"
-                                                        Foreground="{DynamicResource M3OnPrimaryContainerBrush}" />
-                            <TextBlock Text="Image Studio" FontSize="12.5" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource M3OnPrimaryContainerBrush}" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Border>
+                                                        Foreground="{DynamicResource M3OnPrimaryContainerBrush}"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="Image Studio"
+                                   FontSize="13.5"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource M3OnSurfaceBrush}"
+                                   VerticalAlignment="Center" />
+                        <!-- STUDIO Status Pill -->
+                        <Border Background="{DynamicResource M3PrimaryContainerBrush}"
+                                CornerRadius="{StaticResource M3ShapeCornerFull}"
+                                Padding="6,1.5" VerticalAlignment="Center" Margin="2,0,4,0">
+                            <TextBlock Text="STUDIO" FontSize="9.5" FontWeight="Bold"
+                                       Foreground="{DynamicResource M3OnPrimaryContainerBrush}" />
+                        </Border>
+                    </StackPanel>
+
+                    <Rectangle Width="1" Height="20" Fill="{DynamicResource M3OutlineVariantBrush}" Margin="2,0" />
 
                     <!-- Artboard Dimensions Pill -->
                     <Border Background="{DynamicResource M3SurfaceContainerHighBrush}"
                             CornerRadius="{StaticResource M3ShapeCornerFull}"
-                            Padding="8,5" ToolTip.Tip="Active Artboard Dimensions">
+                            Padding="8,4" ToolTip.Tip="Active Artboard Dimensions">
                         <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                            <materialIcons:MaterialIcon Kind="AspectRatio" Width="14" Height="14"
+                            <materialIcons:MaterialIcon Kind="AspectRatio" Width="13" Height="13"
                                                         Foreground="{DynamicResource M3OnSurfaceVariantBrush}" />
                             <TextBlock Text="{Binding CanvasSizeLabel}" FontSize="11" FontWeight="Medium"
                                        Foreground="{DynamicResource M3OnSurfaceBrush}" VerticalAlignment="Center" />
@@ -82,7 +306,7 @@
                     </Border>
                 </StackPanel>
 
-                <!-- Center Cluster: Undo / Redo / Clear -->
+                <!-- Center Cluster: Undo / Redo / Zoom / Clear -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
                             HorizontalAlignment="Center" VerticalAlignment="Center">
                     <!-- Undo / Redo Segmented Capsule -->
@@ -95,6 +319,28 @@
                             <Button Command="{Binding RedoCommand}" Classes="m3-segment-btn"
                                     ToolTip.Tip="Redo (Ctrl+Y / ⌘⇧Z)">
                                 <materialIcons:MaterialIcon Kind="RedoVariant" Width="15" Height="15" />
+                            </Button>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Zoom Controls Segmented Capsule -->
+                    <Border Classes="m3-segmented-container">
+                        <StackPanel Orientation="Horizontal" Spacing="0">
+                            <Button Command="{Binding ZoomOutCommand}" Classes="m3-segment-btn"
+                                    ToolTip.Tip="Zoom Out (Ctrl - / ⌘ -)">
+                                <materialIcons:MaterialIcon Kind="MagnifyMinusOutline" Width="13" Height="13" />
+                            </Button>
+                            <Button Command="{Binding ResetZoomToActualCommand}" Classes="m3-segment-btn"
+                                    ToolTip.Tip="Reset Zoom to 100% (Ctrl 0 / ⌘ 0)">
+                                <TextBlock Text="{Binding ZoomPercentageLabel}" FontSize="10.5" FontWeight="Medium" />
+                            </Button>
+                            <Button Command="{Binding ZoomInCommand}" Classes="m3-segment-btn"
+                                    ToolTip.Tip="Zoom In (Ctrl + / ⌘ +)">
+                                <materialIcons:MaterialIcon Kind="MagnifyPlusOutline" Width="13" Height="13" />
+                            </Button>
+                            <Button Command="{Binding FitCanvasToWindowCommand}" Classes="m3-segment-btn"
+                                    ToolTip.Tip="Fit Canvas to Window">
+                                <materialIcons:MaterialIcon Kind="FitToScreenOutline" Width="13" Height="13" />
                             </Button>
                         </StackPanel>
                     </Border>
@@ -1847,201 +2093,5 @@
         </Border>
     </Grid>
 
-    <!-- ══════════════════════════════════════════════════════════
-         USER CONTROL STYLES & M3 EXPRESSIVE REFINEMENTS
-         ══════════════════════════════════════════════════════════ -->
-    <UserControl.Styles>
-        <!-- Left Tool Rail Button & M3 Capsule Pill Indicator -->
-        <Style Selector="Border.m3-rail-indicator">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Width" Value="44" />
-            <Setter Property="Height" Value="26" />
-            <Setter Property="CornerRadius" Value="13" />
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.12" />
-                </Transitions>
-            </Setter>
-        </Style>
-        <Style Selector="Button.m3-rail-btn">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="{DynamicResource M3OnSurfaceVariantBrush}" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerMedium}" />
-            <Setter Property="Padding" Value="2,4" />
-            <Setter Property="Width" Value="54" />
-            <Setter Property="Cursor" Value="Hand" />
-        </Style>
-        <Style Selector="Button.m3-rail-btn:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="Transparent" />
-        </Style>
-        <Style Selector="Button.m3-rail-btn:pointerover Border.m3-rail-indicator">
-            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighestBrush}" />
-        </Style>
-        <Style Selector="Button.m3-rail-btn.active Border.m3-rail-indicator">
-            <Setter Property="Background" Value="{DynamicResource M3PrimaryContainerBrush}" />
-        </Style>
-        <Style Selector="Button.m3-rail-btn.active materialIcons|MaterialIcon">
-            <Setter Property="Foreground" Value="{DynamicResource M3OnPrimaryContainerBrush}" />
-        </Style>
-        <Style Selector="Button.m3-rail-btn.active TextBlock">
-            <Setter Property="Foreground" Value="{DynamicResource M3OnSurfaceBrush}" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-        </Style>
-        <Style Selector="Button.m3-rail-btn.active /template/ ContentPresenter">
-            <Setter Property="Background" Value="Transparent" />
-        </Style>
-
-        <!-- Color Swatch Button in Rail -->
-        <Style Selector="Button.m3-color-swatch-btn">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="2,4" />
-            <Setter Property="Width" Value="54" />
-            <Setter Property="Cursor" Value="Hand" />
-        </Style>
-        <Style Selector="Button.m3-color-swatch-btn:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="Transparent" />
-        </Style>
-
-        <!-- Filter Chip Button for Templates -->
-        <Style Selector="Button.m3-filter-chip">
-            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource M3OnSurfaceVariantBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="{DynamicResource M3OutlineVariantBrush}" />
-            <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerFull}" />
-            <Setter Property="Padding" Value="12,4" />
-            <Setter Property="Height" Value="28" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.12" />
-                    <BrushTransition Property="Foreground" Duration="0:0:0.12" />
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.12" />
-                </Transitions>
-            </Setter>
-        </Style>
-        <Style Selector="Button.m3-filter-chip:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighestBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource M3OnSurfaceBrush}" />
-        </Style>
-        <Style Selector="Button.m3-filter-chip.active">
-            <Setter Property="Background" Value="{DynamicResource M3PrimaryContainerBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource M3OnPrimaryContainerBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource M3PrimaryBrush}" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-        </Style>
-        <Style Selector="Button.m3-filter-chip.active /template/ ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource M3PrimaryContainerBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource M3OnPrimaryContainerBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource M3PrimaryBrush}" />
-        </Style>
-
-        <!-- Compact glyph toggle (Bold/Italic/Aspect-lock/Gradient) -->
-        <Style Selector="ToggleButton.m3-glyph-toggle">
-            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource M3OnSurfaceVariantBrush}" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerFull}" />
-            <Setter Property="Padding" Value="6,4" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="HorizontalContentAlignment" Value="Center" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.12" />
-                </Transitions>
-            </Setter>
-        </Style>
-        <Style Selector="ToggleButton.m3-glyph-toggle:checked">
-            <Setter Property="Background" Value="{DynamicResource M3PrimaryBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource M3OnPrimaryBrush}" />
-        </Style>
-        <Style Selector="ToggleButton.m3-glyph-toggle:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighestBrush}" />
-        </Style>
-
-        <!-- Clickable Layer Row Item Wrapper -->
-        <Style Selector="Button.m3-layer-row">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerMedium}" />
-            <Setter Property="Padding" Value="4,2" />
-            <Setter Property="HorizontalContentAlignment" Value="Left" />
-            <Setter Property="Cursor" Value="Hand" />
-        </Style>
-        <Style Selector="Button.m3-layer-row:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighestBrush}" />
-        </Style>
-
-        <!-- Template Card Button Wrapper -->
-        <Style Selector="Button.m3-template-card">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerLarge}" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Transitions">
-                <Transitions>
-                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" />
-                </Transitions>
-            </Setter>
-        </Style>
-        <Style Selector="Button.m3-template-card:pointerover">
-            <Setter Property="RenderTransform" Value="scale(1.02)" />
-        </Style>
-        <Style Selector="Button.m3-template-card:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighBrush}" />
-        </Style>
-
-        <!-- Chubby Tactile Sliders (M3 Expressive) -->
-        <Style Selector="Slider.m3-tactile-slider">
-            <Style.Resources>
-                <x:Double x:Key="SliderTrackThemeHeight">7</x:Double>
-            </Style.Resources>
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Foreground" Value="{DynamicResource M3PrimaryBrush}" />
-        </Style>
-        <Style Selector="Slider.m3-tactile-slider /template/ Thumb">
-            <Setter Property="Width" Value="16" />
-            <Setter Property="Height" Value="16" />
-            <Setter Property="Background" Value="{DynamicResource M3PrimaryBrush}" />
-            <Setter Property="BorderThickness" Value="2" />
-            <Setter Property="BorderBrush" Value="{DynamicResource M3OnPrimaryBrush}" />
-            <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="Transitions">
-                <Transitions>
-                    <DoubleTransition Property="Width" Duration="0:0:0.1" />
-                    <DoubleTransition Property="Height" Duration="0:0:0.1" />
-                </Transitions>
-            </Setter>
-        </Style>
-        <Style Selector="Slider.m3-tactile-slider:pointerover /template/ Thumb">
-            <Setter Property="Width" Value="18" />
-            <Setter Property="Height" Value="18" />
-            <Setter Property="CornerRadius" Value="9" />
-        </Style>
-        <Style Selector="Slider.m3-tactile-slider:pressed /template/ Thumb">
-            <Setter Property="Width" Value="20" />
-            <Setter Property="Height" Value="20" />
-            <Setter Property="CornerRadius" Value="10" />
-        </Style>
-
-        <!-- Neutral-zero marker for bipolar Adjust sliders (Brightness/Contrast/Saturate/Hue/
-             Temp/Tint) — every one of those ranges is symmetric (Minimum = -Maximum), so the
-             zero point is always exactly the horizontal center; layer this over the slider in
-             a Panel rather than templating the shared slider style itself. Not applied to
-             Blur/Sharpen, whose Minimum is 0 (already the visual left edge, not a midpoint). -->
-        <Style Selector="Border.m3-slider-zero-tick">
-            <Setter Property="Width" Value="2" />
-            <Setter Property="Height" Value="9" />
-            <Setter Property="CornerRadius" Value="1" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Background" Value="{DynamicResource M3OutlineBrush}" />
-            <Setter Property="Opacity" Value="0.55" />
-            <Setter Property="IsHitTestVisible" Value="False" />
-        </Style>
-    </UserControl.Styles>
+    
 </UserControl>

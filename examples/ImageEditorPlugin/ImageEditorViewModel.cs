@@ -17,6 +17,8 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using PdfEditorApp.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using PdfEditorApp.Core.Models;
 using PdfEditorApp.Core.Plugins.Settings;
@@ -114,6 +116,13 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         SelectedElements.Clear();
         SelectedElements.Add(element);
         SendBackward();
+    }
+
+
+    [RelayCommand]
+    private void GoBack()
+    {
+        WeakReferenceMessenger.Default.Send(new NavigateToHomeMessage());
     }
 
     [RelayCommand]
@@ -1933,7 +1942,7 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
 
             try
             {
-                // Real, first-class cross-platform clipboard image support in Avalonia 12.1.1 \u2014
+                // Real, first-class cross-platform clipboard image support in Avalonia 12.1.2 —
                 // RenderTargetBitmap derives from Bitmap, so no conversion is needed.
                 await clipboard.SetBitmapAsync(bitmap);
                 StatusMessage = "Canvas copied to clipboard as an image.";

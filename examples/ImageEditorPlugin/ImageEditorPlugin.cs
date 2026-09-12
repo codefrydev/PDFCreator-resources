@@ -19,6 +19,7 @@ public class ImageEditorPlugin : IFryPlugin
     public string Id => "frypdf.overlay.imageeditor";
     public string Name => "Image Editor";
     public Version Version => new(3, 0, 0);
+    public bool AutoOpenOverlay => false;
     public IReadOnlyList<Type> RequiredServices => Array.Empty<Type>();
 
     public IReadOnlyDictionary<string, PluginSettingDefinition>? SettingsSchema =>
@@ -74,6 +75,7 @@ public class ImageEditorPlugin : IFryPlugin
             Id = Id,
             Title = "Image Editor",
             Slot = "shell.overlay",
+            AutoOpenOnStartup = false,
             DefaultWidth = 900,
             DefaultHeight = 640,
             InitialX = null,

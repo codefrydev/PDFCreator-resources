@@ -89,7 +89,7 @@
 
   <ItemGroup>
     <!-- Common dependencies provided at runtime by the FryPDF host -->
-    <PackageReference Include="Avalonia" Version="12.1.1" PrivateAssets="all" />
+    <PackageReference Include="Avalonia" Version="12.1.2" PrivateAssets="all" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" PrivateAssets="all" />
     <PackageReference Include="Material.Icons.Avalonia" Version="3.0.2" PrivateAssets="all" />
   </ItemGroup>
