@@ -35,6 +35,24 @@ public partial class ImageEditorView : UserControl
         // Keep the zoom-percentage readout in sync with the canvas's own zoom state.
         CanvasControl.ZoomChanged += zoom => vm.ZoomLevel = zoom;
 
+        // Wire cursor position tracking for rulers
+        CanvasControl.CursorPositionChanged += pt =>
+        {
+            vm.CursorCanvasX = pt.X;
+            vm.CursorCanvasY = pt.Y;
+        };
+
+        void SyncRulerOrigins()
+        {
+            vm.CanvasOriginScreenX = CanvasControl.CanvasOriginScreenX;
+            vm.CanvasOriginScreenY = CanvasControl.CanvasOriginScreenY;
+        }
+
+        CanvasControl.CanvasChanged += SyncRulerOrigins;
+        CanvasControl.ZoomChanged += _ => SyncRulerOrigins();
+        CanvasControl.SizeChanged += (_, _) => SyncRulerOrigins();
+        SyncRulerOrigins();
+
         // Keep the floating quick-actions cluster anchored to the selection whenever anything
         // that could move its screen position happens (selection change, a live drag, pan, or
         // zoom), plus once more as soon as the cluster's own size is first known (it starts at
@@ -200,7 +218,7 @@ public partial class ImageEditorView : UserControl
     {
         if (CanvasControl.GetSelectionScreenBounds() is not { } selectionBounds) return;
 
-        var anchor = CanvasControl.GetFloatingChromeAnchor(selectionBounds, QuickActionsCluster.Bounds.Size);
+        var anchor = CanvasControl.GetFloatingChromeAnchor(selectionBounds, QuickActionsCluster.Bounds.Size, 26);
         QuickActionsCluster.Margin = new Thickness(anchor.X, anchor.Y, 0, 0);
     }
 
@@ -307,12 +325,12 @@ public class ElementTypeToIconConverter : Avalonia.Data.Converters.IValueConvert
     {
         return value?.ToString() switch
         {
-            "Text" => "FormatText",
-            "Rectangle" => "RectangleOutline",
-            "Ellipse" => "EllipseOutline",
-            "Arrow" => "ArrowTopRight",
-            "Image" => "ImageOutline",
-            _ => "ShapeOutline"
+            "Text" => Material.Icons.MaterialIconKind.FormatText,
+            "Rectangle" => Material.Icons.MaterialIconKind.RectangleOutline,
+            "Ellipse" => Material.Icons.MaterialIconKind.EllipseOutline,
+            "Arrow" => Material.Icons.MaterialIconKind.ArrowTopRight,
+            "Image" => Material.Icons.MaterialIconKind.ImageOutline,
+            _ => Material.Icons.MaterialIconKind.ShapeOutline
         };
     }
 
@@ -320,37 +338,75 @@ public class ElementTypeToIconConverter : Avalonia.Data.Converters.IValueConvert
         => throw new NotImplementedException();
 }
 
-/// <summary>Maps CanvasElement.IsLocked to a lock icon kind. Neither "Lock" nor
-/// "LockOpenOutline" exist in the installed Material.Icons 3.0.2 package (verified via
-/// `strings -a` on the package DLL — this version has no bare Lock/LockOpen aliases, only
-/// badged variants), so this previously rendered a blank/missing icon at runtime; a converter's
-/// output isn't compile-time validated against MaterialIconKind the way a XAML literal is.</summary>
 public class IsLockedToIconConverter : Avalonia.Data.Converters.IValueConverter
 {
     public static readonly IsLockedToIconConverter Instance = new();
 
     public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
-        => value is true ? "LockCheckOutline" : "LockOpenVariantOutline";
+        => value is true ? Material.Icons.MaterialIconKind.LockOutline : Material.Icons.MaterialIconKind.LockOpenOutline;
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
         => throw new NotImplementedException();
 }
 
-/// <summary>Maps CanvasElement.IsVisible to an eye icon kind. Neither "EyeOutline" nor
-/// "EyeOffOutline" exist in the installed Material.Icons 3.0.2 package (verified via
-/// `strings -a` on the package DLL) — same missing-icon issue as IsLockedToIconConverter above.</summary>
 public class IsVisibleToIconConverter : Avalonia.Data.Converters.IValueConverter
 {
     public static readonly IsVisibleToIconConverter Instance = new();
 
     public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
-        => value is false ? "EyeClosed" : "EyeCheck";
+        => value is false ? Material.Icons.MaterialIconKind.EyeOffOutline : Material.Icons.MaterialIconKind.EyeOutline;
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
         => throw new NotImplementedException();
 }
 
-/// <summary>Converts an Avalonia Color to a SolidColorBrush for UI swatches and borders.</summary>
+public class ZoomLevelToPercentConverter : Avalonia.Data.Converters.IValueConverter
+{
+    public static readonly ZoomLevelToPercentConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+    {
+        if (value is double zoom) return $"{(int)Math.Round(zoom * 100)}%";
+        return "100%";
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        => throw new NotImplementedException();
+}
+
+public class EqualityToBooleanConverter : Avalonia.Data.Converters.IValueConverter
+{
+    public static readonly EqualityToBooleanConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+    {
+        if (value == null && parameter == null) return true;
+        if (value == null || parameter == null) return false;
+        return string.Equals(value.ToString(), parameter.ToString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        => throw new NotImplementedException();
+}
+
+public class BooleanToStringConverter : Avalonia.Data.Converters.IValueConverter
+{
+    public static readonly BooleanToStringConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+    {
+        if (value is bool b && parameter is string param)
+        {
+            var parts = param.Split('|', ':');
+            if (parts.Length == 2) return b ? parts[0] : parts[1];
+        }
+        return value?.ToString();
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        => throw new NotImplementedException();
+}
+
 public class ColorToBrushConverter : Avalonia.Data.Converters.IValueConverter
 {
     public static readonly ColorToBrushConverter Instance = new();
@@ -366,11 +422,6 @@ public class ColorToBrushConverter : Avalonia.Data.Converters.IValueConverter
         => (value as ISolidColorBrush)?.Color ?? Colors.Transparent;
 }
 
-/// <summary>Renders a single CanvasElement scaled to fit the control's own bounds — used for
-/// Shapes-library thumbnails. Draws the SAME Draw(DrawingContext) every real element uses (the
-/// same principle as ImageEditorViewModel.RenderTemplatePreview's own doc comment: the preview
-/// must always match what actually gets inserted), rather than a separately-maintained
-/// hand-drawn thumbnail per shape.</summary>
 public class ShapePreviewControl : Control
 {
     public static readonly StyledProperty<Models.CanvasElement?> ElementProperty =

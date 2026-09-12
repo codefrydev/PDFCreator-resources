@@ -63,6 +63,130 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _activeInspectorTab = "properties";
 
+    // ── Studio Ribbon, Sidebar & Inspector Navigation ───────────────────────
+    [ObservableProperty]
+    private string _activeRibbonTab = "Home"; // Home, Shapes, Typography, Photo, Arrange
+
+    [RelayCommand]
+    private void SelectRibbonTab(string tab) => ActiveRibbonTab = tab;
+
+    [ObservableProperty]
+    private bool _isRibbonCollapsed;
+
+    [RelayCommand]
+    private void ToggleRibbonCollapse() => IsRibbonCollapsed = !IsRibbonCollapsed;
+
+    [ObservableProperty]
+    private string _activeSidebarTab = "Templates"; // Templates, Shapes, Text, Layers
+
+    [RelayCommand]
+    private void SelectSidebarTab(string tab) => ActiveSidebarTab = tab;
+
+    [ObservableProperty]
+    private bool _isSidebarCollapsed;
+
+    [RelayCommand]
+    private void ToggleSidebarCollapse() => IsSidebarCollapsed = !IsSidebarCollapsed;
+
+    [RelayCommand]
+    private void ToggleSidebar() => IsSidebarCollapsed = !IsSidebarCollapsed;
+
+    [ObservableProperty]
+    private bool _isInspectorCollapsed;
+
+    [RelayCommand]
+    private void ToggleInspectorCollapse() => IsInspectorCollapsed = !IsInspectorCollapsed;
+
+    [RelayCommand]
+    private void ToggleInspector() => IsInspectorCollapsed = !IsInspectorCollapsed;
+
+    // ── Canvas Rulers & Grid ───────────────────────────────────────────────
+    [ObservableProperty]
+    private bool _showRulers = true;
+
+    [RelayCommand]
+    private void ToggleRulers() => ShowRulers = !ShowRulers;
+
+    [ObservableProperty]
+    private bool _showGrid = true;
+
+    [RelayCommand]
+    private void ToggleGrid()
+    {
+        ShowGrid = !ShowGrid;
+        if (CanvasControl != null) CanvasControl.IsGridVisible = ShowGrid;
+    }
+
+    [ObservableProperty]
+    private double _cursorCanvasX = -1;
+
+    [ObservableProperty]
+    private double _cursorCanvasY = -1;
+
+    [ObservableProperty]
+    private double _canvasOriginScreenX;
+
+    [ObservableProperty]
+    private double _canvasOriginScreenY;
+
+    // ── Studio Document Title & Status Labels ──────────────────────────────
+    [ObservableProperty]
+    private string _documentTitle = "Untitled Design";
+
+    public string ArtboardSelectionLabel
+    {
+        get
+        {
+            string presetName = ((int)_canvasWidth, (int)_canvasHeight) switch
+            {
+                (1080, 1080) => "Square 1:1",
+                (1280, 720) => "YouTube HD 16:9",
+                (1080, 1920) => "Story 9:16",
+                (1200, 630) => "Social Post",
+                (1240, 1754) => "A4 Post",
+                (1275, 1650) => "Letter",
+                (640, 480) => "Standard 4:3",
+                (800, 600) => "Presentation",
+                _ => "Custom"
+            };
+            return $"Artboard 1 - {(int)_canvasWidth} × {(int)_canvasHeight} px ({presetName})";
+        }
+    }
+
+    public string DimensionStatusText => $"{(int)_canvasWidth} × {(int)_canvasHeight} px";
+
+    public string SelectionStatusText
+    {
+        get
+        {
+            if (SelectedElements.Count > 1)
+                return $"{SelectedElements.Count} elements selected";
+            if (SelectedElement != null)
+            {
+                string name = SelectedElement switch
+                {
+                    TextElement t => $"Text: \"{(t.Text.Length > 20 ? t.Text[..18] + "..." : t.Text)}\"",
+                    RectangleElement => "Rectangle",
+                    EllipseElement => "Ellipse",
+                    ArrowElement => "Arrow",
+                    ImageElement => "Image",
+                    _ => SelectedElement.GetType().Name.Replace("Element", "")
+                };
+                return $"Selected: {name} ({(int)SelectedElement.Width} × {(int)SelectedElement.Height} px)";
+            }
+            return "Ready";
+        }
+    }
+
+    [RelayCommand]
+    private void CutElements()
+    {
+        if (!HasSelection) return;
+        CopyElements();
+        DeleteSelectedElement();
+    }
+
+
     [RelayCommand]
     private void SetInspectorTab(string tab) => ActiveInspectorTab = tab;
 
@@ -136,6 +260,10 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(CanvasWidth));
             OnPropertyChanged(nameof(CanvasHeight));
             CanvasSizeLabel = $"{(int)_canvasWidth} × {(int)_canvasHeight}";
+            OnPropertyChanged(nameof(IsPortrait));
+            OnPropertyChanged(nameof(IsLandscape));
+            OnPropertyChanged(nameof(ArtboardSelectionLabel));
+            OnPropertyChanged(nameof(DimensionStatusText));
             CanvasControl?.SetLogicalCanvasSize(_canvasWidth, _canvasHeight);
             CanvasControl?.FitToWindow();
             StatusMessage = $"Resized canvas to {CanvasSizeLabel}.";
@@ -224,6 +352,7 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsImageSelected));
         OnPropertyChanged(nameof(HasSelection));
         OnPropertyChanged(nameof(ShowQuickActionsCluster));
+        OnPropertyChanged(nameof(SelectionStatusText));
         SyncAdjustmentSlidersToSelection();
         SyncStyleFieldsToSelection();
     }
@@ -240,8 +369,82 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
     private double _canvasHeight = 480;
 
     /// <summary>The fixed logical canvas size — loaded once from settings at construction.</summary>
-    public double CanvasWidth => _canvasWidth;
-    public double CanvasHeight => _canvasHeight;
+    public double CanvasWidth
+    {
+        get => _canvasWidth;
+        set
+        {
+            if (value > 0 && Math.Abs(_canvasWidth - value) > 0.01)
+            {
+                _canvasWidth = Math.Clamp(value, 50, 10000);
+                OnPropertyChanged(nameof(CanvasWidth));
+                OnPropertyChanged(nameof(IsPortrait));
+                OnPropertyChanged(nameof(IsLandscape));
+                CanvasSizeLabel = $"{(int)_canvasWidth} × {(int)_canvasHeight}";
+                OnPropertyChanged(nameof(ArtboardSelectionLabel));
+                OnPropertyChanged(nameof(DimensionStatusText));
+                CanvasControl?.SetLogicalCanvasSize(_canvasWidth, _canvasHeight);
+            }
+        }
+    }
+
+    public double CanvasHeight
+    {
+        get => _canvasHeight;
+        set
+        {
+            if (value > 0 && Math.Abs(_canvasHeight - value) > 0.01)
+            {
+                _canvasHeight = Math.Clamp(value, 50, 10000);
+                OnPropertyChanged(nameof(CanvasHeight));
+                OnPropertyChanged(nameof(IsPortrait));
+                OnPropertyChanged(nameof(IsLandscape));
+                CanvasSizeLabel = $"{(int)_canvasWidth} × {(int)_canvasHeight}";
+                OnPropertyChanged(nameof(ArtboardSelectionLabel));
+                OnPropertyChanged(nameof(DimensionStatusText));
+                CanvasControl?.SetLogicalCanvasSize(_canvasWidth, _canvasHeight);
+            }
+        }
+    }
+
+    public bool IsPortrait => _canvasHeight >= _canvasWidth;
+    public bool IsLandscape => _canvasWidth > _canvasHeight;
+
+    [RelayCommand]
+    public void SwapOrientation()
+    {
+        var temp = _canvasWidth;
+        _canvasWidth = _canvasHeight;
+        _canvasHeight = temp;
+        OnPropertyChanged(nameof(CanvasWidth));
+        OnPropertyChanged(nameof(CanvasHeight));
+        OnPropertyChanged(nameof(IsPortrait));
+        OnPropertyChanged(nameof(IsLandscape));
+        CanvasSizeLabel = $"{(int)_canvasWidth} × {(int)_canvasHeight}";
+        OnPropertyChanged(nameof(ArtboardSelectionLabel));
+        OnPropertyChanged(nameof(DimensionStatusText));
+        CanvasControl?.SetLogicalCanvasSize(_canvasWidth, _canvasHeight);
+        CanvasControl?.FitToWindow();
+        StatusMessage = $"Orientation changed to {CanvasSizeLabel}.";
+    }
+
+    [RelayCommand]
+    public void SetPortrait()
+    {
+        if (_canvasWidth > _canvasHeight) SwapOrientation();
+    }
+
+    [RelayCommand]
+    public void SetLandscape()
+    {
+        if (_canvasHeight > _canvasWidth) SwapOrientation();
+    }
+
+    [RelayCommand]
+    public void RotateArtboardClockwise() => SwapOrientation();
+
+    [RelayCommand]
+    public void RotateArtboardCounterClockwise() => SwapOrientation();
 
     // ── Tool state ─────────────────────────────────────────────────────────
     [ObservableProperty]
@@ -1344,6 +1547,12 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
     private void ResetZoomToActual() => CanvasControl?.ResetZoomToActual();
 
     [RelayCommand]
+    private void ResetZoom() => CanvasControl?.ResetZoomToActual();
+
+    [RelayCommand]
+    private void FitToWindow() => CanvasControl?.FitToWindow();
+
+    [RelayCommand]
     private void FitCanvasToWindow() => CanvasControl?.FitToWindow();
 
     // ── Constructor ────────────────────────────────────────────────────────
@@ -1363,6 +1572,7 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         BuildTextStyleGroups();
         BuildShapeGroups();
         BuildStickerGroups();
+        LoadTemplateCards();
     }
 
     private void LoadSettings()
@@ -1884,6 +2094,15 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
 
     // ── Export ─────────────────────────────────────────────────────────────
     [RelayCommand]
+    private Task ExportPngAsync() => ExportToPngAsync();
+
+    [RelayCommand]
+    private Task SaveProjectJsonAsync() => SaveProjectAsync();
+
+    [RelayCommand]
+    private Task OpenProjectJsonAsync() => LoadProjectAsync();
+
+    [RelayCommand]
     private async Task ExportToPngAsync()
     {
         try
@@ -2208,8 +2427,7 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         }
     }
 
-    [RelayCommand]
-    private void OpenTemplateGallery()
+    private void LoadTemplateCards()
     {
         foreach (var card in TemplateCards) card.Preview?.Dispose();
         TemplateCards.Clear();
@@ -2219,6 +2437,12 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
             TemplateCards.Add(new TemplateCardViewModel(def, RenderTemplatePreview(def)));
         }
         ApplyTemplateFilter();
+    }
+
+    [RelayCommand]
+    private void OpenTemplateGallery()
+    {
+        if (TemplateCards.Count == 0) LoadTemplateCards();
         IsTemplateGalleryOpen = true;
     }
 
@@ -2332,6 +2556,133 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         CanvasControl?.Refresh();
     }
 
+    // ── Studio Command & Property Aliases ────────────────────────────────────
+    public bool HasSelectedElements => HasSelection;
+
+    [RelayCommand]
+    public void CloseOverlay() => GoBack();
+
+    [RelayCommand]
+    public void RequestClearCanvas() => ClearCanvas();
+
+    [RelayCommand]
+    public void SetAlignment(string alignment) => SetTextAlignment(alignment);
+
+    [RelayCommand]
+    public void ToggleTextCase() => SetTextCase(TextCaseField == TextCaseTransform.Uppercase ? "none" : "uppercase");
+
+    [RelayCommand]
+    public void StartCrop() => EnterCropMode();
+
+    [RelayCommand]
+    public void ResetImageAdjustments() => ResetAdjustments();
+
+    [RelayCommand]
+    public void ApplyFilterPreset(string preset) => SetFilterPreset(preset);
+
+    [RelayCommand]
+    public void InsertShapeFromLibrary(ShapeDefinition shape) => InsertShape(shape);
+
+    [RelayCommand]
+    public Task CopyCanvasAsImageAsync() => CopyToClipboardAsync();
+
+    [RelayCommand]
+    public void CenterElementOnCanvas()
+    {
+        AlignToPageCenterHorizontal();
+        AlignToPageCenterVertical();
+    }
+
+    [RelayCommand]
+    public void ToggleSelectedLock()
+    {
+        if (SelectedElement is { } el) ToggleLayerLock(el);
+    }
+
+    [RelayCommand]
+    public void ToggleSelectedVisibility()
+    {
+        if (SelectedElement is { } el) ToggleLayerVisibility(el);
+    }
+
+    [RelayCommand]
+    public void ApplyQuickPreset(string presetName)
+    {
+        var style = Models.TextStyles.TextStyleLibrary.All.FirstOrDefault(s => s.Name.Contains(presetName, StringComparison.OrdinalIgnoreCase))
+                    ?? Models.TextStyles.TextStyleLibrary.All.FirstOrDefault();
+        if (style != null)
+        {
+            if (SelectedTextElement != null)
+            {
+                ApplyTextStyle(style);
+            }
+            else
+            {
+                var text = new TextElement
+                {
+                    Text = style.Name,
+                    X = Math.Max(20, (CanvasWidth - 240) / 2),
+                    Y = Math.Max(20, (CanvasHeight - 60) / 2),
+                    Width = 240,
+                    Height = 60
+                };
+                style.ApplyTo(text);
+                CommitNewElement(text);
+            }
+        }
+    }
+
+    // ── Compatibility & Studio Binding Aliases ──────────────────────────────
+    public double FontSizeField { get => FontSize; set => FontSize = value; }
+    public bool IsBoldField { get => IsBold; set => IsBold = value; }
+    public bool IsItalicField { get => IsItalic; set => IsItalic = value; }
+    public bool IsUnderlineField { get => IsUnderline; set => IsUnderline = value; }
+    public bool IsStrikethroughField { get => IsStrikethrough; set => IsStrikethrough = value; }
+
+    [RelayCommand]
+    public void ToggleBold() => IsBold = !IsBold;
+
+    [RelayCommand]
+    public void ToggleItalic() => IsItalic = !IsItalic;
+
+    [RelayCommand]
+    public void ToggleUnderline() => IsUnderline = !IsUnderline;
+
+    [RelayCommand]
+    public void ToggleStrikethrough() => IsStrikethrough = !IsStrikethrough;
+
+    public double XField { get => ElementXField; set => ElementXField = value; }
+    public double YField { get => ElementYField; set => ElementYField = value; }
+    public double WidthField { get => ElementWidthField; set => ElementWidthField = value; }
+    public double HeightField { get => ElementHeightField; set => ElementHeightField = value; }
+    public double RotationField { get => ElementRotationField; set => ElementRotationField = value; }
+
+    public Color ShapeFillColor { get => FillColorField; set => FillColorField = value; }
+    public Color ShapeStrokeColor { get => StrokeColorField; set => StrokeColorField = value; }
+    public double StrokeWidthField { get => StrokeThicknessField; set => StrokeThicknessField = value; }
+
+    public double BrightnessField { get => ImgBrightness; set => ImgBrightness = value; }
+    public double ContrastField { get => ImgContrast; set => ImgContrast = value; }
+    public double SaturationField { get => ImgSaturation; set => ImgSaturation = value; }
+    public double BlurField { get => ImgBlurRadius; set => ImgBlurRadius = value; }
+
+    public string TextContentField
+    {
+        get => SelectedTextElement?.Text ?? "";
+        set
+        {
+            if (SelectedTextElement is { } t && t.Text != value)
+            {
+                t.Text = value;
+                RefreshCanvas();
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public bool IsConfirmDiscardOpen { get => IsConfirmingDiscard; set => IsConfirmingDiscard = value; }
+    public string DiscardPromptMessage => DiscardConfirmMessage;
+
     // ── IDisposable ────────────────────────────────────────────────────────
     public void Dispose()
     {
@@ -2408,6 +2759,7 @@ public sealed class FontGroupViewModel(string groupName, IReadOnlyList<FontChoic
 /// <summary>One category row in the Text Styles flyout.</summary>
 public sealed class TextStyleGroupViewModel(string groupName, IReadOnlyList<TextStyleDefinition> styles)
 {
+    public string Category => GroupName;
     public string GroupName { get; } = groupName;
     public IReadOnlyList<TextStyleDefinition> Styles { get; } = styles;
 }
@@ -2415,6 +2767,7 @@ public sealed class TextStyleGroupViewModel(string groupName, IReadOnlyList<Text
 /// <summary>One category row in the Shapes library panel.</summary>
 public sealed class ShapeGroupViewModel(string groupName, IReadOnlyList<ShapeCardViewModel> shapes)
 {
+    public string Category => GroupName;
     public string GroupName { get; } = groupName;
     public IReadOnlyList<ShapeCardViewModel> Shapes { get; } = shapes;
 }
@@ -2425,6 +2778,7 @@ public sealed class ShapeGroupViewModel(string groupName, IReadOnlyList<ShapeCar
 /// multi-element template's preview isn't, which is why that one IS pre-baked to a bitmap).</summary>
 public sealed class ShapeCardViewModel(ShapeDefinition definition, CanvasElement previewElement)
 {
+    public string Name => Definition.Name;
     public ShapeDefinition Definition { get; } = definition;
     public CanvasElement PreviewElement { get; } = previewElement;
 }

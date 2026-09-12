@@ -43,6 +43,9 @@ public abstract class CanvasElement
     /// resized, or deleted (but remains selectable from the Layers panel to inspect/unlock).</summary>
     public bool IsLocked { get; set; }
 
+    /// <summary>Visual selection state for UI layer row binding.</summary>
+    public bool IsSelected { get; set; }
+
     /// <summary>User-assigned layer name. Null falls back to <see cref="ElementType"/> via <see cref="DisplayName"/>.</summary>
     public string? Name { get; set; }
 

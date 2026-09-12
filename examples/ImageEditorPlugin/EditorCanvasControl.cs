@@ -118,6 +118,21 @@ public class EditorCanvasControl : Control
     /// <summary>Fired once the Eyedropper tool samples a pixel.</summary>
     public event Action<Color>? ColorSampled;
 
+    public double CanvasOriginScreenX => (Bounds.Width - _logicalWidth * _zoom) / 2 + _panOffset.X;
+    public double CanvasOriginScreenY => (Bounds.Height - _logicalHeight * _zoom) / 2 + _panOffset.Y;
+    public event Action<Point>? CursorPositionChanged;
+
+    private bool _isGridVisible = true;
+    public bool IsGridVisible
+    {
+        get => _isGridVisible;
+        set
+        {
+            _isGridVisible = value;
+            InvalidateVisual();
+        }
+    }
+
     /// <summary>Fired after a single-element (or N=1 group) rotation-handle drag completes.</summary>
     public event Action<CanvasElement, (double X, double Y, double Rotation), (double X, double Y, double Rotation)>? ElementRotated;
 
@@ -377,7 +392,10 @@ public class EditorCanvasControl : Control
 
             // 2. Canvas grid dots (subtle) — same tile-caching treatment (~7000 DrawEllipse
             // calls on a large canvas, otherwise re-run on every single-pointer-move tick).
-            dc.DrawImage(GetGridTile(_logicalWidth, _logicalHeight), canvasRect);
+            if (_isGridVisible)
+            {
+                dc.DrawImage(GetGridTile(_logicalWidth, _logicalHeight), canvasRect);
+            }
 
             // Artboard crisp hairline boundary
             var outlineColor = (_backgroundColor.A == 0 || (_backgroundColor.R > 200 && _backgroundColor.G > 200 && _backgroundColor.B > 200))
@@ -942,6 +960,21 @@ public class EditorCanvasControl : Control
         e.Handled = true;
     }
 
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == BoundsProperty)
+        {
+            CanvasChanged?.Invoke();
+        }
+    }
+
+    protected override void OnPointerExited(PointerEventArgs e)
+    {
+        base.OnPointerExited(e);
+        CursorPositionChanged?.Invoke(new Point(-1, -1));
+    }
+
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
@@ -953,12 +986,14 @@ public class EditorCanvasControl : Control
             _panOffset = new Point(_panOffset.X + delta.X, _panOffset.Y + delta.Y);
             _panLastScreenPos = currentScreenPos;
             ClampPanOffset(); // same unbounded-pan gap as the wheel handler — see its comment
+            CursorPositionChanged?.Invoke(ScreenToCanvas(currentScreenPos));
             CanvasChanged?.Invoke();
             InvalidateVisual();
             return;
         }
 
         var pos = ScreenToCanvas(e.GetPosition(this));
+        CursorPositionChanged?.Invoke(pos);
 
         if (_isCropDragging)
         {
@@ -1491,7 +1526,7 @@ public class EditorCanvasControl : Control
     /// above the selection but flips to below when there isn't room (e.g. the selection sits
     /// flush against the top of the canvas) — the collision-avoidance the reference screenshots'
     /// floating toolbar was missing.</summary>
-    public Point GetFloatingChromeAnchor(Rect selectionScreenBounds, Size chromeSize, double gap = 8)
+    public Point GetFloatingChromeAnchor(Rect selectionScreenBounds, Size chromeSize, double gap = 26)
     {
         double x = selectionScreenBounds.Center.X - chromeSize.Width / 2;
         x = Math.Clamp(x, 0, Math.Max(0, Bounds.Width - chromeSize.Width));
