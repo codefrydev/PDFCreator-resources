@@ -56,13 +56,13 @@ public class ImageEditorPlugin : IFryPlugin
         {
             Id = "ImageEditorStudio",
             Title = "Image Editor",
-            Group = "Library",                           // Integrated into sidebar Library section
+            Group = "Overview",                          // Integrated into Overview right after New Document
             IconKind = "ImageEditOutline",               // Canva-style palette/canvas icon
             BadgeText = "Studio",                        // Status pill badge
             BadgeColorHex = "#2563EB",                   // Blue accent color
-            Order = 170,                                 // Positioned in Library section
-            DisplayMode = NavigationDisplayMode.FullViewport, // Edge-to-edge canvas without outer scroll
-            HideTopSearchBar = false,
+            Order = 35,                                  // Sits between New Document (30) and All Tools (40)
+            DisplayMode = NavigationDisplayMode.FullViewport, // Edge-to-edge canvas; hides Home sidebar
+            HideTopSearchBar = true,                     // Hides global search bar so Studio bar takes full top
             ViewFactory = sp => new ImageEditorView
             {
                 DataContext = new ImageEditorViewModel(sp)

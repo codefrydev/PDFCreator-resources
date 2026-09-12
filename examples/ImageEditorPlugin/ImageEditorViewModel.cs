@@ -264,11 +264,15 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(IsLandscape));
             OnPropertyChanged(nameof(ArtboardSelectionLabel));
             OnPropertyChanged(nameof(DimensionStatusText));
+            ActivePaperSize = preset;
             CanvasControl?.SetLogicalCanvasSize(_canvasWidth, _canvasHeight);
             CanvasControl?.FitToWindow();
             StatusMessage = $"Resized canvas to {CanvasSizeLabel}.";
         }
     }
+
+    [ObservableProperty]
+    private string _activePaperSize = "640x480";
 
     [ObservableProperty]
     private CanvasElement? _selectedElement;
@@ -381,6 +385,7 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
                 OnPropertyChanged(nameof(IsPortrait));
                 OnPropertyChanged(nameof(IsLandscape));
                 CanvasSizeLabel = $"{(int)_canvasWidth} × {(int)_canvasHeight}";
+                ActivePaperSize = $"{(int)_canvasWidth}x{(int)_canvasHeight}";
                 OnPropertyChanged(nameof(ArtboardSelectionLabel));
                 OnPropertyChanged(nameof(DimensionStatusText));
                 CanvasControl?.SetLogicalCanvasSize(_canvasWidth, _canvasHeight);
@@ -400,6 +405,7 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
                 OnPropertyChanged(nameof(IsPortrait));
                 OnPropertyChanged(nameof(IsLandscape));
                 CanvasSizeLabel = $"{(int)_canvasWidth} × {(int)_canvasHeight}";
+                ActivePaperSize = $"{(int)_canvasWidth}x{(int)_canvasHeight}";
                 OnPropertyChanged(nameof(ArtboardSelectionLabel));
                 OnPropertyChanged(nameof(DimensionStatusText));
                 CanvasControl?.SetLogicalCanvasSize(_canvasWidth, _canvasHeight);
@@ -1607,7 +1613,9 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         BackgroundColor = name switch
         {
             "Black" => Colors.Black,
-            "Dark" => Color.FromRgb(0x18, 0x1E, 0x2A),
+            "Dark" => Color.FromRgb(0x0F, 0x17, 0x2A),
+            "Slate" => Color.FromRgb(0xF8, 0xFA, 0xFC),
+            "Warm" => Color.FromRgb(0xFE, 0xF3, 0xC7),
             "Gray" => Color.FromRgb(0xEA, 0xEE, 0xF4),
             "Indigo" => Color.FromRgb(0x31, 0x2E, 0x81),
             "Transparent" => Colors.Transparent,
@@ -1625,6 +1633,7 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanvasWidth));
         OnPropertyChanged(nameof(CanvasHeight));
         CanvasSizeLabel = $"{(int)_canvasWidth} × {(int)_canvasHeight}";
+        ActivePaperSize = $"{(int)_canvasWidth}x{(int)_canvasHeight}";
         CanvasControl?.SetLogicalCanvasSize(_canvasWidth, _canvasHeight);
         CanvasControl?.FitToWindow();
         StatusMessage = $"Swapped canvas orientation to {CanvasSizeLabel}.";
@@ -2380,6 +2389,7 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanvasWidth));
         OnPropertyChanged(nameof(CanvasHeight));
         CanvasSizeLabel = $"{(int)_canvasWidth} × {(int)_canvasHeight}";
+        ActivePaperSize = $"{(int)_canvasWidth}x{(int)_canvasHeight}";
         CanvasControl?.SetLogicalCanvasSize(_canvasWidth, _canvasHeight);
 
         BackgroundColor = background;

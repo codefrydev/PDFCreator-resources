@@ -96,6 +96,7 @@ public class EditorCanvasControl : Control
 
     public EditorCanvasControl()
     {
+        ClipToBounds = true;
         _nudgeCommitTimer.Tick += OnNudgeCommitTick;
     }
 
