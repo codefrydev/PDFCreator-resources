@@ -21,6 +21,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using PdfEditorApp.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using PdfEditorApp.Core.Models;
+using PdfEditorApp.Core.Plugins.Descriptors;
 using PdfEditorApp.Core.Plugins.Settings;
 using PdfEditorApp.Core.Services;
 using PdfEditorApp.Plugins.ImageEditor.Models;
@@ -43,6 +44,7 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
 {
     private const string PluginId = "frypdf.overlay.imageeditor";
     private readonly IPluginSettingsStore? _settingsStore;
+    private readonly IOverlayRegistry? _overlayRegistry;
 
     /// <summary>Null in the standalone Runner (its minimal IServiceProvider only supplies
     /// IPluginSettingsStore) — the Typefaces picker degrades to the always-available "Basics"
@@ -246,6 +248,12 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void GoBack()
     {
+        // 1. Hide this overlay directly — the plugin owns its own lifecycle.
+        //    In the standalone Runner _overlayRegistry is null; the Runner's MainWindow
+        //    handles NavigateToHomeMessage to close the window instead.
+        _overlayRegistry?.HideOverlay(PluginId);
+
+        // 2. Signal the shell to restore Home workspace nav state.
         WeakReferenceMessenger.Default.Send(new NavigateToHomeMessage());
     }
 
@@ -1566,6 +1574,7 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
     {
         _settingsStore = serviceProvider?.GetService<IPluginSettingsStore>();
         _fontPackageService = serviceProvider?.GetService<IFontPackageService>();
+        _overlayRegistry = serviceProvider?.GetService<IOverlayRegistry>();
         History.HistoryChanged += (_, _) =>
         {
             UndoCommand.NotifyCanExecuteChanged();
