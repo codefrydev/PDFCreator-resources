@@ -1,0 +1,136 @@
+name: Publish Plugins to NuGet & Marketplace
+
+on:
+  push:
+    tags:
+      - 'plugin-v*'
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Package release version (e.g. 1.0.0; leave blank to infer from tag or csproj)'
+        required: false
+        default: ''
+      plugin:
+        description: 'Specific plugin to build and publish, or "all"'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'TicTacToePlugin'
+          - 'SnakePlugin'
+          - 'ScratchpadPlugin'
+          - 'TelemetryPlugin'
+          - 'MusicPlayerPlugin'
+          - 'ImageEditorPlugin'
+      dry_run:
+        description: 'Dry run (build, test, and pack only; do not publish to NuGet.org)'
+        type: boolean
+        required: false
+        default: false
+
+concurrency:
+  group: publish-plugins-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  id-token: write  # Required for GitHub Actions OIDC federation with NuGet.org
+  contents: read   # Required to check out repository code
+
+jobs:
+  build-test-publish:
+    name: Build, Pack & Publish FryPDF Plugins
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Determine Package Version
+        id: version
+        shell: bash
+        run: |
+          RAW_VER=""
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            RAW_VER="${{ github.event.inputs.version }}"
+          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            RAW_VER="${GITHUB_REF_NAME}"
+          fi
+
+          # Strip leading prefixes: 'plugin-v', 'plugin-', 'v', or 'V'
+          CLEAN_VER=$(echo "$RAW_VER" | sed -E 's/^(plugin-v?|v)//I')
+          echo "version=${CLEAN_VER}" >> "$GITHUB_OUTPUT"
+          echo "Explicit Package Version Override: ${CLEAN_VER:-'(using csproj defaults)'}"
+
+      - name: Build Shared Runner Support Library
+        run: dotnet build shared/FryPdf.Runner.Shared/FryPdf.Runner.Shared.csproj -c Release
+
+      - name: Build All Plugin Solutions & Standalone Runners
+        run: |
+          for sln in examples/*/*.slnx; do
+            echo "=== Building $sln ==="
+            dotnet build "$sln" -c Release
+          done
+
+      - name: Pack Plugin NuGet Packages
+        shell: bash
+        run: |
+          mkdir -p ./artifacts
+          TARGET_PLUGIN="${{ github.event.inputs.plugin || 'all' }}"
+          VER_ARG=""
+          if [ -n "${{ steps.version.outputs.version }}" ]; then
+            VER_ARG="-p:PackageVersion=${{ steps.version.outputs.version }} -p:Version=${{ steps.version.outputs.version }}"
+          fi
+
+          if [ "$TARGET_PLUGIN" = "all" ]; then
+            for csproj in examples/*/*.csproj; do
+              echo "=== Packing $csproj ==="
+              dotnet pack "$csproj" -c Release $VER_ARG --output ./artifacts
+            done
+          else
+            echo "=== Packing $TARGET_PLUGIN ==="
+            dotnet pack "examples/$TARGET_PLUGIN/$TARGET_PLUGIN.csproj" -c Release $VER_ARG --output ./artifacts
+          fi
+
+      - name: Stage .fryplugin Packages & Validate Ecosystem
+        run: |
+          python3 tools/package_plugin.py --all
+          python3 tools/validate_plugins.py
+          python3 tools/verify_fonts.py
+
+      - name: Upload NuGet Packages & .fryplugin Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frypdf-plugin-packages
+          path: |
+            ./artifacts/*.nupkg
+            ./artifacts/*.snupkg
+            ./plugins/*/*.fryplugin
+          if-no-files-found: error
+
+      - name: NuGet login (OIDC exchange for temporary API key)
+        if: ${{ !inputs.dry_run }}
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER || vars.NUGET_USER || 'prashantunity' }}
+
+      - name: Publish Packages to NuGet.org
+        if: ${{ !inputs.dry_run }}
+        run: |
+          dotnet nuget push "./artifacts/*.nupkg" \
+            --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
+            --source "https://api.nuget.org/v3/index.json" \
+            --skip-duplicate

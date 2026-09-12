@@ -7,7 +7,7 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="avares://PdfEditorApp/Styles/Material3ExpressiveTokens.axaml" />
+                <ResourceInclude Source="avares://FryPdf.Runner.Shared/Styles/Material3ExpressiveTokens.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
@@ -16,7 +16,7 @@
         <FluentTheme />
         <materialIcons:MaterialIconStyles />
         <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml" />
-        <StyleInclude Source="avares://PdfEditorApp/Styles/Material3ExpressiveStyles.axaml" />
-        <StyleInclude Source="avares://PdfEditorApp/Styles/FluentOfficeStyles.axaml" />
+        <StyleInclude Source="avares://FryPdf.Runner.Shared/Styles/Material3ExpressiveStyles.axaml" />
+        <StyleInclude Source="avares://FryPdf.Runner.Shared/Styles/FluentOfficeStyles.axaml" />
     </Application.Styles>
 </Application>

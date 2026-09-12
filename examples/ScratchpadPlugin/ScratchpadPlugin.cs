@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.Input;
 using PdfEditorApp.Core.Plugins;
 using PdfEditorApp.Core.Plugins.Descriptors;
 using PdfEditorApp.Core.Plugins.Manifests;
-using PdfEditorApp.ViewModels;
 
 namespace PdfEditorApp.Plugins.Scratchpad;
 
@@ -87,13 +87,9 @@ public class ScratchpadPlugin : IFryPlugin
             Factory = sp =>
             {
                 var reg = sp.GetService(typeof(IOverlayRegistry)) as IOverlayRegistry;
-                return new StatusBarWidgetViewModel
+                return new Button
                 {
-                    WidgetId = "frypdf.status.scratchpad",
-                    Label = "📝 Notes",
-                    IconKind = "NotebookEditOutline",
-                    ToolTip = "Toggle floating review scratchpad",
-                    IsActive = true,
+                    Content = "📝 Notes",
                     Command = new RelayCommand(() => reg?.ToggleOverlay(Id))
                 };
             }

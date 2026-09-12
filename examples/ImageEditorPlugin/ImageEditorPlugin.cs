@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.Input;
 using PdfEditorApp.Core.Plugins;
 using PdfEditorApp.Core.Plugins.Descriptors;
 using PdfEditorApp.Core.Plugins.Manifests;
-using PdfEditorApp.ViewModels;
 
 namespace PdfEditorApp.Plugins.ImageEditor;
 
@@ -128,13 +128,9 @@ public class ImageEditorPlugin : IFryPlugin
             Factory = sp =>
             {
                 var reg = sp.GetService(typeof(IOverlayRegistry)) as IOverlayRegistry;
-                return new StatusBarWidgetViewModel
+                return new Button
                 {
-                    WidgetId = "frypdf.status.imageeditor",
-                    Label = "🎨 Image Editor",
-                    IconKind = "ImageEditOutline",
-                    ToolTip = "Launch floating Canva-style image editor",
-                    IsActive = true,
+                    Content = "🎨 Image Editor",
                     Command = new RelayCommand(() => reg?.ToggleOverlay(Id))
                 };
             }

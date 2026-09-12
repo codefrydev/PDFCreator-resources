@@ -123,7 +123,7 @@ def main():
     print("=" * 60)
 
     if args.all or args.plugin == "all" or not args.plugin:
-        example_dirs = sorted([d for d in EXAMPLES_DIR.iterdir() if d.is_dir() and not d.name.startswith(".")])
+        example_dirs = sorted([d for d in EXAMPLES_DIR.iterdir() if d.is_dir() and (d / "plugin.json").exists()])
         success = True
         for pdir in example_dirs:
             if not package_single_plugin(pdir):

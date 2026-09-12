@@ -1,5 +1,5 @@
 using Avalonia.Media;
-using PdfEditorApp.Services;
+using PdfEditorApp.Plugins.ImageEditor.Utils;
 
 namespace PdfEditorApp.Plugins.ImageEditor.Models.TextStyles;
 

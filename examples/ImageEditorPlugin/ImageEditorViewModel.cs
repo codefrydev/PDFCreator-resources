@@ -18,7 +18,6 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using PdfEditorApp.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using PdfEditorApp.Core.Models;
 using PdfEditorApp.Core.Plugins.Descriptors;
@@ -31,7 +30,7 @@ using PdfEditorApp.Plugins.ImageEditor.Models.Shapes;
 using PdfEditorApp.Plugins.ImageEditor.Models.Stickers;
 using PdfEditorApp.Plugins.ImageEditor.Models.TextStyles;
 using PdfEditorApp.Plugins.ImageEditor.Models.Undo;
-using PdfEditorApp.Services;
+using PdfEditorApp.Plugins.ImageEditor.Utils;
 using SkiaSharp;
 
 namespace PdfEditorApp.Plugins.ImageEditor;
@@ -245,16 +244,34 @@ public partial class ImageEditorViewModel : ObservableObject, IDisposable
     }
 
 
+    /// <summary>
+    /// Optional callback invoked when the user requests closing or navigating back from the studio.
+    /// Used by standalone runners to close the host window.
+    /// </summary>
+    public Action? RequestClose { get; set; }
+
     [RelayCommand]
     private void GoBack()
     {
         // 1. Hide this overlay directly — the plugin owns its own lifecycle.
-        //    In the standalone Runner _overlayRegistry is null; the Runner's MainWindow
-        //    handles NavigateToHomeMessage to close the window instead.
         _overlayRegistry?.HideOverlay(PluginId);
 
-        // 2. Signal the shell to restore Home workspace nav state.
-        WeakReferenceMessenger.Default.Send(new NavigateToHomeMessage());
+        // 2. Notify any local runner or external host listener.
+        RequestClose?.Invoke();
+
+        // 3. Signal the shell to restore Home workspace nav state if host message type exists.
+        try
+        {
+            var msgType = Type.GetType("PdfEditorApp.Messages.NavigateToHomeMessage, PdfEditorApp");
+            if (msgType != null)
+            {
+                var instance = Activator.CreateInstance(msgType);
+                var sendMethod = typeof(WeakReferenceMessenger).GetMethods()
+                    .FirstOrDefault(m => m.Name == "Send" && m.IsGenericMethod && m.GetGenericArguments().Length == 1);
+                sendMethod?.MakeGenericMethod(msgType).Invoke(WeakReferenceMessenger.Default, [instance]);
+            }
+        }
+        catch { }
     }
 
     [RelayCommand]

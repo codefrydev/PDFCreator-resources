@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:PdfEditorApp.Plugins.ImageEditor"
              xmlns:models="using:PdfEditorApp.Plugins.ImageEditor.Models"
-             xmlns:views="clr-namespace:PdfEditorApp.Views;assembly=PdfEditorApp"
+             xmlns:views="using:PdfEditorApp.Plugins.ImageEditor.Controls"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:colorPicker="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.ColorPicker"
              xmlns:models_templates="using:PdfEditorApp.Plugins.ImageEditor.Models.Templates"

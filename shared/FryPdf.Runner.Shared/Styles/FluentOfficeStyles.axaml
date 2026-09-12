@@ -1,0 +1,753 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
+
+    <!-- =================================================================== -->
+    <!-- Google Material Design 3 Expressive (M3 Expressive) Application     -->
+    <!-- Component Styles & Control Polish                                   -->
+    <!-- =================================================================== -->
+
+    <!-- Global Application Typography Polish -->
+    <Style Selector="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource M3FontFamily}" />
+    </Style>
+
+    <!-- Ribbon Tab Button Style (M3 Expressive Capsule Pill) -->
+    <Style Selector="Button.ribbon-tab">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource WinMutedBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="14,5" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerFull}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.15" />
+                <BrushTransition Property="Foreground" Duration="0:0:0.15" />
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Button.ribbon-tab:pointerover">
+        <Setter Property="Background" Value="{DynamicResource WinHoverBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource WinTextBrush}" />
+    </Style>
+
+    <Style Selector="Button.ribbon-tab.active">
+        <Setter Property="Background" Value="{DynamicResource WinAccentLightBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource WinAccentBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- File Tab Button Style (M3 Expressive Accent pill) -->
+    <Style Selector="Button.ribbon-file-tab">
+        <Setter Property="Background" Value="{DynamicResource WinAccentBrush}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="14,5" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerFull}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Button.ribbon-file-tab:pointerover">
+        <Setter Property="Background" Value="{DynamicResource WinAccentHoverBrush}" />
+        <Setter Property="RenderTransform" Value="scale(1.02)" />
+    </Style>
+    <Style Selector="Button.ribbon-file-tab:pressed">
+        <Setter Property="RenderTransform" Value="scale(0.96)" />
+    </Style>
+
+    <!-- Ribbon ScrollViewer & Sleek Horizontal ScrollBar (M3 Expressive Minimalist Pill) -->
+    <Style Selector="ScrollViewer.ribbon-scroll-viewer /template/ ScrollBar:horizontal">
+        <Setter Property="Height" Value="6" />
+        <Setter Property="MinHeight" Value="6" />
+        <Setter Property="Margin" Value="0,1,0,1" />
+        <Setter Property="Opacity" Value="0.45" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="ScrollViewer.ribbon-scroll-viewer /template/ ScrollBar:horizontal:pointerover">
+        <Setter Property="Opacity" Value="0.9" />
+    </Style>
+
+    <!-- Ribbon Vertical Tool Button (M3 Expressive rounded container) -->
+    <Style Selector="Button.tool-btn">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource WinTextBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="4,4" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerMedium}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="MinWidth" Value="64" />
+        <Setter Property="Height" Value="66" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut" />
+                <BrushTransition Property="Background" Duration="0:0:0.15" />
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Button.tool-btn:pointerover">
+        <Setter Property="Background" Value="{DynamicResource WinHoverBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="RenderTransform" Value="scale(1.02)" />
+    </Style>
+    <Style Selector="Button.tool-btn:pressed">
+        <Setter Property="RenderTransform" Value="scale(0.96)" />
+    </Style>
+
+    <Style Selector="Button.tool-btn.active">
+        <Setter Property="Background" Value="{DynamicResource WinAccentLightBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinAccentBorderBrush}" />
+    </Style>
+
+    <!-- Mini Tool Button (M3 Expressive rounded icon button) -->
+    <Style Selector="Button.mini-tool-btn">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource WinTextBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="MinWidth" Value="28" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerSmall}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" Easing="CubicEaseOut" />
+                <BrushTransition Property="Background" Duration="0:0:0.12" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Button.mini-tool-btn:pointerover">
+        <Setter Property="Background" Value="{DynamicResource WinHoverBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="RenderTransform" Value="scale(1.06)" />
+    </Style>
+    <Style Selector="Button.mini-tool-btn:pressed">
+        <Setter Property="RenderTransform" Value="scale(0.93)" />
+    </Style>
+
+    <Style Selector="Button.mini-tool-btn.active">
+        <Setter Property="Background" Value="{DynamicResource WinAccentLightBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinAccentBorderBrush}" />
+    </Style>
+
+    <Style Selector="Button.mini-tool-btn:disabled">
+        <Setter Property="Opacity" Value="0.35" />
+        <Setter Property="Cursor" Value="No" />
+    </Style>
+
+    <!-- Secondary Action Button (M3 Expressive Pill) -->
+    <Style Selector="Button.secondary-btn">
+        <Setter Property="Background" Value="{DynamicResource WinPanelBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource WinTextBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="12,4" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerFull}" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut" />
+                <BrushTransition Property="Background" Duration="0:0:0.15" />
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Button.secondary-btn:pointerover">
+        <Setter Property="Background" Value="{DynamicResource WinHoverBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="RenderTransform" Value="scale(1.02)" />
+    </Style>
+    <Style Selector="Button.secondary-btn:pressed">
+        <Setter Property="RenderTransform" Value="scale(0.97)" />
+    </Style>
+
+    <!-- Danger Button (M3 Expressive Error Pill) -->
+    <Style Selector="Button.danger-btn">
+        <Setter Property="Background" Value="{DynamicResource WinDangerLightBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource WinDangerBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinDangerBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="12,4" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerFull}" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Button.danger-btn:pointerover">
+        <Setter Property="Background" Value="{DynamicResource WinDangerLightBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinDangerBrush}" />
+        <Setter Property="RenderTransform" Value="scale(1.02)" />
+    </Style>
+    <Style Selector="Button.danger-btn:pressed">
+        <Setter Property="RenderTransform" Value="scale(0.97)" />
+    </Style>
+
+    <!-- Accent / Primary Button (M3 Expressive Filled Pill) -->
+    <Style Selector="Button.accent-btn, Button.primary-btn">
+        <Setter Property="Background" Value="{DynamicResource WinAccentBrush}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="16,6" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerFull}" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Height" Value="34" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut" />
+                <BrushTransition Property="Background" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Button.accent-btn:pointerover, Button.primary-btn:pointerover">
+        <Setter Property="Background" Value="{DynamicResource WinAccentHoverBrush}" />
+        <Setter Property="RenderTransform" Value="scale(1.02)" />
+    </Style>
+    <Style Selector="Button.accent-btn:pressed, Button.primary-btn:pressed">
+        <Setter Property="RenderTransform" Value="scale(0.96)" />
+    </Style>
+
+    <!-- Dialog Action Pill Button (for links, copy chips, cards) -->
+    <Style Selector="Button.action-pill-btn">
+        <Setter Property="Background" Value="{DynamicResource WinHoverBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource WinAccentBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="12,4" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerFull}" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Button.action-pill-btn:pointerover">
+        <Setter Property="Background" Value="{DynamicResource WinAccentLightBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinAccentBorderBrush}" />
+        <Setter Property="RenderTransform" Value="scale(1.02)" />
+    </Style>
+
+    <!-- Success Pill Button -->
+    <Style Selector="Button.success-pill-btn">
+        <Setter Property="Background" Value="{DynamicResource WinSuccessLightBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource WinSuccessBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinSuccessBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="14,4" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerFull}" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Button.success-pill-btn:pointerover">
+        <Setter Property="Background" Value="{DynamicResource WinSuccessBrush}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="RenderTransform" Value="scale(1.02)" />
+    </Style>
+
+    <!-- Inspector Section Labels & Headers -->
+    <Style Selector="TextBlock.inspector-header">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{DynamicResource WinMutedBrush}" />
+        <Setter Property="LetterSpacing" Value="0.6" />
+    </Style>
+
+    <Style Selector="TextBlock.inspector-label">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Foreground" Value="{DynamicResource WinMutedBrush}" />
+        <Setter Property="Margin" Value="0,0,0,3" />
+    </Style>
+
+    <!-- Modern M3 ComboBox & TextBox Styling -->
+    <Style Selector="ComboBox">
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerMedium}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="MinHeight" Value="30" />
+        <Setter Property="Padding" Value="10,3" />
+        <Setter Property="Foreground" Value="{DynamicResource WinTextBrush}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="TextBox">
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerMedium}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="MinHeight" Value="30" />
+        <Setter Property="Padding" Value="10,4" />
+        <Setter Property="Foreground" Value="{DynamicResource WinTextBrush}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <!-- Sleek Compact NumericUpDown Styling (Complements M3 Expressive Theme) -->
+    <Style Selector="NumericUpDown">
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerMedium}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource M3OutlineVariantBrush}" />
+        <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerLowestBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource M3OnSurfaceBrush}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+    </Style>
+
+    <!-- Inspector ColorPicker Compact Styling -->
+    <Style Selector="ColorPicker">
+        <Setter Property="MinHeight" Value="24" />
+        <Setter Property="Height" Value="24" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerMedium}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="Padding" Value="2" />
+        <Setter Property="IsAlphaEnabled" Value="True" />
+        <Setter Property="IsHexInputVisible" Value="True" />
+    </Style>
+
+    <!-- Industry Standard Color Studio Button Style -->
+    <Style Selector="Button.color-studio-btn">
+        <Setter Property="Width" Value="26" />
+        <Setter Property="Height" Value="26" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="13" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.color-studio-btn:pointerover">
+        <Setter Property="RenderTransform" Value="scale(1.08)" />
+    </Style>
+
+    <!-- Input Prefix Badge (e.g., [X], [Y], [W], [H], [∠]) -->
+    <Style Selector="Border.input-badge">
+        <Setter Property="Background" Value="{DynamicResource WinHoverBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1,1,0,1" />
+        <Setter Property="CornerRadius" Value="12,0,0,12" />
+        <Setter Property="Width" Value="24" />
+        <Setter Property="Height" Value="28" />
+    </Style>
+
+    <Style Selector="TextBlock.input-badge-text">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource WinMutedBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Floating Glass HUD Bar (M3 Expressive Floating Capsule) -->
+    <Style Selector="Border.glass-hud">
+        <Setter Property="Background" Value="{DynamicResource WinPanelBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerLarge}" />
+        <Setter Property="BoxShadow" Value="{StaticResource M3ElevationLevel3}" />
+        <Setter Property="Padding" Value="10,6" />
+    </Style>
+
+    <!-- Keyboard Key Cap / Badge Style -->
+    <Style Selector="Border.kbd-badge">
+        <Setter Property="Background" Value="{DynamicResource WinInputBgBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerExtraSmall}" />
+        <Setter Property="Padding" Value="5,1.5" />
+        <Setter Property="BoxShadow" Value="{StaticResource M3ElevationLevel1}" />
+    </Style>
+
+    <Style Selector="TextBlock.kbd-text">
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource WinTextBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource M3FontFamilyMono}" />
+    </Style>
+
+    <!-- Toast Notification Banner -->
+    <Style Selector="Border.toast-banner">
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerLarge}" />
+        <Setter Property="Padding" Value="16,10" />
+        <Setter Property="BoxShadow" Value="{StaticResource M3ElevationLevel3}" />
+    </Style>
+    <Style Selector="Border.toast-banner Button:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#25000000" />
+    </Style>
+
+    <!-- Context Menu Item Styling (M3 Expressive rounded surfaces) -->
+    <Style Selector="ContextMenu">
+        <Setter Property="Background" Value="{DynamicResource WinPanelBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerLarge}" />
+        <Setter Property="Padding" Value="6" />
+    </Style>
+
+    <Style Selector="MenuItem">
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerSmall}" />
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{DynamicResource WinTextBrush}" />
+    </Style>
+
+    <!-- Template Gallery Interactive Card Style (M3 Expressive Elevated Card) -->
+    <Style Selector="Button.template-card">
+        <Setter Property="Background" Value="{DynamicResource WinPanelBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerLarge}" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.18" />
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.18" Easing="CubicEaseOut" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Button.template-card:pointerover">
+        <Setter Property="BorderBrush" Value="{DynamicResource WinAccentBrush}" />
+        <Setter Property="RenderTransform" Value="scale(1.02)" />
+    </Style>
+
+    <!-- Category Filter Chip Style (M3 Expressive Pill Chip) -->
+    <Style Selector="Button.category-filter-chip">
+        <Setter Property="Background" Value="{DynamicResource WinInputBgBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource WinMutedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerFull}" />
+        <Setter Property="Padding" Value="14,5" />
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.15" />
+                <BrushTransition Property="Foreground" Duration="0:0:0.15" />
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Button.category-filter-chip:pointerover">
+        <Setter Property="Background" Value="{DynamicResource WinHoverBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource WinTextBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="RenderTransform" Value="scale(1.02)" />
+    </Style>
+
+    <Style Selector="Button.category-filter-chip.active">
+        <Setter Property="Background" Value="{DynamicResource WinAccentLightBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource WinAccentBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinAccentBorderBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- ============================================================== -->
+    <!-- Reader-style chrome: shared by the PDF Reader (PdfViewerView)   -->
+    <!-- and the tool-screen workspace shell (PdfToolWorkspaceView)      -->
+    <!-- ============================================================== -->
+
+    <!-- Page Card Physical Styling (M3 Elevation Level 2) -->
+    <Style Selector="Border.reader-page-card">
+        <Setter Property="Background" Value="#FFFFFF" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerExtraSmall}" />
+        <Setter Property="BoxShadow" Value="{StaticResource M3ElevationLevel2}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+
+    <!-- Reading Theme Specific Paper Styling -->
+    <Style Selector="Border.reading-theme-sepia">
+        <Setter Property="Background" Value="#FBF0D9" />
+        <Setter Property="BorderBrush" Value="#E6D5B8" />
+    </Style>
+    <Style Selector="Border.reading-theme-dark">
+        <Setter Property="Background" Value="#1E293B" />
+        <Setter Property="BorderBrush" Value="#334155" />
+    </Style>
+    <Style Selector="Border.reading-theme-highcontrast">
+        <Setter Property="Background" Value="#000000" />
+        <Setter Property="BorderBrush" Value="#FFFF00" />
+    </Style>
+
+    <!-- Toolbar Segmented Capsule (M3 Expressive Pill Capsule) -->
+    <Style Selector="Border.toolbar-capsule">
+        <Setter Property="Background" Value="{DynamicResource WinInputBgBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerFull}" />
+        <Setter Property="Padding" Value="4,3" />
+    </Style>
+
+    <!-- Compact Tool Button (M3 Pill Icon Button) -->
+    <Style Selector="Button.toolbar-btn">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerFull}" />
+        <Setter Property="Width" Value="30" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.15" />
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" Easing="CubicEaseOut" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Button.toolbar-btn:pointerover">
+        <Setter Property="Background" Value="{DynamicResource WinHoverBrush}" />
+        <Setter Property="RenderTransform" Value="scale(1.06)" />
+    </Style>
+    <Style Selector="Button.toolbar-btn:pressed">
+        <Setter Property="RenderTransform" Value="scale(0.93)" />
+    </Style>
+
+    <!-- Active Mode Button in Segmented Capsule -->
+    <Style Selector="Button.mode-active">
+        <Setter Property="Background" Value="{DynamicResource WinAccentLightBrush}" />
+    </Style>
+
+    <!-- ============================================================== -->
+    <!-- Thumbnail Item Styling: M3 Expressive Paper Sheet & Zero-Leak Interactive Button -->
+    <!-- ============================================================== -->
+
+    <!-- Thumbnail Item Button Wrapper (Zero-leak transparent interactive container for page sheets) -->
+    <Style Selector="Button.thumbnail-item-btn">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0,0,0,16" />
+        <Setter Property="ClipToBounds" Value="False" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.thumbnail-item-btn /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="ClipToBounds" Value="False" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="Button.thumbnail-item-btn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.thumbnail-item-btn:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.thumbnail-item-btn:focus /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <!-- Thumbnail Item Card: Refined M3 Expressive Paper Sheet -->
+    <Style Selector="Border.thumbnail-card">
+        <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerLowestBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="ClipToBounds" Value="True" />
+        <Setter Property="BoxShadow" Value="0 2 6 0 #14000000, 0 1 2 0 #0A000000" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+                <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Border.thumbnail-card:pointerover, Button.thumbnail-item-btn:pointerover Border.thumbnail-card">
+        <Setter Property="BorderBrush" Value="{DynamicResource M3PrimaryBrush}" />
+        <Setter Property="BoxShadow" Value="0 4 12 0 #1E000000, 0 2 4 0 #0C000000" />
+    </Style>
+    <Style Selector="Border.thumbnail-card.selected">
+        <Setter Property="BorderBrush" Value="{DynamicResource M3PrimaryBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerLowestBrush}" />
+        <Setter Property="BoxShadow" Value="0 4 14 0 #280F6CBD, 0 1 3 0 #140F6CBD" />
+    </Style>
+
+    <!-- Page Number Pill for Thumbnails -->
+    <Style Selector="Border.page-number-pill">
+        <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerFull}" />
+        <Setter Property="Padding" Value="10,2" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.15" />
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Border.page-number-pill TextBlock">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource WinMutedBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Foreground" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Button.thumbnail-item-btn:pointerover Border.page-number-pill:not(.selected)">
+        <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighestBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource M3PrimaryBrush}" />
+    </Style>
+    <Style Selector="Button.thumbnail-item-btn:pointerover Border.page-number-pill:not(.selected) TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource WinTextBrush}" />
+    </Style>
+    <Style Selector="Border.page-number-pill.selected">
+        <Setter Property="Background" Value="{DynamicResource M3PrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource M3PrimaryBrush}" />
+        <Setter Property="BoxShadow" Value="0 2 6 0 #250F6CBD" />
+    </Style>
+    <Style Selector="Border.page-number-pill.selected TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource M3OnPrimaryBrush}" />
+        <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+
+    <!-- ============================================================== -->
+    <!-- Modern Chubby Tactile Slider Styling (Google Material 3 Expressive) -->
+    <!-- ============================================================== -->
+    <Style Selector="Slider">
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="Slider:horizontal">
+        <Setter Property="MinHeight" Value="26" />
+    </Style>
+
+    <Style Selector="Slider:vertical">
+        <Setter Property="MinWidth" Value="26" />
+    </Style>
+
+    <!-- Track Corners Polish: ensures smooth pill ends -->
+    <Style Selector="Slider /template/ RepeatButton#PART_DecreaseButton /template/ Border#TrackBackground">
+        <Setter Property="CornerRadius" Value="5" />
+    </Style>
+    <Style Selector="Slider /template/ RepeatButton#PART_IncreaseButton /template/ Border#TrackBackground">
+        <Setter Property="CornerRadius" Value="5" />
+    </Style>
+
+    <!-- Tactile Chubby Thumb with Ring & Soft Elevation Shadow -->
+    <Style Selector="Slider /template/ Thumb">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="ClipToBounds" Value="False" />
+        <Setter Property="Width" Value="22" />
+        <Setter Property="Height" Value="22" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" Easing="CubicEaseOut" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Slider /template/ Thumb /template/ Border">
+        <Setter Property="CornerRadius" Value="11" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WinPanelBrush}" />
+        <Setter Property="BorderThickness" Value="2.5" />
+        <Setter Property="BoxShadow" Value="{StaticResource M3ElevationLevel2}" />
+    </Style>
+
+    <Style Selector="Slider /template/ Thumb:pointerover">
+        <Setter Property="RenderTransform" Value="scale(1.15)" />
+    </Style>
+
+    <Style Selector="Slider /template/ Thumb:pressed">
+        <Setter Property="RenderTransform" Value="scale(0.92)" />
+    </Style>
+
+    <!-- Optional extra-chubby style class for prominent sliders -->
+    <Style Selector="Slider.extra-chubby">
+        <Setter Property="MinHeight" Value="30" />
+    </Style>
+    <Style Selector="Slider.extra-chubby /template/ RepeatButton#PART_DecreaseButton /template/ Border#TrackBackground">
+        <Setter Property="Height" Value="12" />
+        <Setter Property="CornerRadius" Value="6" />
+    </Style>
+    <Style Selector="Slider.extra-chubby /template/ RepeatButton#PART_IncreaseButton /template/ Border#TrackBackground">
+        <Setter Property="Height" Value="12" />
+        <Setter Property="CornerRadius" Value="6" />
+    </Style>
+    <Style Selector="Slider.extra-chubby /template/ Thumb">
+        <Setter Property="Width" Value="24" />
+        <Setter Property="Height" Value="24" />
+    </Style>
+    <Style Selector="Slider.extra-chubby /template/ Thumb /template/ Border">
+        <Setter Property="CornerRadius" Value="12" />
+    </Style>
+
+</Styles>

@@ -4,7 +4,6 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
-using PdfEditorApp.ViewModels;
 
 namespace PdfEditorApp.Plugins.Snake;
 
@@ -87,11 +86,15 @@ public partial class SnakeGameView : UserControl
             var deltaY = currentPoint.Y - _dragStartPoint.Y;
             _dragStartPoint = currentPoint;
 
-            var overlayVm = FindOverlayViewModel();
-            if (overlayVm != null)
+            if (FindOverlayViewModel() is { } overlayVm)
             {
-                overlayVm.X = Math.Max(0, overlayVm.X + deltaX);
-                overlayVm.Y = Math.Max(0, overlayVm.Y + deltaY);
+                try
+                {
+                    dynamic d = overlayVm;
+                    d.X = Math.Max(0, d.X + deltaX);
+                    d.Y = Math.Max(0, d.Y + deltaY);
+                }
+                catch { }
             }
             e.Handled = true;
         }
@@ -121,10 +124,9 @@ public partial class SnakeGameView : UserControl
             FooterContainer.IsVisible = !_isLocallyMinimized;
         }
 
-        var overlayVm = FindOverlayViewModel();
-        if (overlayVm != null)
+        if (FindOverlayViewModel() is { } overlayVm)
         {
-            overlayVm.IsMinimized = _isLocallyMinimized;
+            try { ((dynamic)overlayVm).IsMinimized = _isLocallyMinimized; } catch { }
         }
     }
 
@@ -138,19 +140,19 @@ public partial class SnakeGameView : UserControl
         var overlayVm = FindOverlayViewModel();
         if (overlayVm != null)
         {
-            overlayVm.Close();
+            try { ((dynamic)overlayVm).Close(); } catch { }
         }
     }
 
-    private OverlayInstanceViewModel? FindOverlayViewModel()
+    private object? FindOverlayViewModel()
     {
         // First check parent control DataContext
         Visual? current = this;
         while (current != null)
         {
-            if (current is Control ctrl && ctrl.DataContext is OverlayInstanceViewModel ovm)
+            if (current is Control ctrl && ctrl.DataContext != null && ctrl.DataContext.GetType().Name.Contains("OverlayInstanceViewModel"))
             {
-                return ovm;
+                return ctrl.DataContext;
             }
             current = current.GetVisualParent();
         }

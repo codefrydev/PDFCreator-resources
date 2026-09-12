@@ -3,7 +3,7 @@ using System.IO;
 using Avalonia;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using PdfEditorApp.Services;
+using PdfEditorApp.Plugins.ImageEditor.Utils;
 
 namespace PdfEditorApp.Plugins.ImageEditor.Models.Serialization;
 

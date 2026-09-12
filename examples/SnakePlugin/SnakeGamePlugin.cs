@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.Input;
 using PdfEditorApp.Core.Plugins;
 using PdfEditorApp.Core.Plugins.Descriptors;
 using PdfEditorApp.Core.Plugins.Manifests;
-using PdfEditorApp.ViewModels;
 
 namespace PdfEditorApp.Plugins.Snake;
 
@@ -95,17 +95,10 @@ public class SnakeGamePlugin : IFryPlugin
             Factory = sp =>
             {
                 var reg = sp.GetService(typeof(IOverlayRegistry)) as IOverlayRegistry;
-                return new StatusBarWidgetViewModel
+                return new Button
                 {
-                    WidgetId = "frypdf.status.snake",
-                    Label = "🐍 Snake",
-                    IconKind = "GamepadVariantOutline",
-                    ToolTip = "Launch floating Snake game overlay",
-                    IsActive = true,
-                    Command = new RelayCommand(() =>
-                    {
-                        reg?.ToggleOverlay(Id);
-                    })
+                    Content = "🐍 Snake",
+                    Command = new RelayCommand(() => reg?.ToggleOverlay(Id))
                 };
             }
         });

@@ -4,8 +4,17 @@
              x:Class="PdfEditorApp.Plugins.Snake.Runner.App"
              RequestedThemeVariant="Dark">
 
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://FryPdf.Runner.Shared/Styles/Material3ExpressiveTokens.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
         <materialIcons:MaterialIconStyles />
+        <StyleInclude Source="avares://FryPdf.Runner.Shared/Styles/Material3ExpressiveStyles.axaml" />
     </Application.Styles>
 </Application>

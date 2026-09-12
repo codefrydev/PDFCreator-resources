@@ -3,7 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:local="using:PdfEditorApp.Plugins.Snake"
-             xmlns:vm="using:PdfEditorApp.ViewModels"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="420"
              x:Class="PdfEditorApp.Plugins.Snake.SnakeGameView"

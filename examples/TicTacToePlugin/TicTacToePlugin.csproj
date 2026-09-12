@@ -5,7 +5,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>13</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);NU1901;NU1902;NU1903;NU1904</NoWarn>
     <AssemblyName>TicTacToePlugin</AssemblyName>
+    <PackageId>FryPdf.Plugin.TicTacToe</PackageId>
     <RootNamespace>FryPdf.Plugin.TicTacToe</RootNamespace>
     <Version>1.0.0</Version>
     <Company>Code Fry Dev</Company>
@@ -34,58 +36,9 @@
       2) Inside the FryPDF git repository for continuous integration testing.
     ====================================================================================================
   -->
-  <Choose>
-    <!-- When building inside a sibling clone of the FryPDF repository -->
-    <When Condition="Exists('..\..\..\PDFCreator\src\PdfEditorApp.Core\PdfEditorApp.Core.csproj')">
-      <ItemGroup>
-        <ProjectReference Include="..\..\..\PDFCreator\src\PdfEditorApp.Core\PdfEditorApp.Core.csproj">
-          <Private>false</Private>
-          <ExcludeAssets>runtime</ExcludeAssets>
-        </ProjectReference>
-        <ProjectReference Include="..\..\..\PDFCreator\src\PdfEditorApp\PdfEditorApp.csproj">
-          <Private>false</Private>
-          <ExcludeAssets>runtime</ExcludeAssets>
-        </ProjectReference>
-      </ItemGroup>
-    </When>
-
-    <!-- When building inside the FryPDF source tree (repo CI/testing) -->
-    <When Condition="Exists('..\..\..\src\PdfEditorApp.Core\PdfEditorApp.Core.csproj')">
-      <ItemGroup>
-        <ProjectReference Include="..\..\..\src\PdfEditorApp.Core\PdfEditorApp.Core.csproj">
-          <Private>false</Private>
-          <ExcludeAssets>runtime</ExcludeAssets>
-        </ProjectReference>
-        <ProjectReference Include="..\..\..\src\PdfEditorApp\PdfEditorApp.csproj">
-          <Private>false</Private>
-          <ExcludeAssets>runtime</ExcludeAssets>
-        </ProjectReference>
-      </ItemGroup>
-    </When>
-
-    <!-- When building as a standalone external plugin outside the source repository -->
-    <Otherwise>
-      <PropertyGroup>
-        <!-- Auto-detect FryPDF installation directory across macOS, Windows, and Linux -->
-        <FryPdfInstallDir Condition="'$(FryPdfInstallDir)' == '' and '$(FRYPDF_HOME)' != ''">$(FRYPDF_HOME)</FryPdfInstallDir>
-        <FryPdfInstallDir Condition="'$(FryPdfInstallDir)' == '' and Exists('/Applications/FryPDF.app/Contents/MacOS')">/Applications/FryPDF.app/Contents/MacOS</FryPdfInstallDir>
-        <FryPdfInstallDir Condition="'$(FryPdfInstallDir)' == '' and Exists('C:\Program Files\FryPDF')">C:\Program Files\FryPDF</FryPdfInstallDir>
-        <FryPdfInstallDir Condition="'$(FryPdfInstallDir)' == '' and Exists('/opt/FryPDF')">/opt/FryPDF</FryPdfInstallDir>
-      </PropertyGroup>
-
-      <ItemGroup>
-        <!-- Compile-time references against installed binary (not bundled into .fryplugin) -->
-        <Reference Include="PdfEditorApp.Core">
-          <HintPath>$(FryPdfInstallDir)\PdfEditorApp.Core.dll</HintPath>
-          <Private>false</Private>
-        </Reference>
-        <Reference Include="PdfEditorApp">
-          <HintPath>$(FryPdfInstallDir)\PdfEditorApp.dll</HintPath>
-          <Private>false</Private>
-        </Reference>
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
+  <ItemGroup>
+    <PackageReference Include="FryPdf.PluginSdk" Version="0.0.8" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- Common dependencies provided at runtime by the FryPDF host -->

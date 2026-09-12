@@ -5,7 +5,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>13</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);NU1901;NU1902;NU1903;NU1904</NoWarn>
     <AssemblyName>SnakePlugin</AssemblyName>
+    <PackageId>FryPdf.Plugin.Snake</PackageId>
     <RootNamespace>PdfEditorApp.Plugins.Snake</RootNamespace>
     <Version>1.0.0</Version>
     <Company>FryPDF Team</Company>
@@ -13,52 +15,9 @@
     <DefaultItemExcludes>$(DefaultItemExcludes);Runner/**</DefaultItemExcludes>
   </PropertyGroup>
 
-  <!-- Dual-mode build: in-tree repo references or standalone installed app references -->
-  <Choose>
-    <When Condition="Exists('..\..\..\PDFCreator\src\PdfEditorApp.Core\PdfEditorApp.Core.csproj')">
-      <ItemGroup>
-        <ProjectReference Include="..\..\..\PDFCreator\src\PdfEditorApp.Core\PdfEditorApp.Core.csproj">
-          <Private>false</Private>
-          <ExcludeAssets>runtime</ExcludeAssets>
-        </ProjectReference>
-        <ProjectReference Include="..\..\..\PDFCreator\src\PdfEditorApp\PdfEditorApp.csproj">
-          <Private>false</Private>
-          <ExcludeAssets>runtime</ExcludeAssets>
-        </ProjectReference>
-      </ItemGroup>
-    </When>
-    <When Condition="Exists('..\..\..\src\PdfEditorApp.Core\PdfEditorApp.Core.csproj')">
-      <ItemGroup>
-        <ProjectReference Include="..\..\..\src\PdfEditorApp.Core\PdfEditorApp.Core.csproj">
-          <Private>false</Private>
-          <ExcludeAssets>runtime</ExcludeAssets>
-        </ProjectReference>
-        <ProjectReference Include="..\..\..\src\PdfEditorApp\PdfEditorApp.csproj">
-          <Private>false</Private>
-          <ExcludeAssets>runtime</ExcludeAssets>
-        </ProjectReference>
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <FryPdfInstallDir Condition="'$(FryPdfInstallDir)' == '' and '$(FRYPDF_HOME)' != ''">$(FRYPDF_HOME)</FryPdfInstallDir>
-        <FryPdfInstallDir Condition="'$(FryPdfInstallDir)' == '' and Exists('/Applications/FryPDF.app/Contents/MacOS')">/Applications/FryPDF.app/Contents/MacOS</FryPdfInstallDir>
-        <FryPdfInstallDir Condition="'$(FryPdfInstallDir)' == '' and Exists('C:\Program Files\FryPDF')">C:\Program Files\FryPDF</FryPdfInstallDir>
-        <FryPdfInstallDir Condition="'$(FryPdfInstallDir)' == '' and Exists('/opt/FryPDF')">/opt/FryPDF</FryPdfInstallDir>
-      </PropertyGroup>
-
-      <ItemGroup>
-        <Reference Include="PdfEditorApp.Core">
-          <HintPath>$(FryPdfInstallDir)\PdfEditorApp.Core.dll</HintPath>
-          <Private>false</Private>
-        </Reference>
-        <Reference Include="PdfEditorApp">
-          <HintPath>$(FryPdfInstallDir)\PdfEditorApp.dll</HintPath>
-          <Private>false</Private>
-        </Reference>
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
+  <ItemGroup>
+    <PackageReference Include="FryPdf.PluginSdk" Version="0.0.8" PrivateAssets="all" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.1.2" PrivateAssets="all" />

@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.Input;
 using PdfEditorApp.Core.Plugins;
 using PdfEditorApp.Core.Plugins.Descriptors;
 using PdfEditorApp.Core.Plugins.Manifests;
-using PdfEditorApp.ViewModels;
 
 namespace PdfEditorApp.Plugins.Telemetry;
 
@@ -78,13 +78,9 @@ public class DocumentTelemetryPlugin : IFryPlugin
             Factory = sp =>
             {
                 var reg = sp.GetService(typeof(IOverlayRegistry)) as IOverlayRegistry;
-                return new StatusBarWidgetViewModel
+                return new Button
                 {
-                    WidgetId = "frypdf.status.telemetry",
-                    Label = "⚡ HUD",
-                    IconKind = "ChartTimelineVariant",
-                    ToolTip = "Toggle real-time engine telemetry",
-                    IsActive = true,
+                    Content = "⚡ HUD",
                     Command = new RelayCommand(() => reg?.ToggleOverlay(Id))
                 };
             }

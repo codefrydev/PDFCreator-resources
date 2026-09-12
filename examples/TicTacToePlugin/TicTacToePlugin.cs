@@ -6,7 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using PdfEditorApp.Core.Plugins;
 using PdfEditorApp.Core.Plugins.Descriptors;
 using PdfEditorApp.Core.Plugins.Manifests;
-using PdfEditorApp.ViewModels;
+using Avalonia.Controls;
 
 namespace FryPdf.Plugin.TicTacToe;
 
@@ -105,13 +105,9 @@ public class TicTacToePlugin : IFryPlugin
             Factory = sp =>
             {
                 var reg = sp.GetService(typeof(IOverlayRegistry)) as IOverlayRegistry;
-                return new StatusBarWidgetViewModel
+                return new Button
                 {
-                    WidgetId = "frypdf.status.tictactoe",
-                    Label = "🎮 Tic-Tac-Toe",
-                    IconKind = "GamepadVariantOutline",
-                    ToolTip = "Toggle floating Tic-Tac-Toe game",
-                    IsActive = true,
+                    Content = "🎮 Tic-Tac-Toe",
                     Command = new RelayCommand(() => reg?.ToggleOverlay(Id))
                 };
             }
