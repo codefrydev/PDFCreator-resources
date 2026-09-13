@@ -1,0 +1,444 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:FryPdf.Plugin.Chess.ViewModels"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Class="FryPdf.Plugin.Chess.Views.ChessView"
+             x:DataType="vm:ChessViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Button.difficulty-btn">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource M3OnSurfaceVariantBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="{StaticResource M3ShapeCornerFull}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.difficulty-btn:pointerover">
+            <Setter Property="Background" Value="{DynamicResource M3SurfaceContainerHighestBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource M3OnSurfaceBrush}" />
+        </Style>
+
+        <!-- Active Easy: Emerald Green -->
+        <Style Selector="Button.difficulty-btn.active-easy">
+            <Setter Property="Background" Value="#10B981" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <Style Selector="Button.difficulty-btn.active-easy:pointerover">
+            <Setter Property="Background" Value="#059669" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+        </Style>
+
+        <!-- Active Med: Warm Amber/Orange -->
+        <Style Selector="Button.difficulty-btn.active-med">
+            <Setter Property="Background" Value="#F59E0B" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <Style Selector="Button.difficulty-btn.active-med:pointerover">
+            <Setter Property="Background" Value="#D97706" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+        </Style>
+
+        <!-- Active Hard: Flame Crimson Red -->
+        <Style Selector="Button.difficulty-btn.active-hard">
+            <Setter Property="Background" Value="#EF4444" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <Style Selector="Button.difficulty-btn.active-hard:pointerover">
+            <Setter Property="Background" Value="#DC2626" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" Margin="12" Width="384">
+
+        <!-- 1. Header: Status, AI Thinking & Difficulty Selector -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+            <!-- Status Badge Pill -->
+            <Border Grid.Column="0"
+                    CornerRadius="{StaticResource M3ShapeCornerFull}"
+                    Background="{DynamicResource M3SurfaceContainerHighBrush}"
+                    BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                    BorderThickness="1"
+                    Padding="10,5"
+                    HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <!-- Pulsing / Spinning AI Indicator -->
+                    <materialIcons:MaterialIcon Kind="ProgressClock" Width="14" Height="14"
+                                                Foreground="{DynamicResource M3PrimaryBrush}"
+                                                IsVisible="{Binding IsCpuThinking}" />
+                    <TextBlock Text="{Binding StatusMessage}"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource M3OnSurfaceBrush}"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </Border>
+
+            <!-- Difficulty Selector Tiered Capsule -->
+            <Border Grid.Column="1"
+                    Background="{DynamicResource M3SurfaceContainerHighBrush}"
+                    BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource M3ShapeCornerFull}"
+                    Padding="3"
+                    HorizontalAlignment="Right">
+                <StackPanel Orientation="Horizontal" Spacing="2">
+                    <Button Classes="difficulty-btn"
+                            Classes.active-easy="{Binding IsEasySelected}"
+                            Command="{Binding SelectDifficultyCommand}"
+                            CommandParameter="Easy"
+                            ToolTip.Tip="Easy: Casual play with tactical blunders">
+                        <TextBlock Text="Easy" />
+                    </Button>
+                    <Button Classes="difficulty-btn"
+                            Classes.active-med="{Binding IsMediumSelected}"
+                            Command="{Binding SelectDifficultyCommand}"
+                            CommandParameter="Medium"
+                            ToolTip.Tip="Medium: Balanced minimax search (depth 3)">
+                        <TextBlock Text="Med" />
+                    </Button>
+                    <Button Classes="difficulty-btn"
+                            Classes.active-hard="{Binding IsHardSelected}"
+                            Command="{Binding SelectDifficultyCommand}"
+                            CommandParameter="Hard"
+                            ToolTip.Tip="Hard: Alpha-Beta search (depth 4) + quiescence">
+                        <TextBlock Text="Hard" />
+                    </Button>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- 2. Opponent (Top) Row: CPU Avatar & Captured Pieces -->
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,6">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <Border Width="24" Height="24"
+                        CornerRadius="{StaticResource M3ShapeCornerFull}"
+                        Background="{DynamicResource M3SurfaceContainerHighestBrush}">
+                    <materialIcons:MaterialIcon Kind="RobotOutline" Width="14" Height="14"
+                                                Foreground="{DynamicResource M3OnSurfaceBrush}"
+                                                HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <TextBlock Text="Computer (Black)" FontSize="11.5" FontWeight="SemiBold"
+                           Foreground="{DynamicResource M3OnSurfaceBrush}" VerticalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Captured White Pieces (Using Unicode Glyphs for Clear Recognition) -->
+            <ItemsControl Grid.Column="1" ItemsSource="{Binding CapturedWhitePieces}" Margin="8,0,0,0" VerticalAlignment="Center">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="2" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding ToGlyph}" FontSize="13"
+                                   Foreground="{DynamicResource M3OnSurfaceBrush}" Opacity="0.9" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Material Advantage Badge -->
+            <Border Grid.Column="2"
+                    CornerRadius="{StaticResource M3ShapeCornerSmall}"
+                    Background="{DynamicResource M3PrimaryContainerBrush}"
+                    Padding="5,2"
+                    IsVisible="{Binding MaterialAdvantageText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding MaterialAdvantageText}"
+                           FontSize="10.5" FontWeight="Bold"
+                           Foreground="{DynamicResource M3OnPrimaryContainerBrush}" />
+            </Border>
+        </Grid>
+
+        <!-- 3. The 8x8 Chessboard Container -->
+        <Border Grid.Row="2"
+                Width="384" Height="384"
+                CornerRadius="{StaticResource M3ShapeCornerLarge}"
+                ClipToBounds="True"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource M3OutlineVariantBrush}"
+                BoxShadow="0 8 28 #40000000"
+                Margin="0,0,0,6">
+
+            <Grid>
+                <!-- Board Grid -->
+                <ItemsControl ItemsSource="{Binding DisplaySquares}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Rows="8" Columns="8" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:ChessSquareViewModel">
+                            <Button Width="48" Height="48"
+                                    Padding="0" Margin="0"
+                                    BorderThickness="0"
+                                    CornerRadius="0"
+                                    Command="{Binding $parent[UserControl].((vm:ChessViewModel)DataContext).SquareClickedCommand}"
+                                    CommandParameter="{Binding Index}">
+                                <Button.Styles>
+                                    <Style Selector="Button">
+                                        <Setter Property="Background" Value="Transparent" />
+                                        <Setter Property="Template">
+                                            <ControlTemplate>
+                                                <ContentPresenter Content="{TemplateBinding Content}" />
+                                            </ControlTemplate>
+                                        </Setter>
+                                    </Style>
+                                </Button.Styles>
+
+                                <Panel Width="48" Height="48">
+                                    <!-- Base Square Background (Emerald / Wood / Slate Theme) -->
+                                    <Rectangle Fill="{Binding SquareBackground}" Stretch="Fill" />
+
+                                    <!-- Last Move Highlight (Sunny translucent yellow) -->
+                                    <Rectangle Fill="#65FDE047" Stretch="Fill"
+                                               IsVisible="{Binding IsLastMove}" />
+
+                                    <!-- King in Check Highlight (Red alert) -->
+                                    <Rectangle Fill="#70EF4444" Stretch="Fill"
+                                               IsVisible="{Binding IsInCheck}" />
+
+                                    <!-- Selected Square Highlight (Primary ring) -->
+                                    <Border BorderBrush="{DynamicResource M3PrimaryBrush}"
+                                            BorderThickness="2.5"
+                                            Background="#453B82F6"
+                                            IsVisible="{Binding IsSelected}" />
+
+                                    <!-- Chess Piece Icon with 8-Directional Crisp Outline -->
+                                    <Panel IsVisible="{Binding HasPiece}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <!-- 8-Way Outline Silhouettes for Razor-Sharp Contrast on Any Square -->
+                                        <materialIcons:MaterialIcon Kind="{Binding PieceIconKind}" Width="32" Height="32"
+                                                                    Margin="-1.5,0,0,0" Foreground="{Binding PieceOutline}" />
+                                        <materialIcons:MaterialIcon Kind="{Binding PieceIconKind}" Width="32" Height="32"
+                                                                    Margin="1.5,0,0,0" Foreground="{Binding PieceOutline}" />
+                                        <materialIcons:MaterialIcon Kind="{Binding PieceIconKind}" Width="32" Height="32"
+                                                                    Margin="0,-1.5,0,0" Foreground="{Binding PieceOutline}" />
+                                        <materialIcons:MaterialIcon Kind="{Binding PieceIconKind}" Width="32" Height="32"
+                                                                    Margin="0,1.5,0,0" Foreground="{Binding PieceOutline}" />
+                                        <materialIcons:MaterialIcon Kind="{Binding PieceIconKind}" Width="32" Height="32"
+                                                                    Margin="-1.2,-1.2,0,0" Foreground="{Binding PieceOutline}" />
+                                        <materialIcons:MaterialIcon Kind="{Binding PieceIconKind}" Width="32" Height="32"
+                                                                    Margin="1.2,-1.2,0,0" Foreground="{Binding PieceOutline}" />
+                                        <materialIcons:MaterialIcon Kind="{Binding PieceIconKind}" Width="32" Height="32"
+                                                                    Margin="-1.2,1.2,0,0" Foreground="{Binding PieceOutline}" />
+                                        <materialIcons:MaterialIcon Kind="{Binding PieceIconKind}" Width="32" Height="32"
+                                                                    Margin="1.2,1.2,0,0" Foreground="{Binding PieceOutline}" />
+
+                                        <!-- Foreground Piece Body -->
+                                        <materialIcons:MaterialIcon Kind="{Binding PieceIconKind}" Width="32" Height="32"
+                                                                    Foreground="{Binding PieceForeground}" />
+                                    </Panel>
+
+                                    <!-- Valid Destination Dot (Empty square target) -->
+                                    <Ellipse Width="12" Height="12"
+                                             Fill="#55000000"
+                                             HorizontalAlignment="Center"
+                                             VerticalAlignment="Center"
+                                             IsVisible="{Binding IsValidTarget}" />
+
+                                    <!-- Capture Target Ring (Enemy piece target) -->
+                                    <Ellipse Width="38" Height="38"
+                                             Stroke="#70000000"
+                                             StrokeThickness="3"
+                                             HorizontalAlignment="Center"
+                                             VerticalAlignment="Center"
+                                             IsVisible="{Binding IsCaptureTarget}" />
+                                </Panel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Pawn Promotion Modal Popover -->
+                <Border Background="#90000000"
+                        IsVisible="{Binding IsPawnPromotionOpen}"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch">
+                    <Border Classes="m3-dialog-card"
+                            Background="{DynamicResource M3SurfaceContainerHighBrush}"
+                            CornerRadius="{StaticResource M3ShapeCornerLarge}"
+                            Padding="16"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            BoxShadow="0 12 36 #80000000">
+                        <StackPanel Spacing="10" HorizontalAlignment="Center">
+                            <TextBlock Text="Promote Pawn"
+                                       FontWeight="Bold"
+                                       FontSize="13.5"
+                                       Foreground="{DynamicResource M3OnSurfaceBrush}"
+                                       HorizontalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Classes="m3-tonal-btn" CornerRadius="{StaticResource M3ShapeCornerMedium}"
+                                        Padding="10,8"
+                                        Command="{Binding PromotePawnCommand}" CommandParameter="Queen"
+                                        ToolTip.Tip="Queen">
+                                    <materialIcons:MaterialIcon Kind="ChessQueen" Width="26" Height="26" />
+                                </Button>
+                                <Button Classes="m3-tonal-btn" CornerRadius="{StaticResource M3ShapeCornerMedium}"
+                                        Padding="10,8"
+                                        Command="{Binding PromotePawnCommand}" CommandParameter="Rook"
+                                        ToolTip.Tip="Rook">
+                                    <materialIcons:MaterialIcon Kind="ChessRook" Width="26" Height="26" />
+                                </Button>
+                                <Button Classes="m3-tonal-btn" CornerRadius="{StaticResource M3ShapeCornerMedium}"
+                                        Padding="10,8"
+                                        Command="{Binding PromotePawnCommand}" CommandParameter="Bishop"
+                                        ToolTip.Tip="Bishop">
+                                    <materialIcons:MaterialIcon Kind="ChessBishop" Width="26" Height="26" />
+                                </Button>
+                                <Button Classes="m3-tonal-btn" CornerRadius="{StaticResource M3ShapeCornerMedium}"
+                                        Padding="10,8"
+                                        Command="{Binding PromotePawnCommand}" CommandParameter="Knight"
+                                        ToolTip.Tip="Knight">
+                                    <materialIcons:MaterialIcon Kind="ChessKnight" Width="26" Height="26" />
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Border>
+
+                <!-- Game Over Overlay Card -->
+                <Border Background="#B0000000"
+                        IsVisible="{Binding IsGameOver}"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch">
+                    <Border Classes="m3-dialog-card"
+                            Background="{DynamicResource M3SurfaceContainerHighBrush}"
+                            CornerRadius="{StaticResource M3ShapeCornerExtraLarge}"
+                            Padding="20" Margin="24"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            BoxShadow="0 14 42 #90000000">
+                        <StackPanel Spacing="12" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding GameOverTitle}"
+                                       FontSize="16"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource M3PrimaryBrush}"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding GameOverMessage}"
+                                       FontSize="11.5"
+                                       TextWrapping="Wrap"
+                                       MaxWidth="240"
+                                       TextAlignment="Center"
+                                       Foreground="{DynamicResource M3OnSurfaceVariantBrush}"
+                                       HorizontalAlignment="Center" />
+                            <Button Classes="m3-filled-btn"
+                                    CornerRadius="{StaticResource M3ShapeCornerFull}"
+                                    Command="{Binding ResetGameCommand}"
+                                    Padding="18,8"
+                                    HorizontalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <materialIcons:MaterialIcon Kind="Restart" Width="16" Height="16" />
+                                    <TextBlock Text="Play Again" FontWeight="SemiBold" FontSize="12.5" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- 4. Player (Bottom) Row: User Avatar & Captured Pieces -->
+        <Grid Grid.Row="3" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,10">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <Border Width="24" Height="24"
+                        CornerRadius="{StaticResource M3ShapeCornerFull}"
+                        Background="{DynamicResource M3PrimaryContainerBrush}">
+                    <materialIcons:MaterialIcon Kind="AccountOutline" Width="14" Height="14"
+                                                Foreground="{DynamicResource M3OnPrimaryContainerBrush}"
+                                                HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <TextBlock Text="You (White)" FontSize="11.5" FontWeight="SemiBold"
+                           Foreground="{DynamicResource M3OnSurfaceBrush}" VerticalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Captured Black Pieces (Using Unicode Glyphs) -->
+            <ItemsControl Grid.Column="1" ItemsSource="{Binding CapturedBlackPieces}" Margin="8,0,0,0" VerticalAlignment="Center">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="2" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding ToGlyph}" FontSize="13"
+                                   Foreground="{DynamicResource M3OnSurfaceBrush}" Opacity="0.9" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Win Scoreboard Summary -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <TextBlock Text="W:" FontSize="10.5" Foreground="{DynamicResource M3PrimaryBrush}" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding WhiteWins}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource M3OnSurfaceBrush}" />
+                <TextBlock Text="D:" FontSize="10.5" Foreground="{DynamicResource M3OnSurfaceVariantBrush}" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Draws}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource M3OnSurfaceBrush}" />
+                <TextBlock Text="B:" FontSize="10.5" Foreground="{DynamicResource M3SecondaryBrush}" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding BlackWins}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource M3OnSurfaceBrush}" />
+            </StackPanel>
+        </Grid>
+
+        <!-- 5. Bottom Action Controls -->
+        <Grid Grid.Row="4" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,2,0,0">
+            <!-- New Round / Restart Button -->
+            <Button Grid.Column="0"
+                    Classes="m3-filled-btn"
+                    CornerRadius="{StaticResource M3ShapeCornerFull}"
+                    Command="{Binding ResetGameCommand}"
+                    Margin="0,0,6,0"
+                    Padding="12,8"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
+                    <materialIcons:MaterialIcon Kind="Restart" Width="15" Height="15" />
+                    <TextBlock Text="New Game" FontWeight="SemiBold" FontSize="12" />
+                </StackPanel>
+            </Button>
+
+            <!-- Undo Move Button -->
+            <Button Grid.Column="1"
+                    Classes="m3-tonal-btn"
+                    CornerRadius="{StaticResource M3ShapeCornerFull}"
+                    Command="{Binding UndoMoveCommand}"
+                    Margin="0,0,6,0"
+                    Padding="10,8"
+                    ToolTip.Tip="Take back last move">
+                <materialIcons:MaterialIcon Kind="Undo" Width="15" Height="15" />
+            </Button>
+
+            <!-- Flip Board Button -->
+            <Button Grid.Column="2"
+                    Classes="m3-tonal-btn"
+                    CornerRadius="{StaticResource M3ShapeCornerFull}"
+                    Command="{Binding FlipBoardCommand}"
+                    Margin="0,0,6,0"
+                    Padding="10,8"
+                    ToolTip.Tip="Flip board perspective">
+                <materialIcons:MaterialIcon Kind="FlipVertical" Width="15" Height="15" />
+            </Button>
+
+            <!-- Board Theme Toggle Button -->
+            <Button Grid.Column="3"
+                    Classes="m3-tonal-btn"
+                    CornerRadius="{StaticResource M3ShapeCornerFull}"
+                    Command="{Binding ToggleThemeCommand}"
+                    Padding="10,8"
+                    ToolTip.Tip="Cycle board themes (Emerald, Wood, Slate)">
+                <materialIcons:MaterialIcon Kind="PaletteOutline" Width="15" Height="15" />
+            </Button>
+        </Grid>
+
+    </Grid>
+</UserControl>

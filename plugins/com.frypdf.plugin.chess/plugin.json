@@ -1,0 +1,38 @@
+{
+  "id": "com.frypdf.plugin.chess",
+  "name": "Chess",
+  "version": "1.0.0",
+  "author": "Code Fry Dev",
+  "description": "Interactive floating Chess game overlay featuring single player vs smart CPU AI opponent and local pass-and-play.",
+  "entryPoint": "ChessPlugin.dll",
+  "icon": "ChessKnight",
+  "dependencies": [],
+  "settingsSchema": {
+    "AiDifficulty": {
+      "type": "select",
+      "label": "CPU Difficulty",
+      "description": "Tactical calculation depth and strategy of the computer opponent",
+      "default": "Medium",
+      "options": ["Easy", "Medium", "Hard"]
+    },
+    "BoardTheme": {
+      "type": "select",
+      "label": "Board Theme",
+      "description": "Visual color scheme for light and dark board squares",
+      "default": "Emerald",
+      "options": ["Emerald", "ClassicWood", "MidnightSlate"]
+    },
+    "ShowLegalMoveHints": {
+      "type": "boolean",
+      "label": "Highlight Legal Moves",
+      "description": "Show dot and capture indicators on valid destination squares",
+      "default": true
+    },
+    "ShowCoordinates": {
+      "type": "boolean",
+      "label": "Show Board Coordinates",
+      "description": "Display rank (1-8) and file (a-h) notations along board perimeter",
+      "default": true
+    }
+  }
+}

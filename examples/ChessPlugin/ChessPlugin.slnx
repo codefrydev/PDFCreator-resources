@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ChessPlugin.csproj" />
+  <Project Path="Runner/ChessPlugin.Runner.csproj" />
+</Solution>

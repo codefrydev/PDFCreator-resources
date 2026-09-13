@@ -1,5 +1,47 @@
 [
   {
+    "id": "com.frypdf.plugin.chess",
+    "name": "Chess",
+    "publisher": "Code Fry Dev",
+    "version": "1.0.0",
+    "category": "UI & Extensions",
+    "description": "Interactive floating Chess game overlay featuring single player vs smart CPU AI opponent and local pass-and-play.",
+    "longDescription": "Bring intellectual gaming into your document studio! This extension provides a full-featured, playable Chess game directly inside a floating shell overlay.\n\n### Key Features:\n\u2022 **Floating Draggable Shell Overlay**: Runs smoothly on top of any document workspace without interrupting your PDF work.\n\u2022 **Single Player vs Smart CPU**: Configurable AI difficulty (Easy, Medium, Hard) powered by off-thread alpha-beta minimax search.\n\u2022 **Full FIDE Chess Rules**: Standard legal move validation, castling, en passant, and interactive pawn promotion (Queen, Rook, Bishop, Knight).\n\u2022 **Captured Pieces & Material Advantage**: Real-time captured pieces display and point advantage tracker (+3, +1).\n\u2022 **Material 3 Expressive Board Themes**: Emerald Studio, Classic Wood, and Midnight Slate high-contrast themes.\n\u2022 **Deep Shell Integration**: Contributes to Command Palette (Ctrl+Alt+C), Status Bar (\u265f\ufe0f Chess), and Ribbon View Tab.",
+    "rating": 5.0,
+    "ratingCount": 38,
+    "installCount": 480,
+    "formattedSize": "39 KB",
+    "iconKind": "ChessKnight",
+    "iconColorHex": "#10B981",
+    "license": "MIT",
+    "isVerified": true,
+    "isOfficial": true,
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.chess/Chess.fryplugin",
+    "tags": [
+      "game",
+      "chess",
+      "ai",
+      "minigame",
+      "arcade",
+      "overlay",
+      "strategy"
+    ],
+    "highlights": [
+      "Single Player vs Multi-Tier CPU AI (Easy, Medium, Hard)",
+      "Full FIDE Rules: Castling, En Passant & Pawn Promotion",
+      "Material 3 Expressive Board Themes & Material Advantage HUD"
+    ],
+    "contributedFeatures": [
+      "Shell Overlay: Floating Chess Game Card",
+      "Command Palette: 'Play Chess (Shell Overlay)' (Ctrl+Alt+C)",
+      "Status Bar: Clickable '\u265f\ufe0f Chess' Indicator Pill",
+      "Ribbon: View Tab > Plugins > Chess Button"
+    ],
+    "dependencies": [
+      "PdfEditorApp.Core >= 1.0.0"
+    ]
+  },
+  {
     "id": "com.frypdf.plugin.tictactoe",
     "name": "Tic-Tac-Toe",
     "publisher": "Code Fry Dev",
