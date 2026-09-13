@@ -1,5 +1,50 @@
 [
   {
+    "id": "com.frypdf.plugin.csharpeditor",
+    "name": "C# Code Studio",
+    "publisher": "Code Fry Dev",
+    "version": "1.0.0",
+    "category": "Developer & Tools",
+    "description": "Interactive in-app C# development and automation studio featuring a dedicated project/script manager, syntax-highlighted editor, real-time Roslyn compilation diagnostics, and in-memory execution.",
+    "longDescription": "Bring full-featured C# development and script automation directly into your document studio! This studio tool provides a dual-page workflow: a Script Management Hub to organize and template your scripts, and a dedicated C# Code Studio powered by AvaloniaEdit and Roslyn.\n\n### Key Features:\n\u2022 **Two-Page Architecture**: Dedicated Script Hub to browse, search, and duplicate scripts alongside a full-featured Code Studio editor.\n\u2022 **Hardware-Accelerated Code Editor**: Built on Avalonia.AvaloniaEdit with syntax highlighting, line numbers, and dark IDE styling.\n\u2022 **Real-Time Roslyn Diagnostics**: Debounced background syntax and semantic analysis with clickable error/warning navigation.\n\u2022 **Live In-Memory Execution**: Compiles and runs C# code in an isolated worker with real-time Console.Out/Console.Error terminal streaming.\n\u2022 **Starter Template Library**: Ready-to-run templates for PDF Document Automation, LINQ Benchmarking, and JSON Serialization.\n\u2022 **Deep Shell Integration**: Contributes to Workspace Navigation (Full Viewport Studio), Command Palette (Ctrl+Alt+E), Status Bar ({ } C# Studio), and Ribbon.",
+    "rating": 5.0,
+    "ratingCount": 24,
+    "installCount": 310,
+    "formattedSize": "3.6 MB",
+    "iconKind": "CodeBraces",
+    "iconColorHex": "#10B981",
+    "license": "MIT",
+    "isVerified": true,
+    "isOfficial": true,
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/CSharpEditor.fryplugin",
+    "tags": [
+      "csharp",
+      "editor",
+      "roslyn",
+      "scripting",
+      "automation",
+      "studio",
+      "code",
+      "developer"
+    ],
+    "highlights": [
+      "Two-Page Workflow: Script Management Hub & Full Code Studio",
+      "Hardware-Accelerated C# Editor Powered by Avalonia.AvaloniaEdit",
+      "Real-Time Background Roslyn Diagnostics & Error Navigation",
+      "In-Memory Execution Engine with Live Console Output Streaming",
+      "Pre-loaded Starter Templates for PDF Automation & LINQ Benchmarking"
+    ],
+    "contributedFeatures": [
+      "Workspace Studio: C# Code Studio Full-Viewport Navigation Page",
+      "Command Palette: 'Open C# Code Studio' (Ctrl+Alt+E)",
+      "Status Bar: Clickable '{ } C# Studio' Widget",
+      "Ribbon: Plugins Tab > Tools > C# Studio Action"
+    ],
+    "dependencies": [
+      "PdfEditorApp.Core >= 1.0.0"
+    ]
+  },
+  {
     "id": "com.frypdf.plugin.chess",
     "name": "Chess",
     "publisher": "Code Fry Dev",
