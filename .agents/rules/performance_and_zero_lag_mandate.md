@@ -73,3 +73,58 @@ Whenever you write or modify code in FryPDF, you **MUST ALWAYS THINK IN TERMS OF
   python3 tools/validate_plugins.py
   ```
 
+
+---
+
+## 8. ⚠️ Roslyn / Reflection Services — NEVER Construct on the UI Thread
+
+> **Incident: 2026-09-14 — CSharpEditorPlugin Runner, 14-second frozen blank window**
+
+### What happened
+`new RoslynCompilerService()` was called directly inside `CSharpStudioHostViewModel`'s constructor, which runs on the Avalonia UI thread during `MainWindow` initialization.
+
+`RoslynCompilerService.InitializeDefaultReferences()` loads **15+ `MetadataReference` objects** from disk via `Assembly.Location` and `MetadataReference.CreateFromFile()`. This blocked the UI thread for **14,124 ms**. Avalonia cannot paint a single frame while the UI thread is blocked → window appeared completely blank and frozen.
+
+### Diagnosis method
+Added `Stopwatch`-based `Program.Log()` timing stamps around each step in `MainWindow` constructor. Log showed:
+```
+[23:03:29.490] MainWindow() - new CSharpStudioHostViewModel() START...
+[23:03:45.993] MainWindow() - VM created OK (14124ms). CurrentPage=CSharpManagerViewModel
+```
+
+### The fix
+```csharp
+// ❌ WRONG — blocks UI thread for 14+ seconds
+public CSharpStudioHostViewModel() {
+    _compilerService = new RoslynCompilerService(); // 14s on UI thread!
+    CodeStudioViewModel = new CSharpCodeStudioViewModel(...);
+}
+
+// ✅ CORRECT — UI is responsive in < 50ms
+public CSharpStudioHostViewModel() {
+    ManagerViewModel = new CSharpManagerViewModel(...); // fast, no compiler
+    _currentPage = ManagerViewModel;
+    _ = Task.Run(InitializeCompilerAsync);             // heavy work → background
+}
+
+private async Task InitializeCompilerAsync() {
+    await Task.Run(() => {
+        _compilerService = new RoslynCompilerService(); // off UI thread
+        codeVm = new CSharpCodeStudioViewModel(...);    // off UI thread
+        notebookVm = new CSharpNotebookStudioViewModel(...); // off UI thread
+    });
+    // Only property assignments go back to UI thread
+    Dispatcher.UIThread.Post(() => {
+        CodeStudioViewModel = codeVm;
+        NotebookStudioViewModel = notebookVm;
+        IsEngineLoading = false;
+    });
+}
+```
+
+### Rule
+**NEVER construct `RoslynCompilerService`, any Roslyn `Compilation`, `MetadataReference`, or any service that calls `Assembly.Location` / `CreateFromFile` on the Avalonia UI thread.**
+
+These must always be created inside `Task.Run`. Only lightweight `ObservableProperty` assignments may be dispatched back via `Dispatcher.UIThread.Post`.
+
+This applies to **every** ViewModel and plugin that embeds a scripting, compilation, or reflection-heavy service.
