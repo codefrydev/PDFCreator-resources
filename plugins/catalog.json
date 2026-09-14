@@ -16,7 +16,7 @@
     "license": "MIT",
     "isVerified": true,
     "isOfficial": true,
-    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/CSharpEditor.fryplugin",
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/v1.0.0/CSharpEditor.fryplugin",
     "tags": [
       "csharp",
       "editor",
@@ -42,7 +42,20 @@
     ],
     "dependencies": [
       "PdfEditorApp.Core >= 1.0.0"
-    ]
+    ],
+    "versions": [
+      {
+        "version": "1.0.0",
+        "releaseDate": "2026-09-14",
+        "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/v1.0.0/CSharpEditor.fryplugin",
+        "sha256": "38ade7252c3bc2d533fd0170290b6bbb8409548b000e306db7d1cba49413a8ba",
+        "formattedSize": "3.8 MB",
+        "minHostVersion": "1.0.0",
+        "targetFramework": "net10.0",
+        "releaseNotes": "Release v1.0.0 of C# Code Studio."
+      }
+    ],
+    "sha256": "38ade7252c3bc2d533fd0170290b6bbb8409548b000e306db7d1cba49413a8ba"
   },
   {
     "id": "com.frypdf.plugin.chess",
@@ -61,7 +74,7 @@
     "license": "MIT",
     "isVerified": true,
     "isOfficial": true,
-    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.chess/Chess.fryplugin",
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.chess/v1.0.0/Chess.fryplugin",
     "tags": [
       "game",
       "chess",
@@ -84,13 +97,26 @@
     ],
     "dependencies": [
       "PdfEditorApp.Core >= 1.0.0"
-    ]
+    ],
+    "versions": [
+      {
+        "version": "1.0.0",
+        "releaseDate": "2026-09-14",
+        "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.chess/v1.0.0/Chess.fryplugin",
+        "sha256": "c2b22009a98e2d71880ab7ad77560430ad44ecfc0c3514a889da281f1d43e870",
+        "formattedSize": "39 KB",
+        "minHostVersion": "1.0.0",
+        "targetFramework": "net10.0",
+        "releaseNotes": "Release v1.0.0 of Chess."
+      }
+    ],
+    "sha256": "c2b22009a98e2d71880ab7ad77560430ad44ecfc0c3514a889da281f1d43e870"
   },
   {
     "id": "com.frypdf.plugin.tictactoe",
     "name": "Tic-Tac-Toe",
     "publisher": "Code Fry Dev",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "category": "UI & Extensions",
     "description": "Interactive floating Tic-Tac-Toe mini-game with local 2-Player mode and intelligent AI opponent.",
     "longDescription": "Bring playful entertainment into your PDF workflow! Features single player vs AI (with Easy, Smart, and Unbeatable difficulties) and local 2-player pass-and-play mode. Deeply integrated with FryPDF shell overlay, status bar, and command palette.\n\n### Key Features:\n\u2022 **Floating Shell Overlay**: Smoothly drags and docks on top of any document workspace.\n\u2022 **Single Player vs Smart AI**: Multiple difficulty settings with strategic minimax moves.\n\u2022 **Local 2-Player Mode**: Play head-to-head with friends or colleagues.\n\u2022 **Score Counter**: Live score tracking for wins, losses, and draws.\n\u2022 **Deep Shell Integration**: Contributes to Command Palette, Status Bar, and Ribbon View Tab.",
@@ -103,7 +129,7 @@
     "license": "MIT",
     "isVerified": true,
     "isOfficial": true,
-    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.tictactoe/TicTacToe.fryplugin",
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.tictactoe/v1.1.0/TicTacToe.fryplugin",
     "tags": [
       "game",
       "tictactoe",
@@ -125,7 +151,30 @@
     ],
     "dependencies": [
       "PdfEditorApp.Core >= 1.0.0"
-    ]
+    ],
+    "versions": [
+      {
+        "version": "1.1.0",
+        "releaseDate": "2026-09-14",
+        "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.tictactoe/v1.1.0/TicTacToe.fryplugin",
+        "sha256": "8491624371414d9e971c2eca09bb84868ef4fb941bff6b3c0b3c80081773903e",
+        "formattedSize": "19 KB",
+        "minHostVersion": "1.0.0",
+        "targetFramework": "net10.0",
+        "releaseNotes": "Release v1.1.0 of Tic-Tac-Toe."
+      },
+      {
+        "version": "1.0.0",
+        "releaseDate": "2026-09-14",
+        "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.tictactoe/v1.0.0/TicTacToe.fryplugin",
+        "sha256": "8491624371414d9e971c2eca09bb84868ef4fb941bff6b3c0b3c80081773903e",
+        "formattedSize": "19 KB",
+        "minHostVersion": "1.0.0",
+        "targetFramework": "net10.0",
+        "releaseNotes": "Release v1.0.0 of Tic-Tac-Toe."
+      }
+    ],
+    "sha256": "8491624371414d9e971c2eca09bb84868ef4fb941bff6b3c0b3c80081773903e"
   },
   {
     "id": "frypdf.overlay.snake",
@@ -144,7 +193,7 @@
     "license": "MIT",
     "isVerified": true,
     "isOfficial": true,
-    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.snake/Snake.fryplugin",
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.snake/v1.0.0/Snake.fryplugin",
     "tags": [
       "game",
       "snake",
@@ -167,7 +216,20 @@
     ],
     "dependencies": [
       "PdfEditorApp.Core >= 1.0.0"
-    ]
+    ],
+    "versions": [
+      {
+        "version": "1.0.0",
+        "releaseDate": "2026-09-14",
+        "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.snake/v1.0.0/Snake.fryplugin",
+        "sha256": "cf6542c35e5ba9eff268b0fec81a3c6bf2bbd1954dcb2531695bb444c5c6cc1f",
+        "formattedSize": "21 KB",
+        "minHostVersion": "1.0.0",
+        "targetFramework": "net10.0",
+        "releaseNotes": "Release v1.0.0 of Retro Arcade Snake Game."
+      }
+    ],
+    "sha256": "cf6542c35e5ba9eff268b0fec81a3c6bf2bbd1954dcb2531695bb444c5c6cc1f"
   },
   {
     "id": "frypdf.overlay.scratchpad",
@@ -186,7 +248,7 @@
     "license": "MIT",
     "isVerified": true,
     "isOfficial": true,
-    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.scratchpad/Scratchpad.fryplugin",
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.scratchpad/v1.0.0/Scratchpad.fryplugin",
     "tags": [
       "scratchpad",
       "notes",
@@ -207,7 +269,20 @@
     ],
     "dependencies": [
       "PdfEditorApp.Core >= 1.0.0"
-    ]
+    ],
+    "versions": [
+      {
+        "version": "1.0.0",
+        "releaseDate": "2026-09-14",
+        "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.scratchpad/v1.0.0/Scratchpad.fryplugin",
+        "sha256": "4d53940e5dd2435dc8a42cdff970b39dcf0965e8fb8a317acf0383c2160b99e0",
+        "formattedSize": "14 KB",
+        "minHostVersion": "1.0.0",
+        "targetFramework": "net10.0",
+        "releaseNotes": "Release v1.0.0 of Review Scratchpad & Notes."
+      }
+    ],
+    "sha256": "4d53940e5dd2435dc8a42cdff970b39dcf0965e8fb8a317acf0383c2160b99e0"
   },
   {
     "id": "frypdf.overlay.telemetry",
@@ -226,7 +301,7 @@
     "license": "MIT",
     "isVerified": true,
     "isOfficial": true,
-    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.telemetry/Telemetry.fryplugin",
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.telemetry/v1.0.0/Telemetry.fryplugin",
     "tags": [
       "telemetry",
       "diagnostics",
@@ -247,7 +322,20 @@
     ],
     "dependencies": [
       "PdfEditorApp.Core >= 1.0.0"
-    ]
+    ],
+    "versions": [
+      {
+        "version": "1.0.0",
+        "releaseDate": "2026-09-14",
+        "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.telemetry/v1.0.0/Telemetry.fryplugin",
+        "sha256": "ad9e331f03a95090cf0f5b34c201134ec4e255e78f0d2f5bc0a4ec716045a1be",
+        "formattedSize": "13 KB",
+        "minHostVersion": "1.0.0",
+        "targetFramework": "net10.0",
+        "releaseNotes": "Release v1.0.0 of Document Telemetry HUD."
+      }
+    ],
+    "sha256": "ad9e331f03a95090cf0f5b34c201134ec4e255e78f0d2f5bc0a4ec716045a1be"
   },
   {
     "id": "frypdf.overlay.musicplayer",
@@ -266,7 +354,7 @@
     "license": "MIT",
     "isVerified": true,
     "isOfficial": true,
-    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.musicplayer/MusicPlayer.fryplugin",
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.musicplayer/v1.0.0/MusicPlayer.fryplugin",
     "tags": [
       "music",
       "audio",
@@ -289,7 +377,20 @@
     ],
     "dependencies": [
       "PdfEditorApp.Core >= 1.0.0"
-    ]
+    ],
+    "versions": [
+      {
+        "version": "1.0.0",
+        "releaseDate": "2026-09-14",
+        "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.musicplayer/v1.0.0/MusicPlayer.fryplugin",
+        "sha256": "58c61139b776df1084557b923687068d70d23f762ef70bc770571a218aab3ca8",
+        "formattedSize": "7.1 MB",
+        "minHostVersion": "1.0.0",
+        "targetFramework": "net10.0",
+        "releaseNotes": "Release v1.0.0 of Music Player."
+      }
+    ],
+    "sha256": "58c61139b776df1084557b923687068d70d23f762ef70bc770571a218aab3ca8"
   },
   {
     "id": "frypdf.overlay.imageeditor",
@@ -308,7 +409,7 @@
     "license": "MIT",
     "isVerified": true,
     "isOfficial": true,
-    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.imageeditor/ImageEditor.fryplugin",
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.imageeditor/v3.0.0/ImageEditor.fryplugin",
     "tags": [
       "adjustments",
       "canva",
@@ -344,6 +445,19 @@
     ],
     "dependencies": [
       "PdfEditorApp.Core >= 1.0.0"
-    ]
+    ],
+    "versions": [
+      {
+        "version": "3.0.0",
+        "releaseDate": "2026-09-14",
+        "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.imageeditor/v3.0.0/ImageEditor.fryplugin",
+        "sha256": "07c91a48f73590c2af72b870cf3d64d2767a7389771a361227d554d92df3823a",
+        "formattedSize": "147 KB",
+        "minHostVersion": "1.0.0",
+        "targetFramework": "net10.0",
+        "releaseNotes": "Release v3.0.0 of Image Editor."
+      }
+    ],
+    "sha256": "07c91a48f73590c2af72b870cf3d64d2767a7389771a361227d554d92df3823a"
   }
 ]

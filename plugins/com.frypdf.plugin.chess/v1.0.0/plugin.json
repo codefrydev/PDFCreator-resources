@@ -13,14 +13,22 @@
       "label": "CPU Difficulty",
       "description": "Tactical calculation depth and strategy of the computer opponent",
       "default": "Medium",
-      "options": ["Easy", "Medium", "Hard"]
+      "options": [
+        "Easy",
+        "Medium",
+        "Hard"
+      ]
     },
     "BoardTheme": {
       "type": "select",
       "label": "Board Theme",
       "description": "Visual color scheme for light and dark board squares",
       "default": "Emerald",
-      "options": ["Emerald", "ClassicWood", "MidnightSlate"]
+      "options": [
+        "Emerald",
+        "ClassicWood",
+        "MidnightSlate"
+      ]
     },
     "ShowLegalMoveHints": {
       "type": "boolean",

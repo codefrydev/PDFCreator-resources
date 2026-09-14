@@ -13,14 +13,21 @@
       "label": "Default Game Mode",
       "description": "Choose between single player vs AI or pass-and-play two player mode",
       "default": "PlayerVsAi",
-      "options": ["PlayerVsAi", "TwoPlayers"]
+      "options": [
+        "PlayerVsAi",
+        "TwoPlayers"
+      ]
     },
     "AiDifficulty": {
       "type": "select",
       "label": "AI Difficulty",
       "description": "Strategy level used by the computer opponent",
       "default": "Smart",
-      "options": ["Smart", "Unbeatable", "Easy"]
+      "options": [
+        "Smart",
+        "Unbeatable",
+        "Easy"
+      ]
     },
     "SoundEnabled": {
       "type": "boolean",

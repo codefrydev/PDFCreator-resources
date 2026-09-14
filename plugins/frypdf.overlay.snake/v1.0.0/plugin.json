@@ -13,7 +13,11 @@
       "label": "Game Speed",
       "description": "Default tick speed for snake movement",
       "default": "Normal",
-      "options": ["Normal", "Fast", "Zen"]
+      "options": [
+        "Normal",
+        "Fast",
+        "Zen"
+      ]
     },
     "WallCollision": {
       "type": "boolean",

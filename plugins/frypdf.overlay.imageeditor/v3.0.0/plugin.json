@@ -12,7 +12,11 @@
       "type": "select",
       "label": "Default Canvas Background",
       "description": "Starting canvas background color when the editor opens.",
-      "options": ["White", "Black", "Transparent"],
+      "options": [
+        "White",
+        "Black",
+        "Transparent"
+      ],
       "default": "White"
     },
     "DefaultCanvasWidth": {

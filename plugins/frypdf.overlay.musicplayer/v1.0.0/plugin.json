@@ -19,7 +19,11 @@
       "label": "Repeat Mode",
       "description": "Default playlist repeat behavior on launch",
       "default": "Off",
-      "options": ["Off", "RepeatOne", "RepeatAll"]
+      "options": [
+        "Off",
+        "RepeatOne",
+        "RepeatAll"
+      ]
     },
     "RememberLastPlaylist": {
       "type": "boolean",
