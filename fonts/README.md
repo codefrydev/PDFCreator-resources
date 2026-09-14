@@ -12,7 +12,7 @@ Total Archive Size: **80.69 MB**
 To publish these fonts to your new GitHub repository, run the following commands in terminal:
 
 ```bash
-cd /Users/codefrydev/Desktop/SourceCode/PDFCreator-Fonts
+cd PDFCreator-Fonts
 git init
 git add .
 git commit -m "feat: add complete FryPDF font library (67 fonts)"

@@ -24,6 +24,8 @@ on:
           - 'TelemetryPlugin'
           - 'MusicPlayerPlugin'
           - 'ImageEditorPlugin'
+          - 'CSharpEditorPlugin'
+          - 'ChessPlugin'
       dry_run:
         description: 'Dry run (build, test, and pack only; do not publish to NuGet.org)'
         type: boolean
