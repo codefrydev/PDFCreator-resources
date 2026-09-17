@@ -3,6 +3,10 @@
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+publish/
+dist/
+*.app/
+.venv-dmg/
 
 # Visual Studio / Rider / IDE cache
 .vs/

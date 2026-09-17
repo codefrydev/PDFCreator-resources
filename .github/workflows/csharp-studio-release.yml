@@ -1,0 +1,212 @@
+name: FrySharp & C# Studio Release
+
+on:
+  push:
+    tags:
+      - 'csharp-v*'
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version tag (e.g. 1.0.1)'
+        required: false
+        default: '1.0.1'
+
+concurrency:
+  group: csharp-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  determine-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      four_part_version: ${{ steps.version.outputs.four_part_version }}
+    steps:
+      - name: Determine version
+        id: version
+        shell: bash
+        run: |
+          RAW_VER=""
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            RAW_VER="${{ github.event.inputs.version }}"
+          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            RAW_VER="${GITHUB_REF_NAME}"
+          else
+            RAW_VER="1.0.1"
+          fi
+
+          # Strip prefix
+          CLEAN_VER="${RAW_VER#csharp-}"
+          CLEAN_VER="${CLEAN_VER#[vV]}"
+          echo "version=${CLEAN_VER}" >> "$GITHUB_OUTPUT"
+
+          # 4-part numeric version for Windows Inno Setup & MSIX
+          BASE_NUMERIC=$(echo "$CLEAN_VER" | cut -d'-' -f1)
+          IFS='.' read -r -a PARTS <<< "$BASE_NUMERIC"
+          P0="${PARTS[0]:-1}"
+          P1="${PARTS[1]:-0}"
+          P2="${PARTS[2]:-1}"
+          P3="${PARTS[3]:-0}"
+          FOUR_PART="$P0.$P1.$P2.$P3"
+          echo "four_part_version=${FOUR_PART}" >> "$GITHUB_OUTPUT"
+          echo "Release Version: ${CLEAN_VER} (4-part: ${FOUR_PART})"
+
+  test:
+    name: Test C# Code Studio
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build & Run Tests
+        run: dotnet test examples/CSharpEditorPlugin/CSharpEditorPlugin.slnx -c Release
+
+  build-windows:
+    needs: [determine-version, test]
+    runs-on: windows-latest
+    env:
+      VERSION: ${{ needs.determine-version.outputs.version }}
+      FOUR_PART_VERSION: ${{ needs.determine-version.outputs.four_part_version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python Image Dependencies
+        run: pip install pillow
+
+      - name: Generate Artwork & Assets
+        run: python examples/CSharpEditorPlugin/packaging/tools/generate_assets.py
+
+      - name: Publish win-x64 Standalone
+        shell: pwsh
+        run: >
+          dotnet publish examples/CSharpEditorPlugin/Runner/CSharpEditorPlugin.Runner.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:Version=$env:VERSION
+          -p:AssemblyVersion=$env:FOUR_PART_VERSION
+          -p:FileVersion=$env:FOUR_PART_VERSION
+          -p:InformationalVersion=$env:VERSION
+          -o publish/csharpeditor/win-x64
+
+      - name: Build Inno Setup Installer (.exe)
+        shell: pwsh
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" `
+            examples\CSharpEditorPlugin\packaging\windows\installer.iss `
+            "/DMyAppVersion=$env:VERSION" `
+            "/DMyAppVersionNumeric=$env:FOUR_PART_VERSION" `
+            "/DMyPublishDir=$env:GITHUB_WORKSPACE\publish\csharpeditor\win-x64"
+
+      - name: Build & Sign Windows MSIX Package (.msix)
+        shell: pwsh
+        run: |
+          .\examples\CSharpEditorPlugin\packaging\windows\msix\build-msix.ps1 `
+            -Version "$env:VERSION" `
+            -PublishDir "$env:GITHUB_WORKSPACE\publish\csharpeditor\win-x64" `
+            -OutputDir "$env:GITHUB_WORKSPACE\dist" `
+            -Publisher "CN=7E83DE15-E15F-41B6-B068-989D9548D0BF"
+
+      - name: Upload Windows Setup (.exe)
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: examples/CSharpEditorPlugin/packaging/windows/FrySharp-Setup-*.exe
+
+      - name: Upload Windows MSIX (.msix)
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-msix
+          path: |
+            dist/FrySharp-*-x64.msix
+            dist/FrySharp-*-PublicCert.cer
+
+  build-macos:
+    needs: [determine-version, test]
+    runs-on: macos-latest
+    env:
+      VERSION: ${{ needs.determine-version.outputs.version }}
+      FOUR_PART_VERSION: ${{ needs.determine-version.outputs.four_part_version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python Image Dependencies
+        run: pip install pillow dmgbuild==1.6.7
+
+      - name: Package Standalone macOS Application & DMG
+        run: python3 tools/package_runner.py csharpeditor --os macos --version "$VERSION"
+
+      - name: Upload macOS DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: dist/FrySharp-*-arm64.dmg
+
+  build-plugin:
+    needs: [determine-version, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build & Package .fryplugin for Marketplace
+        run: |
+          dotnet build examples/CSharpEditorPlugin/CSharpEditorPlugin.csproj -c Release
+          python3 tools/package_plugin.py CSharpEditor
+          python3 tools/validate_plugins.py
+
+      - name: Upload FryPDF Plugin (.fryplugin)
+        uses: actions/upload-artifact@v4
+        with:
+          name: frypdf-plugin
+          path: plugins/com.frypdf.plugin.csharpeditor/**/*.fryplugin
+
+  release:
+    needs: [determine-version, test, build-windows, build-macos, build-plugin]
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.determine-version.outputs.version }}
+        run: |
+          TAG_NAME="csharp-v$VERSION"
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG_NAME="${GITHUB_REF_NAME}"
+          fi
+
+          gh release create "$TAG_NAME" \
+            artifacts/windows-installer/FrySharp-Setup-*.exe \
+            artifacts/windows-msix/FrySharp-*-x64.msix \
+            artifacts/windows-msix/FrySharp-*-PublicCert.cer \
+            artifacts/macos-dmg/FrySharp-*-arm64.dmg \
+            artifacts/frypdf-plugin/**/*.fryplugin \
+            --title "FrySharp $TAG_NAME" \
+            --generate-notes
