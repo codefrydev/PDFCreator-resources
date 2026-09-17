@@ -176,11 +176,16 @@ jobs:
           python3 tools/package_plugin.py CSharpEditor
           python3 tools/validate_plugins.py
 
+      - name: Stage FryPDF Plugin for Release
+        run: |
+          mkdir -p release-plugin
+          cp examples/CSharpEditorPlugin/bin/Release/net10.0/CSharpEditor.fryplugin release-plugin/CSharpEditor.fryplugin
+
       - name: Upload FryPDF Plugin (.fryplugin)
         uses: actions/upload-artifact@v4
         with:
           name: frypdf-plugin
-          path: plugins/com.frypdf.plugin.csharpeditor/**/*.fryplugin
+          path: release-plugin/CSharpEditor.fryplugin
 
   release:
     needs: [determine-version, test, build-windows, build-macos, build-plugin]
@@ -194,7 +199,7 @@ jobs:
         with:
           path: artifacts
 
-      - name: Create GitHub Release
+      - name: Create or Update GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ needs.determine-version.outputs.version }}
@@ -204,11 +209,27 @@ jobs:
             TAG_NAME="${GITHUB_REF_NAME}"
           fi
 
-          gh release create "$TAG_NAME" \
-            artifacts/windows-installer/FrySharp-Setup-*.exe \
-            artifacts/windows-msix/FrySharp-*-x64.msix \
-            artifacts/windows-msix/FrySharp-*-PublicCert.cer \
-            artifacts/macos-dmg/FrySharp-*-arm64.dmg \
-            artifacts/frypdf-plugin/**/*.fryplugin \
-            --title "FrySharp $TAG_NAME" \
-            --generate-notes
+          # Collect non-duplicate release assets
+          ASSETS=()
+          for pattern in "artifacts/windows-installer/FrySharp-Setup-*.exe" \
+                         "artifacts/windows-msix/FrySharp-*-x64.msix" \
+                         "artifacts/windows-msix/FrySharp-*-PublicCert.cer" \
+                         "artifacts/macos-dmg/FrySharp-*-arm64.dmg" \
+                         "artifacts/frypdf-plugin/CSharpEditor.fryplugin"; do
+            for f in $pattern; do
+              [ -f "$f" ] && ASSETS+=("$f")
+            done
+          done
+
+          echo "Assets to publish:"
+          printf '  - %s\n' "${ASSETS[@]}"
+
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Release $TAG_NAME already exists, uploading assets with clobber..."
+            gh release upload "$TAG_NAME" "${ASSETS[@]}" --clobber
+          else
+            echo "Creating release $TAG_NAME..."
+            gh release create "$TAG_NAME" "${ASSETS[@]}" \
+              --title "FrySharp $TAG_NAME" \
+              --generate-notes
+          fi
