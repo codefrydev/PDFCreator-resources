@@ -69,6 +69,7 @@ jobs:
     env:
       VERSION: ${{ needs.determine-version.outputs.version }}
       FOUR_PART_VERSION: ${{ needs.determine-version.outputs.four_part_version }}
+      PYTHONIOENCODING: utf-8
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -135,6 +136,7 @@ jobs:
     env:
       VERSION: ${{ needs.determine-version.outputs.version }}
       FOUR_PART_VERSION: ${{ needs.determine-version.outputs.four_part_version }}
+      PYTHONIOENCODING: utf-8
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4

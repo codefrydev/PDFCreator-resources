@@ -20,6 +20,17 @@ import shutil
 import subprocess
 import sys
 
+if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+if sys.stderr and hasattr(sys.stderr, "reconfigure"):
+    try:
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 EXAMPLES_DIR = REPO_ROOT / "examples"
 DIST_DIR = REPO_ROOT / "dist"
@@ -39,11 +50,11 @@ def package_csharp_editor_macos(version: str, four_part: str) -> pathlib.Path:
     packaging_dir = plugin_dir / "packaging"
     macos_dir = packaging_dir / "macos"
 
-    print("\n📦 [1/4] Ensuring FrySharp packaging artwork...")
+    print("\n[1/4] Ensuring FrySharp packaging artwork...")
     gen_script = packaging_dir / "tools" / "generate_assets.py"
     subprocess.run([sys.executable, str(gen_script)], check=True)
 
-    print(f"\n🚀 [2/4] Publishing FrySharp standalone (osx-arm64, v{version})...")
+    print(f"\n[2/4] Publishing FrySharp standalone (osx-arm64, v{version})...")
     publish_dir = REPO_ROOT / "publish" / "csharpeditor" / "osx-arm64"
     if publish_dir.exists():
         shutil.rmtree(publish_dir)
@@ -67,7 +78,7 @@ def package_csharp_editor_macos(version: str, four_part: str) -> pathlib.Path:
     ]
     subprocess.run(publish_cmd, check=True)
 
-    print("\n🍎 [3/4] Assembling and codesigning FrySharp.app bundle...")
+    print("\n[3/4] Assembling and codesigning FrySharp.app bundle...")
     app_bundle = REPO_ROOT / "FrySharp.app"
     if app_bundle.exists():
         shutil.rmtree(app_bundle)
@@ -102,7 +113,7 @@ def package_csharp_editor_macos(version: str, four_part: str) -> pathlib.Path:
     subprocess.run(["codesign", "--force", "--deep", "--sign", "-", str(app_bundle)], check=True)
     print(f"  Signed: {app_bundle}")
 
-    print("\n💿 [4/4] Creating branded macOS DMG installer...")
+    print("\n[4/4] Creating branded macOS DMG installer...")
     DIST_DIR.mkdir(parents=True, exist_ok=True)
     dmg_out = DIST_DIR / f"FrySharp-{version}-arm64.dmg"
     make_dmg_sh = macos_dir / "make-dmg.sh"
@@ -119,7 +130,7 @@ def package_csharp_editor_macos(version: str, four_part: str) -> pathlib.Path:
     ]
     subprocess.run(dmg_cmd, check=True)
 
-    print(f"\n✨ Successfully packaged FrySharp macOS standalone DMG: {dmg_out}")
+    print(f"\n[SUCCESS] Successfully packaged FrySharp macOS standalone DMG: {dmg_out}")
     return dmg_out
 
 
@@ -129,11 +140,11 @@ def package_csharp_editor_windows(version: str, four_part: str) -> None:
     packaging_dir = plugin_dir / "packaging"
     windows_dir = packaging_dir / "windows"
 
-    print("\n📦 [1/3] Ensuring FrySharp packaging artwork...")
+    print("\n[1/3] Ensuring FrySharp packaging artwork...")
     gen_script = packaging_dir / "tools" / "generate_assets.py"
     subprocess.run([sys.executable, str(gen_script)], check=True)
 
-    print(f"\n🚀 [2/3] Publishing FrySharp standalone (win-x64, v{version})...")
+    print(f"\n[2/3] Publishing FrySharp standalone (win-x64, v{version})...")
     publish_dir = REPO_ROOT / "publish" / "csharpeditor" / "win-x64"
     if publish_dir.exists():
         shutil.rmtree(publish_dir)
@@ -158,7 +169,7 @@ def package_csharp_editor_windows(version: str, four_part: str) -> None:
     subprocess.run(publish_cmd, check=True)
 
     DIST_DIR.mkdir(parents=True, exist_ok=True)
-    print("\n🪟 [3/3] Windows packaging scripts staged:")
+    print("\n[3/3] Windows packaging scripts staged:")
     print(f"  - Inno Setup Script: {windows_dir / 'installer.iss'}")
     print(f"  - MSIX Script: {windows_dir / 'msix' / 'build-msix.ps1'}")
     print(f"  - Publish Directory: {publish_dir}")
@@ -178,7 +189,7 @@ def package_csharp_editor_windows(version: str, four_part: str) -> None:
         setup_exe = windows_dir / f"FrySharp-Setup-{version}.exe"
         if setup_exe.exists():
             shutil.move(str(setup_exe), str(DIST_DIR / setup_exe.name))
-            print(f"  ✨ Windows Installer created: {DIST_DIR / setup_exe.name}")
+            print(f"  [SUCCESS] Windows Installer created: {DIST_DIR / setup_exe.name}")
     else:
         print("  (ISCC.exe not found locally; ready for execution on Windows CI runner)")
 
