@@ -10,7 +10,7 @@
     "rating": 5.0,
     "ratingCount": 24,
     "installCount": 310,
-    "formattedSize": "3.9 MB",
+    "formattedSize": "4.2 MB",
     "iconKind": "CodeBraces",
     "iconColorHex": "#10B981",
     "license": "MIT",
@@ -46,10 +46,10 @@
     "versions": [
       {
         "version": "1.0.1",
-        "releaseDate": "2026-09-17",
+        "releaseDate": "2026-09-19",
         "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/v1.0.1/CSharpEditor.fryplugin",
-        "sha256": "13500da8c6c0c289e96b03cca91680f0e20ff942a6418081ff22c6600d22527e",
-        "formattedSize": "3.9 MB",
+        "sha256": "8247314ff13e27f45f6213369325498767764cd887a452104ef97371f5f21ca1",
+        "formattedSize": "4.2 MB",
         "minHostVersion": "1.0.0",
         "targetFramework": "net10.0",
         "releaseNotes": "Release v1.0.1 of C# Code Studio."
@@ -65,7 +65,7 @@
         "releaseNotes": "Release v1.0.0 of C# Code Studio."
       }
     ],
-    "sha256": "13500da8c6c0c289e96b03cca91680f0e20ff942a6418081ff22c6600d22527e"
+    "sha256": "8247314ff13e27f45f6213369325498767764cd887a452104ef97371f5f21ca1"
   },
   {
     "id": "com.frypdf.plugin.chess",
