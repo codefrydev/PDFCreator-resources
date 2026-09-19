@@ -10,7 +10,7 @@
     "rating": 5.0,
     "ratingCount": 24,
     "installCount": 310,
-    "formattedSize": "4.2 MB",
+    "formattedSize": "4.3 MB",
     "iconKind": "CodeBraces",
     "iconColorHex": "#10B981",
     "license": "MIT",
@@ -48,8 +48,8 @@
         "version": "1.0.1",
         "releaseDate": "2026-09-19",
         "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/v1.0.1/CSharpEditor.fryplugin",
-        "sha256": "da0d344c5fcd61cfd76af586c6ae719004709b4b56c24b398843ac0e9126f80f",
-        "formattedSize": "4.2 MB",
+        "sha256": "7a125e1c0f63c0a464332899ce6d26c93bd9dd2eab4ef2c9543f88fdaaaf0d85",
+        "formattedSize": "4.3 MB",
         "minHostVersion": "1.0.0",
         "targetFramework": "net10.0",
         "releaseNotes": "Release v1.0.1 of C# Code Studio."
@@ -65,7 +65,7 @@
         "releaseNotes": "Release v1.0.0 of C# Code Studio."
       }
     ],
-    "sha256": "da0d344c5fcd61cfd76af586c6ae719004709b4b56c24b398843ac0e9126f80f"
+    "sha256": "7a125e1c0f63c0a464332899ce6d26c93bd9dd2eab4ef2c9543f88fdaaaf0d85"
   },
   {
     "id": "com.frypdf.plugin.chess",
@@ -113,14 +113,14 @@
         "version": "1.0.0",
         "releaseDate": "2026-09-19",
         "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.chess/v1.0.0/Chess.fryplugin",
-        "sha256": "50cd1d97ac41383c3e0fa07da41b45714980dc7fb8ecdd3c8310fbf2f2854431",
+        "sha256": "8808de35013d3bbf15197fee7e776033bb6ebe35e1ca99267e66323e0a470570",
         "formattedSize": "39 KB",
         "minHostVersion": "1.0.0",
         "targetFramework": "net10.0",
         "releaseNotes": "Release v1.0.0 of Chess."
       }
     ],
-    "sha256": "50cd1d97ac41383c3e0fa07da41b45714980dc7fb8ecdd3c8310fbf2f2854431"
+    "sha256": "8808de35013d3bbf15197fee7e776033bb6ebe35e1ca99267e66323e0a470570"
   },
   {
     "id": "com.frypdf.plugin.tictactoe",
