@@ -393,14 +393,14 @@
         "version": "1.0.0",
         "releaseDate": "2026-09-20",
         "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.musicplayer/v1.0.0/MusicPlayer.fryplugin",
-        "sha256": "d527b8757ba6a679d39a7b976999efebaa607fb108d5418eaa17890f202345b3",
+        "sha256": "409ec7c73b6403161c4ae2aac79f742b5c4bd28edaa2ac7c30eef721e9521b13",
         "formattedSize": "7.1 MB",
         "minHostVersion": "1.0.0",
         "targetFramework": "net10.0",
         "releaseNotes": "Release v1.0.0 of Music Player."
       }
     ],
-    "sha256": "d527b8757ba6a679d39a7b976999efebaa607fb108d5418eaa17890f202345b3"
+    "sha256": "409ec7c73b6403161c4ae2aac79f742b5c4bd28edaa2ac7c30eef721e9521b13"
   },
   {
     "id": "frypdf.overlay.imageeditor",

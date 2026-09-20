@@ -32,7 +32,7 @@ PDFCreator-resources/
 │   ├── TicTacToePlugin/                      # Tic-Tac-Toe mini-game with minimax AI
 │   ├── ScratchpadPlugin/                     # Review scratchpad and markdown notes
 │   ├── TelemetryPlugin/                      # Document telemetry and GC memory HUD
-│   ├── MusicPlayerPlugin/                    # Playlist music player overlay (LibVLC)
+│   ├── MusicPlayerPlugin/                    # Playlist music player overlay & LibVLC (git submodule -> PrashantUnity/MusicPlayerPlayground)
 │   └── ImageEditorPlugin/                    # Canva-style layered image editor overlay
 ├── plugins/                                  # Marketplace distribution center
 │   ├── catalog.json                          # Official FryPDF remote marketplace registry
@@ -133,6 +133,7 @@ dotnet build examples/TicTacToePlugin/TicTacToePlugin.slnx
 dotnet build examples/ScratchpadPlugin/ScratchpadPlugin.slnx
 dotnet build examples/TelemetryPlugin/TelemetryPlugin.slnx
 dotnet build examples/MusicPlayerPlugin/MusicPlayerPlugin.slnx
+dotnet test examples/MusicPlayerPlugin/MusicPlayerPlugin.slnx
 dotnet build examples/ImageEditorPlugin/ImageEditorPlugin.slnx
 
 # 2. Package and stage release packages (if plugin code or manifests changed)

@@ -44,7 +44,7 @@ The central marketplace catalog is defined in [`plugins/catalog.json`](plugins/c
 ## 🚀 2. Standalone Plugin Development (Zero Friction)
 
 > [!TIP]
-> When cloning this repository, initialize git submodules to fetch external plugin repositories (such as [CSharpPlayground](https://github.com/PrashantUnity/CSharpPlayground)):
+> When cloning this repository, initialize git submodules to fetch external plugin repositories (such as [CSharpPlayground](https://github.com/PrashantUnity/CSharpPlayground) and [MusicPlayerPlayground](https://github.com/PrashantUnity/MusicPlayerPlayground)):
 > ```bash
 > git clone --recurse-submodules https://github.com/PrashantUnity/PDFCreator-resources.git
 > # Or in an existing clone:

@@ -1,50 +1,83 @@
-# Music Player Plugin (`frypdf.overlay.musicplayer`)
+# MusicPlayerPlayground
 
-Floating playlist-based music player with playback controls, seek/volume, and real ID3 metadata (title/artist/album/cover art), built with [SoundFlow](https://github.com/LSXPrime/SoundFlow) (a MiniAudio-backed .NET audio engine) + TagLibSharp.
+[![CI](https://github.com/PrashantUnity/MusicPlayerPlayground/actions/workflows/ci.yml/badge.svg)](https://github.com/PrashantUnity/MusicPlayerPlayground/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/)
+[![Avalonia UI](https://img.shields.io/badge/Avalonia-12.1.2-red.svg)](https://avaloniaui.net/)
 
-## Features
-- **Automatic M3 Expressive Chrome**: Docks into the `shell.overlay` slot with drag and pin physics.
-- **Playlist**: Add local WAV/MP3/FLAC files via a file picker; playlist persists between sessions.
-- **Real Metadata**: Title, artist, album, and embedded cover art are read from each file's tags via TagLibSharp.
-- **Full Transport Controls**: Play/pause, next/previous, stop, seek bar, volume, and Off/Repeat-All/Repeat-One modes.
-- **Persisted Settings**: Volume, repeat mode, playlist, and last-played track are saved through the plugin settings store.
-- **Genuinely cross-platform playback**: SoundFlow ships proper `runtimes/<rid>/native/` MiniAudio binaries for Windows, macOS (Intel *and* Apple Silicon), and Linux, so the `.fryplugin` bundles one native tree that works everywhere — no external app install required.
+**MusicPlayerPlayground** is an interactive, floating music player overlay and standalone desktop audio player for .NET 10 and Avalonia UI. It features an authentic Material Design 3 (M3) Expressive visual design, tactile transport controls, real-time audio visualization, queue management, and genuine cross-platform hardware playback powered by [SoundFlow](https://github.com/LSXPrime/SoundFlow) (MiniAudio) and [TagLibSharp](https://github.com/mono/taglib-sharp).
 
-## Why SoundFlow instead of LibVLCSharp
-LibVLCSharp was the initial choice, but two real, verified blockers ruled it out:
-1. The `VideoLAN.LibVLC.Mac` NuGet package (v3.1.3.1) ships only an **x86_64** `libvlc.dylib` — it does not run on Apple Silicon at all (confirmed via a native architecture-mismatch crash).
-2. Even on Intel, that package is just a bare `libvlc.dylib` with no `libvlccore.dylib` and no `plugins/` folder, so it can't actually decode or output audio without a full VLC.app installed separately as an external dependency — not acceptable for a self-contained plugin.
+It operates both as:
+1. **A Standalone Desktop Application**: Direct F5 executable with dark theme, hot reload, and local playlist state.
+2. **A FryPDF Ecosystem Plugin (`frypdf.overlay.musicplayer`)**: Floating draggable and pinnable overlay widget for FryPDF.
 
-SoundFlow was verified directly (NuGet package contents inspected, and a standalone smoke test played both a WAV and an MP3 file with accurate position/duration tracking and end-of-track detection) to ship working arm64 *and* x64 macOS native binaries with no external app dependency.
+---
 
-## Known Limitations
-- **Format support is WAV/MP3/FLAC only** for this build (SoundFlow's built-in MiniAudio decoders). Broader format support (OGG, M4A, AAC, ...) would need the optional `SoundFlow.Codecs.FFMpeg` extension package, not included here.
-- **SoundFlow's maintainer announced a hiatus (Jan 2026 – Feb 2027)** at the time this plugin was built — the current 1.4.1 release works standalone (verified), but don't expect upstream fixes/updates during that window.
+## 🌟 Key Features
 
-## Project Structure
-```
-MusicPlayerPlugin/
-├── MusicPlayerPlugin.cs            # IFryPlugin implementation
-├── MusicPlayerViewModel.cs         # Playback engine (SoundFlow/MiniAudio) + playlist/settings state
-├── TrackViewModel.cs               # Per-track metadata (TagLibSharp)
-├── RepeatModeIconConverter.cs
-├── MusicPlayerView.axaml / .axaml.cs
-├── plugin.json
-└── Runner/                         # Standalone Avalonia host for local dev/testing
-```
+- **Material Design 3 Expressive UI**:
+  - Custom draggable window chrome with pill drag handle, title, minimize/maximize, and close actions.
+  - Interactive tactile transport deck with smooth animations and dynamic album art blurring backdrop.
+- **Cross-Platform MiniAudio Engine**:
+  - Genuinely self-contained native audio decoders for Windows (`win-x64`), macOS (`osx-arm64` & `osx-x64`), and Linux (`linux-x64`).
+  - Supports WAV, MP3, and FLAC playback without external system runtime dependencies.
+- **Rich Metadata & Tag Extraction**:
+  - TagLibSharp ID3/Vorbis reader extracts title, artist, album, duration, track number, and embedded cover art.
+  - Memory-safe bitmap decoding (bounded to 400px width) prevents large object heap (LOH) fragmentation.
+- **Queue & Playlist Management**:
+  - Instant file picker and drag-and-drop support.
+  - Multi-mode repeat (Off, Repeat-One, Repeat-All) with dynamic Material icon transitions.
+  - Interactive search and filter within active queue.
+  - Track favoriting and quick reveal in file manager.
+- **Waveform & Tactile Slider**:
+  - Custom `WavySlider` control with fluid wave rendering during active playback.
 
-## Building and Packaging
-To build and create the `.fryplugin` distribution archive:
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+
+### Run Standalone Desktop App
 ```bash
-dotnet build -c Release
-```
-This produces `bin/Release/net10.0/MusicPlayer.fryplugin`, bundling `MusicPlayerPlugin.dll`, `SoundFlow.dll`, `TagLibSharp.dll`, `plugin.json`, and SoundFlow's native MiniAudio runtime tree (not provided by the host, unlike Avalonia/CommunityToolkit.Mvvm/Material.Icons.Avalonia).
+# Clone the repository
+git clone https://github.com/PrashantUnity/MusicPlayerPlayground.git
+cd MusicPlayerPlayground
 
-## Local Testing
-```bash
+# Run standalone desktop app
 dotnet run --project Runner/MusicPlayerPlugin.Runner.csproj
 ```
-Launches a standalone window hosting the player without needing a FryPDF install.
 
-## Installing into FryPDF
-Same three options as the other example plugins — drag-and-drop the `.fryplugin` onto the FryPDF window, use the Command Palette's "Install Plugin" action, or drop it into the auto-discovery plugins folder (`~/Library/Application Support/FryPdf/plugins/frypdf.overlay.musicplayer/` on macOS).
+### Run Automated Unit Tests
+```bash
+dotnet test MusicPlayerPlugin.slnx
+```
+
+---
+
+## 📦 Solution Structure
+
+```
+MusicPlayerPlayground/
+├── MusicPlayerPlugin.slnx          # Modern XML solution (Plugin + Runner + Tests)
+├── MusicPlayerPlugin.csproj        # Dual-mode .NET 10 plugin & packaging target
+├── MusicPlayerPlugin.cs            # IFryPlugin overlay registration & ALC resolvers
+├── MusicPlayerViewModel.cs         # SoundFlow engine, playback state, and commands
+├── TrackViewModel.cs               # ID3 tags, cover art, and per-track observable model
+├── WavySlider.cs                   # Custom Avalonia tactile animated slider
+├── RepeatModeIconConverter.cs      # Repeat mode enum to Material icon converter
+├── MusicPlayerView.axaml / .cs     # M3 Expressive floating window interface
+├── plugin.json                     # FryPDF marketplace manifest
+├── Runner/                         # Self-contained standalone preview application
+│   ├── MusicPlayerPlugin.Runner.csproj
+│   ├── Program.cs / App.axaml
+│   └── MainWindow.axaml
+└── Tests/                          # xUnit unit test suite
+    └── MusicPlayerPlugin.Tests.csproj
+```
+
+---
+
+## 📜 License
+MIT License. See [LICENSE](LICENSE) for details.
