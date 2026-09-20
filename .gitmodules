@@ -1,0 +1,3 @@
+[submodule "examples/CSharpEditorPlugin"]
+	path = examples/CSharpEditorPlugin
+	url = https://github.com/PrashantUnity/CSharpPlayground.git

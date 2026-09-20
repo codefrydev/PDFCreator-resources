@@ -14,6 +14,8 @@ PDFCreator-resources/
 ├── README.md                                 # Human-facing repository documentation
 ├── catalog.json -> plugins/catalog.json     # Root marketplace catalog symlink/reference
 ├── examples/                                 # Reference plugin source code & standalone runners
+│   ├── CSharpEditorPlugin/                   # C# Code Studio & FrySharp (git submodule -> PrashantUnity/CSharpPlayground)
+│   ├── ChessPlugin/                          # Chess mini-game overlay
 │   ├── SnakePlugin/                          # Retro Arcade Snake game overlay
 │   │   ├── SnakePlugin.slnx                  # Modern XML solution (Plugin + Runner)
 │   │   ├── SnakePlugin.csproj                # Dual-mode .NET 10 project + packaging target
@@ -34,6 +36,8 @@ PDFCreator-resources/
 │   └── ImageEditorPlugin/                    # Canva-style layered image editor overlay
 ├── plugins/                                  # Marketplace distribution center
 │   ├── catalog.json                          # Official FryPDF remote marketplace registry
+│   ├── com.frypdf.plugin.csharpeditor/       # CSharpEditor.fryplugin, plugin.json, README.md
+│   ├── com.frypdf.plugin.chess/              # Chess.fryplugin, plugin.json, README.md
 │   ├── frypdf.overlay.snake/                 # Snake.fryplugin, plugin.json, README.md
 │   ├── com.frypdf.plugin.tictactoe/          # TicTacToe.fryplugin, plugin.json, README.md
 │   ├── frypdf.overlay.scratchpad/            # Scratchpad.fryplugin, plugin.json, README.md
@@ -121,6 +125,9 @@ Before completing any task or committing changes:
 
 ```bash
 # 1. Verify all plugin solutions build with 0 warnings & 0 errors
+dotnet build examples/CSharpEditorPlugin/CSharpEditorPlugin.slnx
+dotnet test examples/CSharpEditorPlugin/CSharpEditorPlugin.slnx
+dotnet build examples/ChessPlugin/ChessPlugin.slnx
 dotnet build examples/SnakePlugin/SnakePlugin.slnx
 dotnet build examples/TicTacToePlugin/TicTacToePlugin.slnx
 dotnet build examples/ScratchpadPlugin/ScratchpadPlugin.slnx

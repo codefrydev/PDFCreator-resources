@@ -30,21 +30,32 @@ The central marketplace catalog is defined in [`plugins/catalog.json`](plugins/c
 
 | Plugin | ID | Slot | Description | Package |
 |---|---|---|---|---|
-| 🎮 **Tic-Tac-Toe** | `com.frypdf.plugin.tictactoe` | `shell.overlay` | Playable 2-Player & Minimax AI game overlay | [TicTacToe.fryplugin](plugins/com.frypdf.plugin.tictactoe/TicTacToe.fryplugin) |
-| 🐍 **Retro Arcade Snake** | `frypdf.overlay.snake` | `shell.overlay` | 60+ FPS direct canvas retro arcade game | [Snake.fryplugin](plugins/frypdf.overlay.snake/Snake.fryplugin) |
-| 📝 **Review Scratchpad** | `frypdf.overlay.scratchpad` | `shell.overlay` | Floating Markdown notes with word counters | [Scratchpad.fryplugin](plugins/frypdf.overlay.scratchpad/Scratchpad.fryplugin) |
-| ⚡ **Telemetry HUD** | `frypdf.overlay.telemetry` | `shell.overlay` | Real-time managed heap & GC memory monitor | [Telemetry.fryplugin](plugins/frypdf.overlay.telemetry/Telemetry.fryplugin) |
-| 🎵 **Music Player** | `frypdf.overlay.musicplayer` | `shell.overlay` | Playlist audio player powered by LibVLC | [MusicPlayer.fryplugin](plugins/frypdf.overlay.musicplayer/MusicPlayer.fryplugin) |
+| 💻 **C# Code Studio & FrySharp** | `com.frypdf.plugin.csharpeditor` | `workspace.page` / `overlay` | Full VS Code-style IDE, Roslyn diagnostics, interactive notebooks, and tabular analytics | [CSharpEditor.fryplugin](plugins/com.frypdf.plugin.csharpeditor/v1.0.1/CSharpEditor.fryplugin) |
+| ♟️ **Chess** | `com.frypdf.plugin.chess` | `shell.overlay` | Playable 2-Player & AI chess mini-game | [Chess.fryplugin](plugins/com.frypdf.plugin.chess/v1.0.0/Chess.fryplugin) |
+| 🎨 **Image Editor** | `frypdf.overlay.imageeditor` | `workspace.page` / `overlay` | Canva-style vector & bitmap layout studio | [ImageEditor.fryplugin](plugins/frypdf.overlay.imageeditor/v3.0.0/ImageEditor.fryplugin) |
+| 🎮 **Tic-Tac-Toe** | `com.frypdf.plugin.tictactoe` | `shell.overlay` | Playable 2-Player & Minimax AI game overlay | [TicTacToe.fryplugin](plugins/com.frypdf.plugin.tictactoe/v1.1.0/TicTacToe.fryplugin) |
+| 🐍 **Retro Arcade Snake** | `frypdf.overlay.snake` | `shell.overlay` | 60+ FPS direct canvas retro arcade game | [Snake.fryplugin](plugins/frypdf.overlay.snake/v1.0.0/Snake.fryplugin) |
+| 📝 **Review Scratchpad** | `frypdf.overlay.scratchpad` | `shell.overlay` | Floating Markdown notes with word counters | [Scratchpad.fryplugin](plugins/frypdf.overlay.scratchpad/v1.0.0/Scratchpad.fryplugin) |
+| ⚡ **Telemetry HUD** | `frypdf.overlay.telemetry` | `shell.overlay` | Real-time managed heap & GC memory monitor | [Telemetry.fryplugin](plugins/frypdf.overlay.telemetry/v1.0.0/Telemetry.fryplugin) |
+| 🎵 **Music Player** | `frypdf.overlay.musicplayer` | `shell.overlay` | Playlist audio player powered by LibVLC | [MusicPlayer.fryplugin](plugins/frypdf.overlay.musicplayer/v1.0.0/MusicPlayer.fryplugin) |
 
 ---
 
 ## 🚀 2. Standalone Plugin Development (Zero Friction)
 
+> [!TIP]
+> When cloning this repository, initialize git submodules to fetch external plugin repositories (such as [CSharpPlayground](https://github.com/PrashantUnity/CSharpPlayground)):
+> ```bash
+> git clone --recurse-submodules https://github.com/PrashantUnity/PDFCreator-resources.git
+> # Or in an existing clone:
+> git submodule update --init --recursive
+> ```
+
 Every reference plugin in [`examples/`](examples/) includes a modern `.slnx` solution and a standalone `Runner/` application.
 
 ### Instant F5 Preview & Debugging
 You do **not** need to build or run the heavy FryPDF host application to develop and debug plugins!
-1. Open any plugin solution in **JetBrains Rider** or **Visual Studio** (e.g. `examples/SnakePlugin/SnakePlugin.slnx`).
+1. Open any plugin solution in **JetBrains Rider** or **Visual Studio** (e.g. `examples/CSharpEditorPlugin/CSharpEditorPlugin.slnx` or `examples/SnakePlugin/SnakePlugin.slnx`).
 2. Set the `Runner` project as your startup project.
 3. Hit **Run (F5)**! A dark-themed test window opens immediately with live hot-reload, pixel-accurate Material Design 3 tokens, and mock settings.
 
