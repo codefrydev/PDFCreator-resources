@@ -46,9 +46,9 @@
     "versions": [
       {
         "version": "1.0.1",
-        "releaseDate": "2026-09-19",
+        "releaseDate": "2026-09-20",
         "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/v1.0.1/CSharpEditor.fryplugin",
-        "sha256": "7a125e1c0f63c0a464332899ce6d26c93bd9dd2eab4ef2c9543f88fdaaaf0d85",
+        "sha256": "58f83e1b2aa01da80b10d672e29365cf02d880bef87641f109a91bd7f177e1f2",
         "formattedSize": "4.3 MB",
         "minHostVersion": "1.0.0",
         "targetFramework": "net10.0",
@@ -65,7 +65,7 @@
         "releaseNotes": "Release v1.0.0 of C# Code Studio."
       }
     ],
-    "sha256": "7a125e1c0f63c0a464332899ce6d26c93bd9dd2eab4ef2c9543f88fdaaaf0d85"
+    "sha256": "58f83e1b2aa01da80b10d672e29365cf02d880bef87641f109a91bd7f177e1f2"
   },
   {
     "id": "com.frypdf.plugin.chess",
@@ -111,16 +111,16 @@
     "versions": [
       {
         "version": "1.0.0",
-        "releaseDate": "2026-09-19",
+        "releaseDate": "2026-09-20",
         "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.chess/v1.0.0/Chess.fryplugin",
-        "sha256": "8808de35013d3bbf15197fee7e776033bb6ebe35e1ca99267e66323e0a470570",
+        "sha256": "9bf51a6baf50be1193624af10e55d4422aec5d496ff1dc135c037b37d8788d19",
         "formattedSize": "39 KB",
         "minHostVersion": "1.0.0",
         "targetFramework": "net10.0",
         "releaseNotes": "Release v1.0.0 of Chess."
       }
     ],
-    "sha256": "8808de35013d3bbf15197fee7e776033bb6ebe35e1ca99267e66323e0a470570"
+    "sha256": "9bf51a6baf50be1193624af10e55d4422aec5d496ff1dc135c037b37d8788d19"
   },
   {
     "id": "com.frypdf.plugin.tictactoe",
@@ -175,9 +175,9 @@
       },
       {
         "version": "1.0.0",
-        "releaseDate": "2026-09-19",
+        "releaseDate": "2026-09-20",
         "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.tictactoe/v1.0.0/TicTacToe.fryplugin",
-        "sha256": "52998b8ee37d8f33d7ec0cb1bd17c73bfa82206926429a87851520350a151089",
+        "sha256": "a01f2465f19c799806051eb46e0bf18656ef920429d6a380269b1605bec43f8d",
         "formattedSize": "19 KB",
         "minHostVersion": "1.0.0",
         "targetFramework": "net10.0",
@@ -230,16 +230,16 @@
     "versions": [
       {
         "version": "1.0.0",
-        "releaseDate": "2026-09-19",
+        "releaseDate": "2026-09-20",
         "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.snake/v1.0.0/Snake.fryplugin",
-        "sha256": "09fc43c4eaff233cfda717a1b9de312d4957d0e692aff9992a41583f6e87e1f6",
+        "sha256": "5a905b19c67415ad4e4a78b680c3fc9b2c3f824c60245f1978d8bf28ab37f1a9",
         "formattedSize": "21 KB",
         "minHostVersion": "1.0.0",
         "targetFramework": "net10.0",
         "releaseNotes": "Release v1.0.0 of Retro Arcade Snake Game."
       }
     ],
-    "sha256": "09fc43c4eaff233cfda717a1b9de312d4957d0e692aff9992a41583f6e87e1f6"
+    "sha256": "5a905b19c67415ad4e4a78b680c3fc9b2c3f824c60245f1978d8bf28ab37f1a9"
   },
   {
     "id": "frypdf.overlay.scratchpad",
@@ -283,16 +283,16 @@
     "versions": [
       {
         "version": "1.0.0",
-        "releaseDate": "2026-09-19",
+        "releaseDate": "2026-09-20",
         "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.scratchpad/v1.0.0/Scratchpad.fryplugin",
-        "sha256": "ab9ec8fa660b213cf4bc489a994b7e9bc8d2985788b05f862e722c82ce501675",
+        "sha256": "7d624a29c45343085bf6546733e87cbb4e120750350cc261fb2bba596107d2de",
         "formattedSize": "14 KB",
         "minHostVersion": "1.0.0",
         "targetFramework": "net10.0",
         "releaseNotes": "Release v1.0.0 of Review Scratchpad & Notes."
       }
     ],
-    "sha256": "ab9ec8fa660b213cf4bc489a994b7e9bc8d2985788b05f862e722c82ce501675"
+    "sha256": "7d624a29c45343085bf6546733e87cbb4e120750350cc261fb2bba596107d2de"
   },
   {
     "id": "frypdf.overlay.telemetry",
@@ -336,16 +336,16 @@
     "versions": [
       {
         "version": "1.0.0",
-        "releaseDate": "2026-09-19",
+        "releaseDate": "2026-09-20",
         "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.telemetry/v1.0.0/Telemetry.fryplugin",
-        "sha256": "17736beeebbf1d6118a7206b74f0245c401c066998b9702d5144de5ea1a61dc1",
+        "sha256": "43b6725850ec8abb7a7aa49669e25d71a474bdb4d9eb18b67e9d91972030a5c8",
         "formattedSize": "13 KB",
         "minHostVersion": "1.0.0",
         "targetFramework": "net10.0",
         "releaseNotes": "Release v1.0.0 of Document Telemetry HUD."
       }
     ],
-    "sha256": "17736beeebbf1d6118a7206b74f0245c401c066998b9702d5144de5ea1a61dc1"
+    "sha256": "43b6725850ec8abb7a7aa49669e25d71a474bdb4d9eb18b67e9d91972030a5c8"
   },
   {
     "id": "frypdf.overlay.musicplayer",
@@ -391,16 +391,16 @@
     "versions": [
       {
         "version": "1.0.0",
-        "releaseDate": "2026-09-19",
+        "releaseDate": "2026-09-20",
         "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.musicplayer/v1.0.0/MusicPlayer.fryplugin",
-        "sha256": "7146b310b9f6d95756a3bd12b1f380eb0a7c6655cb69b169b4a7046a3f5cd3fd",
+        "sha256": "b1791438cf6c850ae48cb54277877445c22b3f131aa63a49a640fe5d625b2409",
         "formattedSize": "7.1 MB",
         "minHostVersion": "1.0.0",
         "targetFramework": "net10.0",
         "releaseNotes": "Release v1.0.0 of Music Player."
       }
     ],
-    "sha256": "7146b310b9f6d95756a3bd12b1f380eb0a7c6655cb69b169b4a7046a3f5cd3fd"
+    "sha256": "b1791438cf6c850ae48cb54277877445c22b3f131aa63a49a640fe5d625b2409"
   },
   {
     "id": "frypdf.overlay.imageeditor",
@@ -459,15 +459,15 @@
     "versions": [
       {
         "version": "3.0.0",
-        "releaseDate": "2026-09-19",
+        "releaseDate": "2026-09-20",
         "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/frypdf.overlay.imageeditor/v3.0.0/ImageEditor.fryplugin",
-        "sha256": "c0a372c68d04136970e7d17ae1ea8caa1ac3317b19536428ca62d14b0a361d30",
+        "sha256": "f8005def5e76511ab425768713a22877659de0014e43ca531de41e1f72749c8c",
         "formattedSize": "147 KB",
         "minHostVersion": "1.0.0",
         "targetFramework": "net10.0",
         "releaseNotes": "Release v3.0.0 of Image Editor."
       }
     ],
-    "sha256": "c0a372c68d04136970e7d17ae1ea8caa1ac3317b19536428ca62d14b0a361d30"
+    "sha256": "f8005def5e76511ab425768713a22877659de0014e43ca531de41e1f72749c8c"
   }
 ]
