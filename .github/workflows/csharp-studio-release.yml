@@ -33,7 +33,7 @@ jobs:
           elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             RAW_VER="${GITHUB_REF_NAME}"
           else
-            RAW_VER="1.0.1"
+            RAW_VER="0.1.2"
           fi
 
           # Strip prefix
