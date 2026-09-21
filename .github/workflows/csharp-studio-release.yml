@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version tag (e.g. 1.0.1)'
+        description: 'Release version tag (e.g. 0.1.2)'
         required: false
-        default: '1.0.1'
+        default: '0.1.2'
 
 concurrency:
   group: csharp-release-${{ github.ref }}
