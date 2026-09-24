@@ -1,0 +1,49 @@
+{
+  "id": "com.frypdf.plugin.csharpeditor",
+  "name": "C# Code Studio",
+  "version": "1.0.3",
+  "author": "Code Fry Dev",
+  "description": "Interactive in-app C# development and automation studio featuring a dedicated project/script manager, syntax-highlighted editor, real-time Roslyn compilation diagnostics, in-memory execution, visual gutter breakpoints, interactive stepping (F5/F10/F11), locals/watch inspection, and immediate evaluation.",
+  "entryPoint": "CSharpEditorPlugin.dll",
+  "icon": "CodeBraces",
+  "dependencies": [],
+  "settingsSchema": {
+    "DefaultTemplate": {
+      "type": "select",
+      "label": "Default Starter Script",
+      "description": "Initial template loaded when creating a new script",
+      "default": "Hello World Console",
+      "options": [
+        "Hello World Console",
+        "PDF Document Automation",
+        "LINQ Benchmark",
+        "JSON Serializer"
+      ]
+    },
+    "EditorFontSize": {
+      "type": "integer",
+      "label": "Editor Font Size (px)",
+      "description": "Code typography size in points/pixels",
+      "default": 13
+    },
+    "ShowLineNumbers": {
+      "type": "boolean",
+      "label": "Show Line Numbers",
+      "description": "Display gutter line numbers along the left margin",
+      "default": true
+    },
+    "AutoCheckErrors": {
+      "type": "boolean",
+      "label": "Live Roslyn Diagnostics",
+      "description": "Continuously analyze C# code in the background for syntax and semantic errors",
+      "default": true
+    },
+    "ExecutionTimeoutSeconds": {
+      "type": "integer",
+      "label": "Execution Timeout (seconds, 0 = no limit)",
+      "description": "Maximum allowed run time before script execution is automatically stopped. 0 disables the automatic limit — Stop is always available regardless.",
+      "default": 0
+    }
+  },
+  "isCollectible": false
+}
