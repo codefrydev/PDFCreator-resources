@@ -3,20 +3,20 @@
     "id": "com.frypdf.plugin.csharpeditor",
     "name": "C# Code Studio",
     "publisher": "Code Fry Dev",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "category": "Developer & Tools",
     "description": "Interactive in-app C# development and automation studio featuring a dedicated project/script manager, syntax-highlighted editor, real-time Roslyn compilation diagnostics, and in-memory execution.",
     "longDescription": "Bring full-featured C# development and script automation directly into your document studio! This studio tool provides a dual-page workflow: a Script Management Hub to organize and template your scripts, and a dedicated C# Code Studio powered by AvaloniaEdit and Roslyn.\n\n### Key Features:\n\u2022 **Two-Page Architecture**: Dedicated Script Hub to browse, search, and duplicate scripts alongside a full-featured Code Studio editor.\n\u2022 **Hardware-Accelerated Code Editor**: Built on Avalonia.AvaloniaEdit with syntax highlighting, line numbers, and dark IDE styling.\n\u2022 **Real-Time Roslyn Diagnostics**: Debounced background syntax and semantic analysis with clickable error/warning navigation.\n\u2022 **Live In-Memory Execution**: Compiles and runs C# code in an isolated worker with real-time Console.Out/Console.Error terminal streaming.\n\u2022 **Starter Template Library**: Ready-to-run templates for PDF Document Automation, LINQ Benchmarking, and JSON Serialization.\n\u2022 **Deep Shell Integration**: Contributes to Workspace Navigation (Full Viewport Studio), Command Palette (Ctrl+Alt+E), Status Bar ({ } C# Studio), and Ribbon.",
     "rating": 5.0,
     "ratingCount": 24,
     "installCount": 310,
-    "formattedSize": "4.5 MB",
+    "formattedSize": "4.9 MB",
     "iconKind": "CodeBraces",
     "iconColorHex": "#10B981",
     "license": "MIT",
     "isVerified": true,
     "isOfficial": true,
-    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/v1.0.4/CSharpEditor.fryplugin",
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/v1.0.5/CSharpEditor.fryplugin",
     "tags": [
       "csharp",
       "editor",
@@ -44,6 +44,16 @@
       "PdfEditorApp.Core >= 1.0.0"
     ],
     "versions": [
+      {
+        "version": "1.0.5",
+        "releaseDate": "2026-09-25",
+        "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/v1.0.5/CSharpEditor.fryplugin",
+        "sha256": "e71e9f0bb40db2e3f448acb23c6479302f088ccf7049177df22fc0df09f07a9c",
+        "formattedSize": "4.9 MB",
+        "minHostVersion": "1.0.0",
+        "targetFramework": "net10.0",
+        "releaseNotes": "Blind 75 problems browser with filtering, sorting, resizable columns, LeetCode deep-links, automated test case generation, script problem test runner UI, dump table sequence formatting, and UI snapshot tools."
+      },
       {
         "version": "1.0.4",
         "releaseDate": "2026-09-24",
@@ -95,7 +105,7 @@
         "releaseNotes": "Release v1.0.0 of C# Code Studio."
       }
     ],
-    "sha256": "b59f0fc4adc60e8323aed70818701f7efbdd1383a4ea00252fd5790492e700e9"
+    "sha256": "e71e9f0bb40db2e3f448acb23c6479302f088ccf7049177df22fc0df09f07a9c"
   },
   {
     "id": "com.frypdf.plugin.chess",
