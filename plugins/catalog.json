@@ -63,11 +63,11 @@
         "version": "2.0.1",
         "releaseDate": "2026-10-01",
         "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/v2.0.1/CSharpEditor.fryplugin",
-        "sha256": "1d24826a038011b439b471c10e20ca5c7b1f786fa196f255405e2915c69a1cdd",
+        "sha256": "3ae3549cbf75a60fb7c3ec7d322672347debe0322907cd8a1d5e76169acd985b",
         "formattedSize": "6.8 MB",
         "minHostVersion": "1.0.0",
         "targetFramework": "net10.0",
-        "releaseNotes": "Major 2.0 release: 9-language polyglot IDE (C#, Python, JavaScript, Java, Go, Rust, F#, C++, SQL), Fry Kernel Protocol cross-language notebooks, step-by-step data structure visualizers, Blind 75 problem browser, VS Code 5-zone layout with full keyboard shortcut parity, and 1,100+ automated tests. Fixes cross-platform path separators, drive parsing, and notebook cell cold-start timeouts."
+        "releaseNotes": "Major 2.0 release: 9-language polyglot IDE (C#, Python, JavaScript, Java, Go, Rust, F#, C++, SQL), Fry Kernel Protocol cross-language notebooks, step-by-step data structure visualizers, Blind 75 problem browser, VS Code 5-zone layout with full keyboard shortcut parity, and 2,800+ automated tests. Fixes cross-platform path separators, drive parsing, notebook cell cold-start timeouts, Windows GCC/MinGW C++ flags, and stderr diagnostic isolation."
       },
       {
         "version": "1.0.6",
@@ -140,7 +140,7 @@
         "releaseNotes": "Release v1.0.0 of C# Code Studio."
       }
     ],
-    "sha256": "1d24826a038011b439b471c10e20ca5c7b1f786fa196f255405e2915c69a1cdd"
+    "sha256": "3ae3549cbf75a60fb7c3ec7d322672347debe0322907cd8a1d5e76169acd985b"
   },
   {
     "id": "com.frypdf.plugin.chess",
