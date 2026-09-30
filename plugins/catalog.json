@@ -3,20 +3,20 @@
     "id": "com.frypdf.plugin.csharpeditor",
     "name": "C# Code Studio",
     "publisher": "Code Fry Dev",
-    "version": "1.0.6",
+    "version": "2.0.1",
     "category": "Developer & Tools",
-    "description": "Interactive in-app C# development and automation studio featuring a dedicated project/script manager, syntax-highlighted editor, real-time Roslyn compilation diagnostics, and in-memory execution.",
-    "longDescription": "Bring full-featured C# development and script automation directly into your document studio! This studio tool provides a dual-page workflow: a Script Management Hub to organize and template your scripts, and a dedicated C# Code Studio powered by AvaloniaEdit and Roslyn.\n\n### Key Features:\n\u2022 **Two-Page Architecture**: Dedicated Script Hub to browse, search, and duplicate scripts alongside a full-featured Code Studio editor.\n\u2022 **Hardware-Accelerated Code Editor**: Built on Avalonia.AvaloniaEdit with syntax highlighting, line numbers, and dark IDE styling.\n\u2022 **Real-Time Roslyn Diagnostics**: Debounced background syntax and semantic analysis with clickable error/warning navigation.\n\u2022 **Live In-Memory Execution**: Compiles and runs C# code in an isolated worker with real-time Console.Out/Console.Error terminal streaming.\n\u2022 **Starter Template Library**: Ready-to-run templates for PDF Document Automation, LINQ Benchmarking, and JSON Serialization.\n\u2022 **Deep Shell Integration**: Contributes to Workspace Navigation (Full Viewport Studio), Command Palette (Ctrl+Alt+E), Status Bar ({ } C# Studio), and Ribbon.",
+    "description": "Full-featured polyglot IDE and interactive notebook studio \u2014 C#, Python, JavaScript, Java, Go, Rust, F#, C++, and SQL \u2014 with VS Code ergonomics, real-time Roslyn diagnostics, step-by-step visualizers, and the Fry Kernel Protocol for cross-language notebooks.",
+    "longDescription": "C# Code Studio 2.0 is a complete IDE rewrite delivering VS Code-faithful ergonomics inside FryPDF \u2014 Activity Bar, Primary Side Bar, multi-tab Editor, resizable Bottom Deck, and Status Bar \u2014 across 9 languages.\n\n### What's New in 2.0\n\u2022 **9 Languages**: C#, Python, JavaScript/Node, Java, Go, Rust, F#, C++, SQL \u2014 each with its own toolchain provider, diagnostic parser, package manager, and kernel.\n\u2022 **Polyglot Notebooks**: Mixed-language `.csnb` / `.ipynb` notebooks with collapsible cells, markdown rendering, and rich cell output tabs.\n\u2022 **Fry Kernel Protocol**: Line-delimited JSON kernel over stdin/stdout with cross-language `#!share` variable exchange.\n\u2022 **Step-by-Step Visualizers**: Data-structure visualizers (arrays, linked lists, trees, graphs), recursion call-tree tracking, interactive charts, 3D plots, `.Dump()` tables, and an object inspector.\n\u2022 **Blind 75 Problem Browser**: Full LeetCode Blind 75 catalogue with animated algorithm walkthroughs and test-case runner.\n\u2022 **VS Code Keyboard Shortcuts**: Ctrl+B, Ctrl+J, F5/F10/F11, Ctrl+Shift+E/F/D/M, and more.\n\u2022 **1,100+ Automated Tests**: Every language, every service, every UI zone covered.",
     "rating": 5.0,
     "ratingCount": 24,
     "installCount": 310,
-    "formattedSize": "5.0 MB",
+    "formattedSize": "6.8 MB",
     "iconKind": "CodeBraces",
     "iconColorHex": "#10B981",
     "license": "MIT",
     "isVerified": true,
     "isOfficial": true,
-    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/v1.0.6/CSharpEditor.fryplugin",
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/v2.0.1/CSharpEditor.fryplugin",
     "tags": [
       "csharp",
       "editor",
@@ -25,25 +25,50 @@
       "automation",
       "studio",
       "code",
-      "developer"
+      "developer",
+      "polyglot",
+      "notebook",
+      "visualizer",
+      "python",
+      "java",
+      "go",
+      "rust",
+      "fsharp",
+      "cpp",
+      "sql",
+      "javascript"
     ],
     "highlights": [
-      "Two-Page Workflow: Script Management Hub & Full Code Studio",
-      "Hardware-Accelerated C# Editor Powered by Avalonia.AvaloniaEdit",
-      "Real-Time Background Roslyn Diagnostics & Error Navigation",
-      "In-Memory Execution Engine with Live Console Output Streaming",
-      "Pre-loaded Starter Templates for PDF Automation & LINQ Benchmarking"
+      "9 Languages: C#, Python, JavaScript, Java, Go, Rust, F#, C++, SQL",
+      "VS Code 5-Zone Layout: Activity Bar, Side Bar, Editor, Bottom Deck, Status Bar",
+      "Polyglot Notebooks with Fry Kernel Protocol & Cross-Language #!share",
+      "Step-by-Step Data Structure Visualizers, Charts & 3D Plots",
+      "Blind 75 Problem Browser with Animated Algorithm Walkthroughs",
+      "Real-Time Roslyn Diagnostics & Full Debugging (F5/F10/F11)"
     ],
     "contributedFeatures": [
       "Workspace Studio: C# Code Studio Full-Viewport Navigation Page",
+      "Workspace Studio: Polyglot Notebook Studio Full-Viewport Page",
       "Command Palette: 'Open C# Code Studio' (Ctrl+Alt+E)",
-      "Status Bar: Clickable '{ } C# Studio' Widget",
-      "Ribbon: Plugins Tab > Tools > C# Studio Action"
+      "Status Bar: Clickable '{ } C# Studio' Widget with Language Selector",
+      "Ribbon: Plugins Tab > Tools > C# Studio Action",
+      "9 Language Kernels: C#, Python, JavaScript, Java, Go, Rust, F#, C++, SQL",
+      "Fry Kernel Protocol: Cross-language variable sharing via #!share"
     ],
     "dependencies": [
       "PdfEditorApp.Core >= 1.0.0"
     ],
     "versions": [
+      {
+        "version": "2.0.1",
+        "releaseDate": "2026-10-01",
+        "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/v2.0.1/CSharpEditor.fryplugin",
+        "sha256": "e30c9c209f4ee6667551a0a89b051f880f0904e478c053b1732827ebd27c1586",
+        "formattedSize": "6.8 MB",
+        "minHostVersion": "1.0.0",
+        "targetFramework": "net10.0",
+        "releaseNotes": "Major 2.0 release: 9-language polyglot IDE (C#, Python, JavaScript, Java, Go, Rust, F#, C++, SQL), Fry Kernel Protocol cross-language notebooks, step-by-step data structure visualizers, Blind 75 problem browser, VS Code 5-zone layout with full keyboard shortcut parity, and 1,100+ automated tests. Fixes cross-platform path separators, drive parsing, and notebook cell cold-start timeouts."
+      },
       {
         "version": "1.0.6",
         "releaseDate": "2026-09-26",
@@ -54,8 +79,6 @@
         "targetFramework": "net10.0",
         "releaseNotes": "Release v1.0.6 of C# Code Studio."
       },
-
-
       {
         "version": "1.0.5",
         "releaseDate": "2026-09-25",
@@ -117,7 +140,7 @@
         "releaseNotes": "Release v1.0.0 of C# Code Studio."
       }
     ],
-    "sha256": "8a9cb0bfe56b4f4253756cabc6114f4a47a17a5e4b3ac01240e9767fad59da5f"
+    "sha256": "e30c9c209f4ee6667551a0a89b051f880f0904e478c053b1732827ebd27c1586"
   },
   {
     "id": "com.frypdf.plugin.chess",
