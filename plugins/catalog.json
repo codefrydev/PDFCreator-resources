@@ -63,7 +63,7 @@
         "version": "2.0.1",
         "releaseDate": "2026-10-01",
         "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/v2.0.1/CSharpEditor.fryplugin",
-        "sha256": "a7984648373b75e097c90092672940bb7881d1d6d73648197b9923cf59eced50",
+        "sha256": "1d24826a038011b439b471c10e20ca5c7b1f786fa196f255405e2915c69a1cdd",
         "formattedSize": "6.8 MB",
         "minHostVersion": "1.0.0",
         "targetFramework": "net10.0",
@@ -140,7 +140,7 @@
         "releaseNotes": "Release v1.0.0 of C# Code Studio."
       }
     ],
-    "sha256": "a7984648373b75e097c90092672940bb7881d1d6d73648197b9923cf59eced50"
+    "sha256": "1d24826a038011b439b471c10e20ca5c7b1f786fa196f255405e2915c69a1cdd"
   },
   {
     "id": "com.frypdf.plugin.chess",
