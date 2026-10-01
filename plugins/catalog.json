@@ -3,7 +3,7 @@
     "id": "com.frypdf.plugin.csharpeditor",
     "name": "C# Code Studio",
     "publisher": "Code Fry Dev",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "category": "Developer & Tools",
     "description": "Full-featured polyglot IDE and interactive notebook studio \u2014 C#, Python, JavaScript, Java, Go, Rust, F#, C++, and SQL \u2014 with VS Code ergonomics, real-time Roslyn diagnostics, step-by-step visualizers, and the Fry Kernel Protocol for cross-language notebooks.",
     "longDescription": "C# Code Studio 2.0 is a complete IDE rewrite delivering VS Code-faithful ergonomics inside FryPDF \u2014 Activity Bar, Primary Side Bar, multi-tab Editor, resizable Bottom Deck, and Status Bar \u2014 across 9 languages.\n\n### What's New in 2.0\n\u2022 **9 Languages**: C#, Python, JavaScript/Node, Java, Go, Rust, F#, C++, SQL \u2014 each with its own toolchain provider, diagnostic parser, package manager, and kernel.\n\u2022 **Polyglot Notebooks**: Mixed-language `.csnb` / `.ipynb` notebooks with collapsible cells, markdown rendering, and rich cell output tabs.\n\u2022 **Fry Kernel Protocol**: Line-delimited JSON kernel over stdin/stdout with cross-language `#!share` variable exchange.\n\u2022 **Step-by-Step Visualizers**: Data-structure visualizers (arrays, linked lists, trees, graphs), recursion call-tree tracking, interactive charts, 3D plots, `.Dump()` tables, and an object inspector.\n\u2022 **Blind 75 Problem Browser**: Full LeetCode Blind 75 catalogue with animated algorithm walkthroughs and test-case runner.\n\u2022 **VS Code Keyboard Shortcuts**: Ctrl+B, Ctrl+J, F5/F10/F11, Ctrl+Shift+E/F/D/M, and more.\n\u2022 **1,100+ Automated Tests**: Every language, every service, every UI zone covered.",
@@ -16,7 +16,7 @@
     "license": "MIT",
     "isVerified": true,
     "isOfficial": true,
-    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/v2.0.1/CSharpEditor.fryplugin",
+    "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/v2.0.2/CSharpEditor.fryplugin",
     "tags": [
       "csharp",
       "editor",
@@ -59,6 +59,16 @@
       "PdfEditorApp.Core >= 1.0.0"
     ],
     "versions": [
+      {
+        "version": "2.0.2",
+        "releaseDate": "2026-10-02",
+        "downloadUrl": "https://raw.githubusercontent.com/codefrydev/PDFCreator-resources/refs/heads/main/plugins/com.frypdf.plugin.csharpeditor/v2.0.2/CSharpEditor.fryplugin",
+        "sha256": "fd7ceba236b4dd67b159c9390860deece6adc6c35f3f9dac01b619335cd0cace",
+        "formattedSize": "6.8 MB",
+        "minHostVersion": "1.0.0",
+        "targetFramework": "net10.0",
+        "releaseNotes": "Release 2.0.2: Adds Java visualizer runtime, expands C++ display features, introduces UI diagram snapshots and 3D voxel chart support, adds Edit Distance template with markdown table rendering, adds Rust, Go, and JavaScript code variants for diagram documentation, and fixes canvas visualizer layout."
+      },
       {
         "version": "2.0.1",
         "releaseDate": "2026-10-01",
@@ -140,7 +150,7 @@
         "releaseNotes": "Release v1.0.0 of C# Code Studio."
       }
     ],
-    "sha256": "4f58af7cf69887db15f343605106699b146352e5adc6cc44f27c96ec5f08d93d"
+    "sha256": "fd7ceba236b4dd67b159c9390860deece6adc6c35f3f9dac01b619335cd0cace"
   },
   {
     "id": "com.frypdf.plugin.chess",
