@@ -145,6 +145,18 @@ def package_single_plugin(plugin_dir: Path, target_version: str | None = None) -
             today_str = datetime.date.today().isoformat()
             version_download_url = f"{REPO_RAW_BASE}/plugins/{plugin_id}/v{version}/{package_file.name}"
 
+            existing_notes = None
+            for item in catalog:
+                if item.get("id") == plugin_id:
+                    for v_item in item.get("versions", []):
+                        if v_item.get("version", "").lstrip("vV") == version:
+                            existing_notes = v_item.get("releaseNotes")
+                            break
+                    break
+
+            manifest_notes = manifest.get("releaseNotes")
+            final_notes = manifest_notes or existing_notes or f"Release v{version} of {manifest.get('name', plugin_id)}."
+
             new_version_entry = {
                 "version": version,
                 "releaseDate": today_str,
@@ -153,7 +165,7 @@ def package_single_plugin(plugin_dir: Path, target_version: str | None = None) -
                 "formattedSize": formatted_sz,
                 "minHostVersion": manifest.get("minHostVersion", "1.0.0"),
                 "targetFramework": manifest.get("targetFramework", "net10.0"),
-                "releaseNotes": manifest.get("releaseNotes", f"Release v{version} of {manifest.get('name', plugin_id)}.")
+                "releaseNotes": final_notes
             }
 
             updated = False
