@@ -3,7 +3,6 @@ name: FrySharp & C# Studio Release
 on:
   push:
     tags:
-      - 'csharp-v*'
       - 'v*'
   workflow_dispatch:
     inputs:
@@ -241,3 +240,34 @@ jobs:
               --title "FrySharp $TAG_NAME" \
               --generate-notes
           fi
+
+      - name: Update Homebrew Tap
+        if: env.HOMEBREW_TAP_TOKEN != ''
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          VERSION: ${{ needs.determine-version.outputs.version }}
+        run: |
+          DMG=$(find artifacts/macos-dmg -name "FrySharp-*-arm64.dmg" | head -n 1)
+          if [ -n "$DMG" ] && [ -f "$DMG" ]; then
+            SHA256=$(sha256sum "$DMG" | cut -d' ' -f1)
+            echo "Updating Homebrew Tap for FrySharp v$VERSION (SHA256: $SHA256)..."
+
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+            git clone "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/PrashantUnity/homebrew-tap.git" /tmp/homebrew-tap
+            cd /tmp/homebrew-tap
+
+            sed -i -E "s/version \"[^\"]+\"/version \"$VERSION\"/" Casks/frysharp.rb
+            sed -i -E "s/sha256 \"[^\"]+\"/sha256 \"$SHA256\"/" Casks/frysharp.rb
+
+            git add Casks/frysharp.rb
+            if ! git diff --cached --quiet; then
+              git commit -m "chore: bump frysharp to v$VERSION"
+              git push origin main
+              echo "Homebrew tap updated successfully!"
+            else
+              echo "No changes detected in Casks/frysharp.rb"
+            fi
+          fi
+
